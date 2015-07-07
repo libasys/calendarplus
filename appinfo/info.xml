@@ -1,0 +1,25 @@
+<?xml version="1.0"?> 
+<info>
+	<id>calendarplus</id>
+	<name>Calendar Plus</name>
+	<licence>AGPL</licence>
+	<author>Döll Sebastian, Georg Ehrke, Bart Visscher, Jakob Sack</author>
+	<shipped>false</shipped>
+	<description>Calendar Plus with CalDAV support and public sharing via link, activity log, reminder alerts and many more features</description>
+	<namespace>CalendarPlus</namespace>
+	<website>https://github.com/libasys/ownCloud-8.1-CalendarPlus</website>
+	<version>1.0.0</version>
+	<category>productivity</category>
+	<default_enable/>
+	<remote>
+		<calendarplus>appinfo/remote.php</calendarplus>
+	</remote>
+	<public>
+		<calendarplus>share.php</calendarplus>
+		<calendarplusevent>shareevent.php</calendarplusevent>
+	</public>
+	<dependencies>
+		<php min-version="5.4" max-version="5.6"/>
+		<owncloud min-version="8.1" max-version="8.2"/>
+	</dependencies>	
+</info>

@@ -1,0 +1,210 @@
+/**
+ * ownCloud - CalendarPlus
+ *
+ * @author Sebastian Doell
+ * @copyright 2015 sebastian doell sebastian@libasys.de
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU AFFERO GENERAL PUBLIC LICENSE
+ * License as published by the Free Software Foundation; either
+ * version 3 of the License, or any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU AFFERO GENERAL PUBLIC LICENSE for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public
+ * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ */
+
+body{
+	background:#fff;
+}
+#controls{
+	top:44px;
+	background:#fff;
+}
+#fullcalendar{
+	top:88px;
+	padding-left:10px;
+}
+#leftcontent{
+	top:88px;
+}
+
+
+#datepickerNav{
+	width:250px;
+}
+
+.fc-view-list{
+	overflow:auto;
+	height:auto;
+}
+
+#leftcontent{
+	width:255px;
+}
+#leftcontentInner{
+	position:relative;
+	top:0px;
+	padding:0;
+	margin:0;
+}
+#view button.active{
+	background:#fff;
+}
+
+footer{
+	position:absolute;
+	bottom:0;
+	width:100%;
+	text-align:center;
+}
+.leftControls{
+	position:relative;
+	float:left;
+	width:25%;
+	display:none;
+	
+}
+.centerControls{
+	position:relative;
+	float:left;
+	width:50%;
+	text-align:center;
+	display:inline-block;
+	
+}
+.rightControls{
+	position:relative;
+	float:left;
+	min-width:23%;
+	right:0;
+	display:none;
+	text-align:right;
+	
+}
+.rightControls label{
+	text-align:right;
+	position:relative;
+	
+	font-size:14px;
+	display:inline-block;
+	line-height:20px;
+	width:auto;
+	height:20px;
+
+}
+.chzn-container{
+	margin-top:10px;
+	text-align:left;
+	width:120px;
+}
+
+#eventPublic .noticeShareShow{
+	display:block;
+	width:96%;
+	float:left;
+	min-height:50px;
+	line-height:20px;
+	border-radius:8px;
+	border:1px solid #ccc;
+	padding:5px;
+}
+#header{
+	display:none;
+}
+footer{
+	display:none;
+}
+.header-right{
+	
+	height:30px;
+	margin:0;
+	padding:0;
+	position:relative;
+	top:5px;
+	right:10px;
+	float:right;
+}
+
+.header-right span a.button{
+	border:1px solid #ccc;
+	background:#fff;
+	color:#000;
+}
+
+.header-right a:hover{
+	border:1px solid #ccc;
+	background:black;
+	color:#fff;
+}
+
+#eventPublic{
+	top:88px;
+	position:relative;
+	display:block;
+	width:30%;
+	margin-left:auto;
+	margin-right:auto;
+	font-size:14px;
+}
+
+#eventPublic i.ioc{
+	font-size:16px;
+	margin-right:5px;
+}
+
+#eventPublicInner{
+	position:relative;
+	display:block;
+	width:90%;
+	margin-left:auto;
+	margin-right:auto;
+	border:1px solid #ccc;
+	padding:10px;
+	border-radius:8px;
+	line-height:22px;
+	box-shadow:0 0 1em rgba(0, 0, 0, .5);
+	min-height:300px;
+	min-width:300px;
+}
+.shareevent tr:hover{
+	background-color:transparent;
+}
+
+th.leftDescr{
+	width:30px;
+	line-height:24px;
+	padding:0;
+	margin:0;
+}
+
+.shareevent th.leftDescr{
+	width:120px;
+	line-height:22px;
+	padding:0;
+	margin:0;
+}
+.shareevent a{
+	text-decoration:underline;
+}
+
+@media only screen and (max-width: 768px) {
+	.rightControls{
+		display:none;
+	}
+	.leftControls{
+		width:10%;
+	}
+	#leftcontent{
+		display:none;
+		width:0;
+	}
+	.centerControls{
+		width:90%;
+	}
+}

@@ -1,0 +1,27 @@
+#body-login form label.infield {
+	width: 190px;
+	padding: 10px;
+	left: 8px;
+	top: 8px;
+}
+
+#body-login form div.warning-info{
+	color:#000;
+}
+
+#password {
+	width: 190px !important;
+	padding: 10px;
+	margin:	6px;
+}
+
+#body-login form{
+	width:300px;
+	color:#000;
+}
+#body-login input[type="submit"] {
+	
+	font-size:14px;
+	width:50px;
+	padding:12px 4px;
+}
