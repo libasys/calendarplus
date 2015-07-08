@@ -55,13 +55,12 @@ class Calendar extends \Sabre\CalDAV\Calendar {
 		
 		$calendar = CalendarApp::getCalendar($this->calendarInfo['id'], false, false);
 		
-        if($uid == \OCP\USER::getUser() && $calendar['issubscribe'] == true) {
+        if($uid === \OCP\USER::getUser() && (bool)$calendar['issubscribe'] === true) {
          		$readprincipal = 'principals/' . \OCP\USER::getUser();
 				$writeprincipal ='';
-				//\OCP\Util::writeLog('calendar','caldav: ->'.$calendar['issubscribe'], \OCP\Util::DEBUG);
          }
 		
-		if($uid != \OCP\USER::getUser()) {
+		if($uid !== \OCP\USER::getUser()) {
 			$sharedCalendar = \OCP\Share::getItemSharedWithBySource(CalendarApp::SHARECALENDAR, CalendarApp::SHARECALENDARPREFIX.$this->calendarInfo['id']);
 			if ($sharedCalendar && ($sharedCalendar['permissions'] & \OCP\PERMISSION_READ)) {
 				$readprincipal = 'principals/' . \OCP\USER::getUser();

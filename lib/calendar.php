@@ -58,7 +58,7 @@ class Calendar{
 		while( $row = $result->fetchRow()) {
 			$row['permissions'] = \OCP\PERMISSION_ALL;
 			if($row['issubscribe']) {
-				$row['permissions'] = \OCP\PERMISSION_READ;
+				$row['permissions'] = \OCP\PERMISSION_SHARE;
 			}
 			$row['description'] = '';
 			$row['active'] = (int) $row['active'];
@@ -128,8 +128,8 @@ class Calendar{
 		
 		$user = \OCP\User::getUser();
 		
-		if($row['userid'] != $user) {
-			$userExists=\OC::$server->getUserManager()->userExists($user);	
+		if($row['userid'] !== $user) {
+			$userExists = \OC::$server->getUserManager()->userExists($user);	
 				
 			if(!$userExists){
 				$sharedCalendar=\OCP\Share::getItemSharedWithByLink(App::SHARECALENDAR,App::SHARECALENDARPREFIX.$id,$row['userid']);
@@ -162,13 +162,15 @@ class Calendar{
 	 * @param string $color Default: null, format: '#RRGGBB(AA)'
 	 * @return insertid
 	 */
-	public static function addCalendar($userid,$name,$components='VEVENT,VTODO,VJOURNAL',$timezone=null,$order=0,$color="#C2F9FC",$issubscribe=false,$externuri='',$lastmodified=0 ) {
+	public static function addCalendar( $userid, $name, $components = 'VEVENT,VTODO,VJOURNAL', $timezone = null , $order = 0, $color = "#C2F9FC", $issubscribe = 0, $externuri = '',$lastmodified = 0 ) {
 		$all = self::allCalendars($userid);
 		$uris = array();
 		foreach($all as $i) {
 			$uris[] = $i['uri'];
 		}
-        if($lastmodified == 0) $lastmodified=time();
+        if($lastmodified === 0){
+        	 $lastmodified = time();
+		}
 		
 		$uri = self::createURI($name, $uris );
 
@@ -205,7 +207,7 @@ class Calendar{
 		}
 		
 		$id = self::addCalendar($userid,$userid);
-		\OCP\Config::setUserValue($userid, App::$appname, 'choosencalendar',$id);
+		\OCP\Config::setUserValue($userid, App::$appname, 'choosencalendar', $id);
 		\OCP\Config::setUserValue($userid, App::$appname, 'calendarnav', 'true');
 
 		return true;

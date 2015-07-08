@@ -39,6 +39,7 @@ $navigationEntry = function () use ($c) {
 $c->getServer()->getNavigationManager()->add($navigationEntry);
 
 //upcoming version search for 8.2 perhaps patch https://github.com/owncloud/core/pull/17339/files
+//\OC::$server->getSearch()->registerProvider('OCA\CalendarPlus\Search\Provider', array('app' =>$appName,'apps' =>array('tasksplus')));
 \OC::$server->getSearch()->registerProvider('OCA\CalendarPlus\Search\Provider', array('app' =>$appName));
 
 if(\OC::$server->getAppManager()->isEnabledForUser('activity')){

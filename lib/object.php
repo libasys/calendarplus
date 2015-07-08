@@ -233,7 +233,7 @@ class Object{
 	 * @param string $data  object
 	 * @return insertid
 	 */
-	public static function add($id,$data, $shared=false, $eventid=0) {
+	public static function add($id,$data, $shared = false, $eventid=0) {
 		$calendar = Calendar::find($id);
 		if ($calendar['userid'] != \OCP\User::getUser()) {
 			$sharedCalendar = \OCP\Share::getItemSharedWithBySource(App::SHARECALENDAR, App::SHARECALENDARPREFIX.$id);

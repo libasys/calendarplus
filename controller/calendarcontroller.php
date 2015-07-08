@@ -413,9 +413,9 @@ class CalendarController extends Controller {
 			
 			if(strtolower($getProtocol[0]) === 'webcal') {
 				$newUrl='https://'.	$getProtocol[1];
-				$last_modified=$this -> stream_last_modified($newUrl);
+				$last_modified = $this -> stream_last_modified($newUrl);
 				if (is_null($last_modified)){
-					$newUrl='http://'.$getProtocol[1];
+					$newUrl = 'http://'.$getProtocol[1];
 				    $last_modified= $this ->stream_last_modified($newUrl);
 					if (is_null($last_modified)){$bExistUri=false;}
 					else{$bExistUri=true;}
@@ -579,8 +579,10 @@ class CalendarController extends Controller {
 						 if((bool)$calInfo['issubscribe'] === false){
 					   	 		$output.='<li data-id="'.$calInfo['id'].'" class="calListen '.$isActiveUserCal.'">'.$checkBox.'<div class="colCal iCalendar '.$addCheckClass.'" style="cursor:pointer;background:'.$calInfo['calendarcolor'].'">&nbsp;</div> '.$displayName.'</li>';
 						 }else{
-						   $refreshImage='<i title="refresh"  class="refreshSubscription ioc ioc-refresh" style="cursor:pointer;float:right;">&nbsp;</i>';
-				 			$outputAbo.='<li data-id="'.$calInfo['id'].'" class="calListen '.$isActiveUserCal.'">'.$checkBox.'<div class="colCal" style="cursor:pointer;background:'.$calInfo['calendarcolor'].'">&nbsp;</div> '.$refreshImage.$displayName.'</li>';
+						    if($calInfo['userid'] === $this->userId){
+						   		$refreshImage='<i title="refresh"  class="refreshSubscription ioc ioc-refresh" style="cursor:pointer;float:right;position:absolute;right:18px;">&nbsp;</i>';
+							}
+				 			$outputAbo.='<li data-id="'.$calInfo['id'].'" class="calListen '.$isActiveUserCal.'">'.$checkBox.'<div class="colCal" style="cursor:pointer;background:'.$calInfo['calendarcolor'].'">&nbsp;</div> '.$displayName.$refreshImage.'</li>';
 							
 						 }
 					}
