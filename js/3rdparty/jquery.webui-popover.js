@@ -456,7 +456,7 @@
 						pageX = Math.max(0,pos.left - scrollLeft),
 						pageY = Math.max(0,pos.top - scrollTop);
 						//arrowSize = 20;
-
+						
 					//if placement equals auto，caculate the placement by element information;
 					if (typeof(this.options.placement)==='function'){
 						placement = this.options.placement.call(this, this.getTarget()[0], this.$element[0]);
@@ -565,10 +565,13 @@
 				},
 
 				getTargetPositin:function(elementPos,placement,targetWidth,targetHeight){
+					
 					var pos = elementPos,
 						elementW = this.$element.outerWidth(),
 						elementH = this.$element.outerHeight(),
 						position={},
+						de = document.documentElement,
+						clientWidth = de.clientWidth,
 						arrowOffset=null,
 						arrowSize = this.options.arrow?20:0,
 						fixedW = elementW<arrowSize+10?arrowSize:0,

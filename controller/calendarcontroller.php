@@ -501,12 +501,12 @@ class CalendarController extends Controller {
 							<button class="button viewaction" data-action="agendaWorkWeek" data-view="true" data-weekends="false">'.$this->l10n->t('W-Week').'</button>			
 							<button class="button viewaction" data-action="agendaWeek" data-view="true" data-weekends="true">'.$this->l10n->t('Week').'</button>
 						  <button class="button viewaction" data-action="month" data-view="true" data-weekends="true">'.$this->l10n->t('Month').'</button>
-						   <button class="button viewaction" data-action="list" data-view="true" data-weekends="true"><i class="ioc ioc-list" title="'.$this->l10n->t('List').'"></i></button>
+						   <button class="button viewaction" data-action="list" data-view="true" data-weekends="true"><i class="ioc ioc-th-list" title="'.$this->l10n->t('List').'"></i></button>
 						   	<button class="button viewaction" data-action="year" data-view="true" data-weekends="true">'.$this->l10n->t('Year').'</button>
 						   
 						   <br />
-						   <button class="button" data-action="prev" data-view="false" data-weekends="false"><i class="ioc ioc-previous"></i></button>		
-						  <button class="button"  data-action="next" data-view="false" data-weekends="false"><i class="ioc ioc-next"></i></button>	
+						   <button class="button" data-action="prev" data-view="false" data-weekends="false"><i class="ioc ioc-angle-left"></i></button>		
+						  <button class="button"  data-action="next" data-view="false" data-weekends="false"><i class="ioc ioc-angle-right"></i></button>	
 				
 			  </div>	
 				<div id="datepickerNav"></div>
