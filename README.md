@@ -12,8 +12,10 @@ Version Info:
 Setup Info:
 ===========
 This version of the calendar app is only compatible with upcoming ownCloud Version 8.1 or later!
-If you wan't to use your old calendar events, you have to export via desktop calendar program or web ui of an older calendar installation!
+
 The old sharees won't work if you export the database shema from an old installation of ownCloud!
+You can use *calendarplus* parallel to your current calendar application: it works on its own tables, so you can thoroughly test it without the risk of messing up your existing calendars. If you want to use your old calendar events, you have to export them using a desktop calendar application or the web interface, and import them to *calendarplus.* It won't work to simply export the database from an older installation of ownCloud.
+
 
 Installation:
 =============
