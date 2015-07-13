@@ -6,6 +6,7 @@ OC.L10N.register(
 "No calendars found." : "Keine Kalender gefunden.",
 "No events found." : "Keine Termine gefunden.",
 "Wrong calendar" : "Falscher Kalender",
+"Birthday of " : "Geburtstag von ",
 "You do not have the permissions to edit this event." : "Sie besitzen nicht die Berechtigung, diese Veranstaltung zu bearbeiten.",
 "The file contained either no events or all events are already saved in your calendar." : "Entweder enthielt die Datei keine Termine oder alle Termine waren bereits im Kalender gespeichert.",
 "events has been saved in the new calendar" : "Der Termin wurde im neuen Kalender gespeichert.",
@@ -213,10 +214,8 @@ OC.L10N.register(
 "Create a new event" : "Neues Ereignis erstellen",
 "Share with:" : "Teilen mit:",
 "Shared with" : "Geteilt mit",
-
 "Unshare" : "Freigabe aufheben",
 "can edit" : "kann bearbeiten",
-
 "create" : "erstellen",
 "update" : "aktualisieren",
 "delete" : "löschen",

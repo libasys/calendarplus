@@ -134,12 +134,12 @@ class CalendarSettingsController extends Controller {
 			$isAktiv= $calendar['active'];
 			
 			if($this ->configInfo -> getUserValue($this -> userId, $this->appName, 'calendar_'.$calendar['id']) !== ''){
-			    $isAktiv=$this ->configInfo -> getUserValue($this -> userId, $this->appName, 'calendar_'.$calendar['id']);
+			    $isAktiv = (int)$this ->configInfo -> getUserValue($this -> userId, $this->appName, 'calendar_'.$calendar['id']);
 		    }	
 			if(!array_key_exists('active', $calendar)){
-				$isAktiv= 1;
+				$isAktiv = 1;
 			}
-			if($isAktiv === 1) {
+			if((int)$isAktiv === 1) {
 				$eventSources[] = CalendarCalendar::getEventSourceInfo($calendar);
 				$calendarInfo[$calendar['id']]=[
 					'bgcolor'=>$calendar['calendarcolor'],

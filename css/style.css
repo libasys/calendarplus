@@ -36,7 +36,14 @@
 	margin-top: 0px;
 	
 }
-
+.birthday-event{
+	background-color:red;
+	font-size:20px;
+}
+.birthday-calendar{
+	background-color:blue;
+	color:red;
+}
 .ui-dialog{
 	background:#fff;
 	padding:0;
@@ -1056,7 +1063,7 @@ cursor:pointer;
 }
 #leftcontent li.calListen span.descr{
 	
-	width:140px;
+	width:120px;
 	display:block;
 	float:left;
 	white-space:nowrap;
@@ -1064,6 +1071,7 @@ cursor:pointer;
    -o-text-overflow: ellipsis;
    overflow:hidden;
 	line-height:30px;
+	
 }
 
 

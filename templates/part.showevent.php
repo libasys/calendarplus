@@ -60,13 +60,13 @@
 <!--<div id="tabs-1"> -->
 	<table width="100%">
 		<tr>
-			<td style="font-size:16px;color:#0098E4; font-weight:bold;line-height:22px;">
-				<?php p(isset($_['title']) ? $_['title'] : '') ?>
+			<td>
+				<div style="white-space:normal;display:inline-block;font-size:16px;color:#0098E4;width:80%; font-weight:bold;line-height:22px;"><?php p(isset($_['title']) ? $_['title'] : '') ?></div>
 			</td>
 		</tr>
 		<?php if($_['location']!=''){ ?>
 		<tr><td>
-			<a id="showLocation" style="font-size:14px; color:#818181;" target="_blank" href="http://maps.google.com/maps?q=<?php p(isset($_['location']) ? $_['location'] : '') ?>&amp;z=20" data-geo="data-geo"><?php p(isset($_['location']) ? $_['location'] : '') ?></a>
+			<a id="showLocation" style="white-space:normal;font-size:14px; color:#818181;" target="_blank" href="http://maps.google.com/maps?q=<?php p(isset($_['location']) ? $_['location'] : '') ?>&amp;z=20" data-geo="data-geo"><?php p(isset($_['location']) ? $_['location'] : '') ?></a>
 
 		</td></tr>
 		<?php } ?>	

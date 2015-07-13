@@ -99,7 +99,7 @@ class TasksController extends Controller {
 		$vcalendar = CalendarApp::getVCalendar( $id );
 		$vtodo = $vcalendar->VTODO;
 		
-		TasksApp::setComplete($vtodo, $checked ? '100' : '0', null);
+		TasksApp::setComplete($vtodo, $checked ? 100 : 0, null);
 		Object::edit($id, $vcalendar->serialize());
 		$user_timezone = CalendarApp::getTimezone();
 		
@@ -109,14 +109,14 @@ class TasksController extends Controller {
 		$task_info[] =  TasksApp::arrayForJSON($id, $vtodo, $user_timezone,$aCalendar,$aTask);
 		
 		$subTaskIds='';
-			if($aTask['relatedto']==''){
+			if($aTask['relatedto'] === ''){
 				$subTaskIds = TasksApp::getSubTasks($aTask['eventuid']);
-				if($subTaskIds!=''){
+				if($subTaskIds !== ''){
 				  $tempIds = explode(',',$subTaskIds);	
 				  foreach($tempIds as $subIds){
 				  	$vcalendar = TasksApp::getVCalendar( $subIds, true, true );
 					$vtodo = $vcalendar->VTODO;
-					TasksApp::setComplete($vtodo, $checked ? '100' : '0', null);
+					TasksApp::setComplete($vtodo, $checked ? 100 : 0, null);
 					TasksApp::edit($subIds, $vcalendar->serialize());
 					$task_info[] = TasksApp::arrayForJSON($subIds, $vtodo, $user_timezone,$aCalendar,$aTask);
 				  }

@@ -8,7 +8,7 @@
 	<description>Calendar Plus with CalDAV support and public sharing via link, activity log, reminder alerts and many more features</description>
 	<namespace>CalendarPlus</namespace>
 	<website>https://github.com/libasys/ownCloud-8.1-CalendarPlus</website>
-	<version>1.0.1</version>
+	<version>1.0.2</version>
 	<category>productivity</category>
 	<default_enable/>
 	<remote>

@@ -155,6 +155,11 @@ class Import{
 			if(!is_null($object->RRULE)){
 				$bAddtz =true;
 			}
+			if(is_null($object->CLASS)){
+				$object->CLASS = 'PUBLIC';
+			}
+			
+			
 			$vcalendar = $this->createVCalendar($object->serialize(),$bAddtz);
 			$insertid = Object::add($this->id, $vcalendar);
 			$this->abscount++;

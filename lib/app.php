@@ -665,7 +665,7 @@ class App {
 	 */
 	public static function getrequestedEvents($calendarid, $start, $end) {
 		$events = array();
-
+			
 		if ($calendarid === 'shared_events') {
 
 			$checkStart = $start -> format('U');
@@ -683,6 +683,7 @@ class App {
 
 			}
 		} else {
+					
 			if (is_numeric($calendarid)) {
 				$calendar = self::getCalendar($calendarid);
 
@@ -692,7 +693,8 @@ class App {
 				$events = Object::allInPeriod($calendarid, $start, $end, $calendar['userid'] !== \OCP\User::getUser());
 
 			} else {
-				\OCP\Util::emitHook('OC_Calendar', 'getEvents', array('calendar_id' => $calendarid, 'events' => &$events));
+				
+				\OCP\Util::emitHook('OCA\CalendarPlus', 'getEvents', array('calendar_id' => $calendarid, 'events' => &$events));
 			}
 		}
 		return $events;

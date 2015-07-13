@@ -38,7 +38,7 @@ $calendar_options = OCA\CalendarPlus\Calendar::allCalendars(OCP\USER::getUser())
 			if(!$calendar_options[$i]['issubscribe'] && $calendar_options[$i]['id'] != 'birthday_'.OCP\USER::getUser()){	
 				$calendarChoose[]= array(
 						'id' => $calendar_options[$i]['id'],
-						'displayname' => OCP\Util::sanitizeHTML($calendar_options[$i]['displayname'])
+						'displayname' => $calendar_options[$i]['displayname']
 						);
 			}
 		}

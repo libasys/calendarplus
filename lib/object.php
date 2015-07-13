@@ -276,7 +276,7 @@ class Object{
 		App::loadCategoriesFromVCalendar($object_id, $object);
 
 		Calendar::touchCalendar($id);
-		\OCP\Util::emitHook('OC_Calendar', 'addEvent', $object_id);
+		\OCP\Util::emitHook('\OCA\CalendarPlus', 'addEvent', $object_id);
 		
 		 $linkTypeApp=App::$appname;
 	     if($type=='VTODO') {
@@ -342,7 +342,7 @@ class Object{
 		$object_id = \OCP\DB::insertid(App::CldObjectTable);
 
 		Calendar::touchCalendar($id);
-		\OCP\Util::emitHook('OC_Calendar', 'addEvent', $object_id);
+		\OCP\Util::emitHook('\OCA\CalendarPlus', 'addEvent', $object_id);
 		
 		$linkTypeApp=App::$appname;
 	     if($type=='VTODO'){
@@ -468,7 +468,7 @@ class Object{
 		$stmt->execute(array($type,$startdate,$enddate,$repeating,$summary,$data,time(),$isAlarm,$id));
 
 		Calendar::touchCalendar($oldobject['calendarid']);
-		\OCP\Util::emitHook('OC_Calendar', 'editEvent', $id);
+		\OCP\Util::emitHook('\OCA\CalendarPlus', 'editEvent', $id);
 		
 		/****Activity New ***/
 		
@@ -535,7 +535,7 @@ class Object{
 				}
 		}*/
 		Calendar::touchCalendar($oldobject['calendarid']);
-		\OCP\Util::emitHook('OC_Calendar', 'editEvent', $oldobject['id']);
+		\OCP\Util::emitHook('\OCA\CalendarPlus', 'editEvent', $oldobject['id']);
         
         $linkTypeApp=App::$appname;
 	     if($type=='VTODO') {
@@ -599,7 +599,7 @@ class Object{
 		
         Calendar::touchCalendar($oldobject['calendarid']);
 		
-		\OCP\Util::emitHook('OC_Calendar', 'deleteEvent', $id);
+		\OCP\Util::emitHook('\OCA\CalendarPlus', 'deleteEvent', $id);
 		
 		
 		$params=array(
@@ -642,7 +642,7 @@ class Object{
 		$stmt = \OCP\DB::prepare( 'DELETE FROM `'.App::CldObjectTable.'` WHERE `calendarid`= ? AND `uri`=?' );
 		$stmt->execute(array($cid,$uri));
 		Calendar::touchCalendar($cid);
-		\OCP\Util::emitHook('OC_Calendar', 'deleteEvent', $oldobject['id']);
+		\OCP\Util::emitHook('\OCA\CalendarPlus', 'deleteEvent', $oldobject['id']);
        
 	    
 		
@@ -677,7 +677,7 @@ class Object{
 		$stmt->execute(array($calendarid,$id));
 
 		Calendar::touchCalendar($calendarid);
-		\OCP\Util::emitHook('OC_Calendar', 'moveEvent', $id);
+		\OCP\Util::emitHook('\OCA\CalendarPlus', 'moveEvent', $id);
 
 		return true;
 	}
@@ -1410,7 +1410,7 @@ class Object{
 		if($request['reminder']!='none'){
 			//$aTimeTransform=self::getReminderTimeParsingOptions();	
 			if($vevent -> VALARM){
-				$valarm=$vevent -> VALARM;
+				$valarm = $vevent -> VALARM;
 			}else{
 				$valarm = new VObject('VALARM');
                 $vevent->add($valarm);
@@ -1422,16 +1422,16 @@ class Object{
 				
 				$valarm->setString('ATTENDEE','');
 					
-				if($request['remindertimeselect']!='ondate') {
+				if($request['remindertimeselect'] !== 'ondate') {
 					//$tTime=$aTimeTransform[$request['remindertimeselect']]['timehistory'].intval($request['remindertimeinput']).$aTimeTransform[$request['remindertimeselect']]['timedescr']	;
 				    $valarm->setString('TRIGGER',$request['sReminderRequest']);
 				}
-				if($request['remindertimeselect']=='ondate') {
-					//$timezone = App::getTimezone();
-	                //$timezone = new \DateTimeZone($timezone);
-	                //$ReminderTime = new \DateTime($request['reminderdate'].' '.$request['remindertime'], $timezone);
-	                //$valarm->setDateTime('TRIGGER', $ReminderTime);
-					$valarm->setString('TRIGGER',$request['sReminderRequest']);
+				if($request['remindertimeselect'] === 'ondate') {
+				     $temp=explode('TRIGGER;VALUE=DATE-TIME:',$request['sReminderRequest']);
+					$datetime_element = new \Sabre\VObject\Property\ICalendar\DateTime(new \Sabre\VObject\Component\VCalendar(),'TRIGGER');
+					$datetime_element->setDateTime( new \DateTime($temp[1]), false);
+	                $valarm->__set('TRIGGER',$datetime_element);
+					$valarm->TRIGGER['VALUE'] = 'DATE-TIME';
 				}
 				if($request['reminderAdvanced']=='EMAIL'){
 					//ATTENDEE:mailto:sebastian.doell@libasys.de

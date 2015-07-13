@@ -158,7 +158,7 @@ class VObject{
 	}
 
 	public function setString($name, $string) {
-		if ($string != '') {
+		if ($string !== '') {
 			$string = strtr($string, array("\r\n"=>"\n"));
 			$this->vobject->__set($name, $string);
 		}else{

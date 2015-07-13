@@ -1828,6 +1828,10 @@ var CalendarPlus = {
 				end = Math.round(end.getTime() / 1000);
 			}
 			
+			if($('#appsettings_popup').is(':visible')){
+				$('#appsettings_popup').hide().remove();
+			}
+			
 			if($('.webui-popover').length>0){
 				if(CalendarPlus.popOverElem !== null){
 					CalendarPlus.popOverElem.webuiPopover('destroy');
@@ -1855,7 +1859,7 @@ var CalendarPlus = {
 				multi:false,
 				closeable:false,
 				cache:false,
-				placement:'auto-left-right',
+				placement:'auto',
 				type:'async',
 				width:400,
 				animation:'pop',
@@ -1876,6 +1880,10 @@ var CalendarPlus = {
 				choosenDate = Math.round(calEvent.start.getTime() / 1000);
 			}
 			
+			if($('#appsettings_popup').is(':visible')){
+				$('#appsettings_popup').hide().remove();
+			}
+			
 			if($('.webui-popover').length>0){
 				if(CalendarPlus.popOverElem !== null){
 					CalendarPlus.popOverElem.webuiPopover('destroy');
@@ -1884,42 +1892,44 @@ var CalendarPlus = {
 				}
 			}
 			
-			CalendarPlus.popOverElem=$(jsEvent.target);
-			var triggerClick = 'click';
-			if( CalendarPlus.searchEventId !== null){
-				triggerClick = 'manual';
-				CalendarPlus.searchEventId = null;
-				window.location.href = '#';
-			}
-			CalendarPlus.popOverElem.webuiPopover({
-				url:OC.generateUrl('apps/'+CalendarPlus.appname+'/getshowevent'),
+			if(id > 0){
+				CalendarPlus.popOverElem=$(jsEvent.target);
 				
-				async:{
-					type:'POST',
-					data:{
-						id : id,
-						choosendate : choosenDate
-					},
-					success:function(that,data){
-						that.displayContent();
+				var triggerClick = 'click';
+				if( CalendarPlus.searchEventId !== null){
+					triggerClick = 'manual';
+					CalendarPlus.searchEventId = null;
+					window.location.href = '#';
+				}
+				CalendarPlus.popOverElem.webuiPopover({
+					url:OC.generateUrl('apps/'+CalendarPlus.appname+'/getshowevent'),
 					
-						CalendarPlus.UI.startShowEventDialog(CalendarPlus.popOverElem,that);
+					async:{
+						type:'POST',
+						data:{
+							id : id,
+							choosendate : choosenDate
+						},
+						success:function(that,data){
+							that.displayContent();
 						
-						return false;
-					}
-				},
-				multi:false,
-				closeable:false,
-				animation:'pop',
-				cache:false,
-				placement:'auto-left-right',
-				type:'async',
-				width:400,
-				height:50,
-				trigger:triggerClick
-			}).webuiPopover('show');
+							CalendarPlus.UI.startShowEventDialog(CalendarPlus.popOverElem,that);
+							
+							return false;
+						}
+					},
+					multi:false,
+					closeable:false,
+					animation:'pop',
+					cache:false,
+					placement:'auto',
+					type:'async',
+					width:400,
+					height:50,
+					trigger:triggerClick
+				}).webuiPopover('show');
 			
-			
+			}
 				
 			//}
 		},
@@ -1932,6 +1942,10 @@ var CalendarPlus = {
 			 return;
 			 }*/
 			var id = calEvent.id;
+			
+			if($('#appsettings_popup').is(':visible')){
+				$('#appsettings_popup').hide().remove();
+			}
 			
 			if($('.webui-popover').length>0){
 				if(CalendarPlus.popOverElem !== null){
@@ -1964,7 +1978,7 @@ var CalendarPlus = {
 				closeable:false,
 				cache:false,
 				type:'async',
-				placement:'auto-left-right',
+				placement:'auto',
 				width:460,
 				height:250,
 				trigger:'manual',
@@ -2658,7 +2672,7 @@ var CalendarPlus = {
 				}
 				if (event.bday) {
 					
-					EventInner.prepend(CalendarPlus.Util.addIconsCal('Happy Birthday', 'birthday', '14'));
+					EventInner.prepend(CalendarPlus.Util.addIconsCal(t(CalendarPlus.appname, 'Birthday of ')+event.title, 'birthday', '14'));
 					
 				}
 				if (event.isalarm) {
@@ -3341,7 +3355,7 @@ $(document).ready(function() {
 		 $('#fullcalendar').printElement({ 
 		 	printMode: 'popup' ,
 		 	pageTitle:'wussa',
-		 	overrideElementCSS: ['http://127.0.0.1/81rc1/apps/'+CalendarPlus.appname+'/css/3rdparty/fullcalendar.print.css']
+		 	overrideElementCSS: ['/apps/'+CalendarPlus.appname+'/css/3rdparty/fullcalendar.print.css']
 		 	});
 	});
 	

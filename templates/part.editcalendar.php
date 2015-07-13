@@ -15,12 +15,14 @@
 		<input style="width:90%;" id="displayname_<?php p($_['calendar']['id']) ?>" type="text" value="<?php p($_['calendar']['displayname']) ?>">
 	</td>
 </tr>
+<?php if($_['new'] || (bool)$_['calendar']['issubscribe'] === true){ ?>
 <tr>
 	<th>Extern Link</th>
 	<td>
 		<input style="width:90%;" id="externuri_<?php p($_['calendar']['id']) ?>" type="text" style="float:left;" value="<?php p($_['calendar']['externuri']) ?>">
 	</td>
 </tr>
+<?php } ?>
 <?php if (!$_['new']): ?>
 <tr>
 	<td></td>

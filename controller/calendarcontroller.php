@@ -533,7 +533,7 @@ class CalendarController extends Controller {
 						 	$sharedescr=$mySharees[$calInfo['id']];	
 						 	$share='<i class="ioc ioc-share toolTip" title="<b>'. $this->l10n->t('Shared with').'</b><br>'.$sharedescr.'"></i> '; 	
 						 }*/
-						 	$shareLink='';
+						 $shareLink='';
 						  if($calInfo['permissions'] & \OCP\PERMISSION_SHARE && $bShareApi === 'yes') { 
 							  $shareLink='<a href="#" class="share icon-share" 
 							  	data-item-type="'.CalendarApp::SHARECALENDAR.'" 
@@ -546,7 +546,7 @@ class CalendarController extends Controller {
 								>
 								</a>';
 						  }
-						   $displayName='<span class="descr">'.$calInfo['displayname'].'</span>'.$shareLink;
+						   $displayName='<span class="descr toolTip"  title="'.$calInfo['displayname'].'">'.$calInfo['displayname'].'</span>'.$shareLink;
 						   $checked=$calInfo['active'] ? ' checked="checked"' : '';
 						 
 						  $notice='';
@@ -568,16 +568,16 @@ class CalendarController extends Controller {
 							$checked=$calShare ? ' checked="checked"' : '';
 							
 				  	        	
-				  	        $displayName = '<span class="descr">'.$calInfo['displayname'].'</span>'.$shareLink.$shareInfo;
+				  	        $displayName = '<span class="descr toolTip" title="'.$calInfo['displayname'].'">'.$calInfo['displayname'].'</span>'.$shareLink.$shareInfo;
 				           // $checkBox='';
 						 }
 						 
-				 	    $checkBox = '<input class="activeCalendarNav regular-checkbox" data-id="'.$calInfo['id'].'" style="float:left;" id="edit_active_'.$calInfo['id'].'" type="checkbox" '.$checked.' /><label style="float:left;margin-right:5px;" for="edit_active_'.$calInfo['id'].'"></label>';
+				 	    $checkBox = '<input class="activeCalendarNav regular-checkbox" data-id="'.$calInfo['id'].'" style="float:left;" id="edit_active_'.$calInfo['id'].'" type="checkbox" '.$checked.' /><label style="float:left;margin-right:5px;" class="toolTip" title="'.$this->l10n->t('show / hide calendar').'" for="edit_active_'.$calInfo['id'].'"></label>';
 				 		 
 				 		 
 						 
 						 if((bool)$calInfo['issubscribe'] === false){
-					   	 		$output.='<li data-id="'.$calInfo['id'].'" class="calListen '.$isActiveUserCal.'">'.$checkBox.'<div class="colCal iCalendar '.$addCheckClass.'" style="cursor:pointer;background:'.$calInfo['calendarcolor'].'">&nbsp;</div> '.$displayName.'</li>';
+					   	 		$output.='<li data-id="'.$calInfo['id'].'" class="calListen '.$isActiveUserCal.'">'.$checkBox.'<div class="colCal toolTip iCalendar '.$addCheckClass.'" title="'.$this->l10n->t('choose calendar as default').'" style="cursor:pointer;background:'.$calInfo['calendarcolor'].'">&nbsp;</div> '.$displayName.'</li>';
 						 }else{
 						    if($calInfo['userid'] === $this->userId){
 						   		$refreshImage='<i title="refresh"  class="refreshSubscription ioc ioc-refresh" style="cursor:pointer;float:right;position:absolute;right:18px;">&nbsp;</i>';

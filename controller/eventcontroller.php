@@ -62,7 +62,6 @@ class EventController extends Controller {
 		
 		$getId = $this -> params('calendar_id');
 			
-			
 			if (strval(intval($getId)) === strval($getId)) { // integer for sure.
 				$id = intval($getId);
 			
@@ -71,7 +70,7 @@ class EventController extends Controller {
 					$calendar_id = $id;
 					
 				}else{
-					if(\OCP\Share::getItemSharedWithBySource(CalendarApp::SHARECALENDAR, 'calendar-'.$id) === false){
+					if(\OCP\Share::getItemSharedWithBySource(CalendarApp::SHARECALENDAR, CalendarApp::SHARECALENDARPREFIX.$id) === false){
 						exit;
 					}
 				}
@@ -1092,7 +1091,7 @@ class EventController extends Controller {
                         $repeat['repeat_rules'] .= ';' . $attr . '=' . $val;
 						}
                 }
-                if ((string)$attr === 'COUNT' || (string)$attr !== 'UNTIL') {
+                if ((string)$attr === 'COUNT' || (string)$attr === 'UNTIL') {
                     $rrulearr[$attr] = $val;
                 }
             }
@@ -1619,138 +1618,184 @@ class EventController extends Controller {
         
         return $repeat;
     }
-    
+
+     private function parseTriggerDefault($trigger){
+    	/*
+		 * '-PT5M' => '5 '.(string)$l10n->t('Minutes before'),
+			'-PT10M' => '10 '.(string)$l10n->t('Minutes before'),
+			'-PT15M' => '15 '.(string)$l10n->t('Minutes before'),
+			'-PT30M' => '30 '.(string)$l10n->t('Minutes before'),
+			'-PT1H' => '1 '.(string)$l10n->t('Hours before'),
+			'-PT2H' => '2 '.(string)$l10n->t('Hours before'),
+			'-PT1D' => '1 '.(string)$l10n->t('Days before'),
+			'-PT2D' => '2 '.(string)$l10n->t('Days before'),
+			'-PT1W' => '1 '.(string)$l10n->t('Weeks before'),*/
+			
+		switch($trigger){
+			case '-PT5M': 
+			case '-P5M': 
+			return '-PT5M';
+			case '-PT10M': 
+			case '-P10M': 
+			return '-PT10M';
+			case '-PT15M': 
+			case '-P15M': 
+			return '-PT15M';	
+			case '-PT30M': 
+			case '-P30M': 
+			return '-PT30M';
+			case '-PT1H': 
+			case '-P1H': 
+			return '-PT1H';
+			case '-PT2H': 
+			case '-P2H': 
+			return '-PT2H';
+			case '-PT1D': 
+			case '-P1D': 
+			case '-P1DT':
+			return '-PT1D';
+			case '-PT2D': 
+			case '-P2D': 
+			case '-PT2DT':
+			return '-PT2D';
+			case '-PT1W': 
+			case '-P1W': 
+			case '-PT1WT':
+			return '-PT1W';										 	
+		}
+		
+    }
+
     private function parseValarm($vevent, $reminder_options){
        
-        $aAlarm='';
-        $valarm='';
+	   	$aAlarm='';
+       if($vevent -> VALARM){
+        	$valarm = $vevent -> VALARM;
+			$valarmTrigger = $valarm->TRIGGER;
 			
-        if($vevent -> VALARM){
-        	$counter=0;
-            $tAlarm='';
-            foreach ($vevent ->getComponents() as $param) {
-                if($param->name === 'VALARM'){
-                    $attr = $param->children();
-                    foreach($attr as $attrInfo){
-                        $tAlarm[$counter][$attrInfo->name]=(string) $attrInfo->getValue();
-                    }
-                    $counter++;
-                }
-            }
+			$aAlarm['action'] = $valarm -> getAsString('ACTION');
+			$aAlarm['triggerRequest'] = (string) $valarm->TRIGGER;
+			//$tempTrigger=$aAlarm['triggerRequest'];
 			
 			
-			if(count($tAlarm)>1){
-            	$valarm=$tAlarm[1];
-			}else{
-				$valarm=$tAlarm[0];
+			$aAlarm['email']='';
+			if($valarm ->ATTENDEE){
+				$aAlarm['email'] = $valarm -> getAsString('ATTENDEE');
+				if(stristr($aAlarm['email'],'mailto:')) $aAlarm['email']=substr($aAlarm['email'],7,strlen($aAlarm['email']));
 			}
 			
-            $aAlarm['action']= $valarm['ACTION'];
-            $aAlarm['triggerRequest'] = $valarm['TRIGGER'];
-            $tempTrigger=(string)$aAlarm['triggerRequest'];
-			
-           	 if(substr_count($tempTrigger,'PT') === 1 && stristr($tempTrigger,'TRIGGER')){
-           	 	$temp=explode('TRIGGER:',$tempTrigger);	
-           	 	$aAlarm['trigger']=$temp[1];
-				$aAlarm['triggerRequest']=$aAlarm['trigger'];
-           	 }
- 			
- 			if(substr_count($tempTrigger,'PT') === 1 && !stristr($tempTrigger,'TRIGGER')){
-           	 	$aAlarm['trigger']=$tempTrigger;
-				$aAlarm['triggerRequest']=$aAlarm['trigger'];
-           	 }
-			
-           	 if(substr_count($tempTrigger,'-P') === 1 && substr_count($tempTrigger,'PT') === 0){
-           	 	$temp=explode('-P',$tempTrigger);
-				$aAlarm['trigger']='-PT'.$temp[1];
-				$aAlarm['triggerRequest']=$aAlarm['trigger'];
-				
-           	 }
-			 if(substr_count($tempTrigger,'+P') === 1 && substr_count($tempTrigger,'PT') === 0){
-           	 	$temp=explode('+P',$tempTrigger);
-				$aAlarm['trigger']='+PT'.$temp[1];
-				$aAlarm['triggerRequest']=$aAlarm['trigger'];
-           	 }
-			 
-           	 if(!strstr($tempTrigger,'P')){
-               //\OCP\Util::writeLog('calendar', 'ALARM TRIGGER TIME-> '.$tempTrigger, \OCP\Util::DEBUG);
-			    $aAlarm['trigger']=$tempTrigger;
-                $aAlarm['triggerRequest']=$tempTrigger;
-            }
-            
-            $aAlarm['email']='';
-            if(array_key_exists('ATTENDEE',$valarm)){
-                $aAlarm['email']=$valarm['ATTENDEE'];
-                if(stristr($aAlarm['email'],'mailto:')) $aAlarm['email']=substr($aAlarm['email'],7,strlen($aAlarm['email']));
-            }
-       
-           if(array_key_exists($aAlarm['trigger'],$reminder_options)){
-               $aAlarm['action']=$aAlarm['trigger'];
-               $aAlarm['reminderdate'] ='';
-               $aAlarm['remindertime'] = '';
-               
-           }else{
-              $aAlarm['action']='OWNDEF';
-          		
-                if(stristr($aAlarm['trigger'],'PT')){
-                  
-				        $tempDescr='';
-                        $aAlarm['reminderdate'] ='';
-                        $aAlarm['remindertime'] = '';
-                        if(stristr($aAlarm['trigger'],'-PT')){
-                            $tempDescr='before';
-                        }
-                        if(stristr($aAlarm['trigger'],'+PT')){
-                            $tempDescr='after';
-                        }
-                        
-                        //GetTime
-                        $TimeCheck=substr($aAlarm['triggerRequest'],3,strlen($aAlarm['triggerRequest']));
-                        
-                        $aAlarm['reminder_time_input']=substr($TimeCheck,0,(strlen($TimeCheck)-1));
-                        
-                        //returns M,H,D
-                        $alarmTimeDescr=substr($aAlarm['trigger'],-1,1);
-                        if($alarmTimeDescr === 'H'){
-                            $aAlarm['reminder_time_select']='hours'.$tempDescr;
-                            
-                        }
-                        if($alarmTimeDescr === 'M'){
-                            $aAlarm['reminder_time_select']='minutes'.$tempDescr;
-                        }
-                        if($alarmTimeDescr === 'D'){
-                            $aAlarm['reminder_time_select']='days'.$tempDescr;
-                        }
-						 if($alarmTimeDescr === 'W'){
-                            $aAlarm['reminder_time_select']='weeks'.$tempDescr;
-                        }
-                }else{
-                   
-                    
-					$tDttriggertime=explode('TRIGGER;VALUE=DATE-TIME:',$aAlarm['triggerRequest']);
-					$tDttriggertime = $tDttriggertime[1];
+		  
+		   if(array_key_exists($this->parseTriggerDefault($aAlarm['triggerRequest']),$reminder_options)){
+			   $aAlarm['action'] = $this->parseTriggerDefault($aAlarm['triggerRequest']);
+			   $aAlarm['triggerRequest'] =  $aAlarm['action'];
+			   $aAlarm['reminderdate'] = '';
+			   $aAlarm['remindertime'] = '';
+			   
+		   }else{
+		   	  $aAlarm['action']='OWNDEF';
+				if($valarmTrigger->getValueType() === 'DURATION'){
+						$tempDescr='';
+					    $aAlarm['reminderdate'] = '';
+			   			$aAlarm['remindertime'] = '';
+						if(stristr($aAlarm['triggerRequest'],'TRIGGER:')){
+							$temp = explode('TRIGGER:',trim($aAlarm['triggerRequest']));
+							$aAlarm['triggerRequest'] = $temp[1];
+							
+						}
+						
+						if(stristr($aAlarm['triggerRequest'],'-P')){
+							$tempDescr='before';
+						}else{
+							$tempDescr='after';
+						}
 					
-                    if(strlen($tDttriggertime) === 8){
-                         $dttriggertime= new \DateTime($tDttriggertime);		
-                        $aAlarm['reminderdate'] = $dttriggertime  -> format('d-m-Y');
-                        $aAlarm['remindertime'] ='';
-                    }
-                    if(strlen($tDttriggertime)>8){
-                        $dttriggertime= new \DateTime($tDttriggertime);	
-                        $aAlarm['reminderdate'] = $dttriggertime -> format('d-m-Y');
-                        $aAlarm['remindertime'] = $dttriggertime -> format('H:i');
-                    }
-                    $aAlarm['reminder_time_input']='';
-                    $aAlarm['reminder_time_select']='ondate';
-                }
-               
-            }
-            
-        }else{
-            $aAlarm['action']='none';
-        }
-        
-        return $aAlarm;
+					   if(substr_count($aAlarm['triggerRequest'],'PT',0,2) === 1){
+						 	$TimeCheck = substr($aAlarm['triggerRequest'], 2);
+							$aAlarm['triggerRequest']='+PT'.$TimeCheck;
+						}
+					  
+					   if(substr_count($aAlarm['triggerRequest'],'+PT',0,3) === 1){
+						 	$TimeCheck = substr($aAlarm['triggerRequest'], 3);
+							$aAlarm['triggerRequest']='+PT'.$TimeCheck;
+						}
+					   
+					  if(substr_count($aAlarm['triggerRequest'],'P',0,1) === 1 && substr_count($aAlarm['triggerRequest'],'PT',0,2) === 0 && substr_count($aAlarm['triggerRequest'],'T',strlen($aAlarm['triggerRequest'])-1,1) === 0){
+					  		$TimeCheck = substr($aAlarm['triggerRequest'], 1);
+						  	$aAlarm['triggerRequest']='+PT'.$TimeCheck;
+					  }
+					  if(substr_count($aAlarm['triggerRequest'],'P',0,1) === 1 && substr_count($aAlarm['triggerRequest'],'PT',0,2) === 0 && substr_count($aAlarm['triggerRequest'],'T',strlen($aAlarm['triggerRequest'])-1,1) === 1){
+					  		$TimeCheck = substr($aAlarm['triggerRequest'], 1);
+							$TimeCheck = substr($TimeCheck, 0, -1);
+							$aAlarm['triggerRequest'] = '+PT'.$TimeCheck;  
+					  }
+					  
+					  
+					   
+					  if(substr_count($aAlarm['triggerRequest'],'-PT',0,3) === 1){
+					  		$TimeCheck = substr($aAlarm['triggerRequest'], 3);
+						 	$aAlarm['triggerRequest'] = '-PT'.$TimeCheck;  
+					  }
+ 
+					  if(substr_count($aAlarm['triggerRequest'],'-P',0,2) === 1 && substr_count($aAlarm['triggerRequest'],'-PT',0,3) === 0 && substr_count($aAlarm['triggerRequest'],'T',strlen($aAlarm['triggerRequest'])-1,1) === 0){
+					  		$TimeCheck = substr($aAlarm['triggerRequest'], 2);
+						  	$aAlarm['triggerRequest'] = '-PT'.$TimeCheck;  
+					  }
+					  
+					 if(substr_count($aAlarm['triggerRequest'],'-P',0,2) === 1 && substr_count($aAlarm['triggerRequest'],'-PT',0,3) === 0 && substr_count($aAlarm['triggerRequest'],'T',strlen($aAlarm['triggerRequest']) -1,1) === 1){
+					  		$TimeCheck = substr($aAlarm['triggerRequest'], 2);
+							$TimeCheck = substr($TimeCheck, 0, -1);
+							$aAlarm['triggerRequest'] = '-PT'.$TimeCheck;    
+					  }
+						
+						$aAlarm['reminder_time_input']=substr($TimeCheck,0,(strlen($TimeCheck)-1));
+						
+						//returns M,H,D
+						$alarmTimeDescr = substr($aAlarm['triggerRequest'],-1,1);
+						
+						if($alarmTimeDescr === 'W'){
+							$aAlarm['reminder_time_select']='weeks'.$tempDescr;
+						}
+						
+						if($alarmTimeDescr === 'H'){
+							$aAlarm['reminder_time_select']='hours'.$tempDescr;
+						}
+						
+						if($alarmTimeDescr === 'M'){
+							$aAlarm['reminder_time_select']='minutes'.$tempDescr;
+						}
+						if($alarmTimeDescr === 'D'){
+							$aAlarm['reminder_time_select']='days'.$tempDescr;
+						}
+						//\OCP\Util::writeLog($this->appName,'foundDESCR  '.$alarmTimeDescr, \OCP\Util::DEBUG);	
+				}
+				   
+				
+				if($valarmTrigger->getValueType() === 'DATE'){
+					$aAlarm['reminderdate'] = $valarmTrigger -> getDateTime() -> format('d-m-Y');
+					$aAlarm['remindertime'] ='';
+					$aAlarm['reminder_time_input'] = '';
+					$aAlarm['reminder_time_select']='ondate';
+				}
+				if($valarmTrigger->getValueType() === 'DATE-TIME'){
+					$aAlarm['reminderdate'] = $valarmTrigger -> getDateTime() -> format('d-m-Y');
+					$aAlarm['remindertime'] = $valarmTrigger -> getDateTime() -> format('H:i');
+					$aAlarm['reminder_time_input'] = '';
+					$aAlarm['reminder_time_select']='ondate';
+					
+				//  \OCP\Util::writeLog($this->appName,'foundDESCR  '.$aAlarm['triggerRequest'], \OCP\Util::DEBUG);
+				  $aAlarm['triggerRequest'] = 'DATE-TIME:'.$aAlarm['triggerRequest'];
+					
+				}
+				
+				
+		       
+			}
+		
+		}else{
+			$aAlarm['action'] = 'none';
+		}
+		
+		return $aAlarm;
     }
 
 

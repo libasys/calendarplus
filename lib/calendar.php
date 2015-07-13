@@ -67,7 +67,7 @@ class Calendar{
 		
 		$calendars = array_merge($calendars, \OCP\Share::getItemsSharedWith(App::SHARECALENDAR, ShareCalendar::FORMAT_CALENDAR));
        
-	    \OCP\Util::emitHook('OC_Calendar', 'getCalendars', array('calendar' => &$calendars));
+	    \OCP\Util::emitHook('OCA\CalendarPlus', 'getCalendars', array('calendar' => &$calendars));
 		
 		return $calendars;
 	}
@@ -178,7 +178,7 @@ class Calendar{
 		$result = $stmt->execute(array($userid,$name,$uri,1,$order,$color,$timezone,$components,$issubscribe,$externuri,$lastmodified));
 
 		$insertid = \OCP\DB::insertid(App::CldCalendarTable);
-		\OCP\Util::emitHook('OC_Calendar', 'addCalendar', $insertid);
+		\OCP\Util::emitHook('\OCA\CalendarPlus', 'addCalendar', $insertid);
 		
 		
 	     $link = \OC::$server->getURLGenerator()->linkToRoute(App::$appname.'.page.index');
@@ -254,7 +254,7 @@ class Calendar{
 		$result = $stmt->execute(array($userid,$name,$uri,1,$order,$color,$timezone,$components,$transparent));
 
 		$insertid = \OCP\DB::insertid(App::CldCalendarTable);
-		\OCP\Util::emitHook('OC_Calendar', 'addCalendar', $insertid);
+		\OCP\Util::emitHook('\OCA\CalendarPlus', 'addCalendar', $insertid);
 
 		return $insertid;
 	}
@@ -296,7 +296,7 @@ class Calendar{
 		$result = $stmt->execute(array($name,$order,$color,$timezone,$components,$transparent,$id));
 		
 
-		\OCP\Util::emitHook('OC_Calendar', 'editCalendar', $id);
+		\OCP\Util::emitHook('\OCA\CalendarPlus', 'editCalendar', $id);
 		
 		$link = \OC::$server->getURLGenerator()->linkToRoute(App::$appname.'.page.index');
 		
@@ -389,7 +389,7 @@ class Calendar{
 
 		\OCP\Share::unshareAll(App::SHARECALENDAR,App::SHARECALENDARPREFIX. $id);
 
-		\OCP\Util::emitHook('OC_Calendar', 'deleteCalendar', $id);
+		\OCP\Util::emitHook('\OCA\CalendarPlus', 'deleteCalendar', $id);
 		$calendars = self::allCalendars(\OCP\USER::getUser(), false, false);
 		if((\OCP\USER::isLoggedIn() && count($calendars) === 0) || (count($calendars) == 1 && $calendars[0]['id']=='birthday_'.\OCP\USER::getUser())) {
 			self::addDefaultCalendars(\OCP\USER::getUser());

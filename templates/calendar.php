@@ -9,7 +9,7 @@
 <div id="controls">
 	<div class="leftControls">
 	<div class="button-group" id="first-group">	
-		<button id="calendarnavActive" class="button <?php p($_['buttonCalAktive']) ?>"><i class="ioc ioc-calendar"></i></button>	
+		<button id="calendarnavActive" class="toolTip button <?php p($_['buttonCalAktive']) ?>" title="<?php p($l->t('Show / hide left sidebar'));?>"><i class="ioc ioc-calendar"></i></button>	
 
 	<button class="button"  id="datecontrol_today"><?php p($l->t('Today'));?></button>
 	<!--<button class="button"  id="printCal"><?php p($l->t('Print'));?></button> -->
@@ -37,7 +37,7 @@
 		<div class="button-group" style="float:right;right:5px;">	
 			<button id="editCategoriesList" class="button" title="<?php p($l->t('Edit categories')); ?>"><i class="ioc ioc-tags"></i></button>
 			<?php 	if(\OC::$server->getAppManager()->isEnabledForUser('tasksplus')){?>
-				<button id="tasknavActive" class="button <?php p($_['buttonTaskAktive']) ?>"><i class="ioc ioc-tasks"></i></button>	
+				<button id="tasknavActive" class="toolTip button <?php p($_['buttonTaskAktive']) ?>" title="<?php p($l->t('Show / hide tasksbar'));?>"><i class="ioc ioc-tasks"></i></button>	
 			<?php } ?>
 			<button id="choosecalendarGeneralsettings" class="button" title="<?php p($l->t('Settings')); ?>"><i class="ioc ioc-cog"></i></button>
 		</div>
