@@ -21,6 +21,16 @@ Installation:
 =============
 Download the zip file and rename folder from calendarplus-master to calendarplus! Upload the app to your apps directory and activate it on the apps settings page!
 
+Import
+======
+- 1. Method
+ICS File per Drag & Drop on the calendar+ app,  import dialog will prompt
+- 2. Method
+Upload the ICS File on the files app and then click on the uploaded ICS File and the import dialog will prompt
+
+Important:
+If the default calendar app is enabled, too, then you have to disable the calendar app for import from the files app!
+
 New Features:
 =============
 - Sharing calendar via public link 
