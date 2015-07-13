@@ -31,10 +31,15 @@ Upload the ICS File on the files app and then click on the uploaded ICS File and
 Important:
 If the default calendar app is enabled, too, then you have to disable the calendar app for import from the files app!
 
+Caldav Addresses:
+==================
+The syncing URL is shown up in the settings dialog (right sidebar top corner)
+
 New Features:
 =============
 - Sharing calendar via public link 
 - Sharing events via public link
+- Sharing of subscribed calendars
 - Customizing public sharings via link on share.config.js
 - Exdate for repeating events (means you can delete a single event of a series)
 - Calendar subscription
