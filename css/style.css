@@ -259,13 +259,7 @@
 	font-size:13px;
 	
 }
-#event.show-event #actions{
-	display:none;
-}
 
-#event.show-event:hover #actions{
-	display:block;
-}
 
 #event .showevent-descr{
 	height:80px;

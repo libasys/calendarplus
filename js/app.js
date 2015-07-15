@@ -80,8 +80,8 @@ var CalendarPlus = {
 	   
 		var firstHour = new Date().getUTCHours() + 2;
 	
-		$("#leftcontent").niceScroll();
-		$("#rightCalendarNav").niceScroll();
+		//$("#leftcontent").niceScroll();
+		//$("#rightCalendarNav").niceScroll();
 	
 		var monthNames=[
 			t(CalendarPlus.appname, 'January'),
@@ -177,6 +177,8 @@ var CalendarPlus = {
 			viewRender : function(view, element) {
 				$("#datepickerNav").datepicker("setDate", $('#fullcalendar').fullCalendar('getDate'));
 				
+				CalendarPlus.Util.destroyExisitingPopover();
+				
 				if (view.name != CalendarPlus.calendarConfig['defaultView']) {
 					
 					$.post(OC.generateUrl('apps/'+CalendarPlus.appname+'/changeviewcalendar'), {
@@ -213,7 +215,7 @@ var CalendarPlus = {
 			selectable : true,
 			selectHelper : true,
 			unselectAuto:false,
-			slotMinutes : 15,
+			slotMinutes : 30,
 			select : CalendarPlus.UI.newEvent,
 			eventClick : CalendarPlus.UI.showEvent,
 			eventDrop : CalendarPlus.UI.moveEvent,
@@ -948,7 +950,7 @@ var CalendarPlus = {
 					$('#showDayOfMonth').show();
 					$('#datepickerDayMore').removeClass('datepickerDayMoreWidth');
 				}
-				//alert($('#DayListMore').height());
+				
 				
 				$("#datepickerDayMore").datepicker("setDate", $('#fullcalendar').fullCalendar('getDate'));
 				
@@ -1041,7 +1043,7 @@ var CalendarPlus = {
 
 				$('#showDayOfMonth').text(d.getDate());
 
-				//alert(monthYear+':'+$('#eventsList').attr('data-date'));
+			
 				if (monthYear != $('#eventsList').attr('data-date') || reload === true) {
 					var htmlList = '';
 					$('#DayListMore').html('');
@@ -1165,18 +1167,13 @@ var CalendarPlus = {
 				 function(jsondata){
 					if(jsondata.status == 'success'){
 					 
-					if($('.webui-popover').length>0){
-						if(CalendarPlus.popOverElem !== null){
-							CalendarPlus.popOverElem.webuiPopover('destroy');
-							CalendarPlus.popOverElem = null;
-							$('#event').remove();
-						}
-					}
+					 CalendarPlus.Util.destroyExisitingPopover();
+					
 					  CalendarPlus.searchEventId = id;
 					  $('#fullcalendar').fullCalendar('changeView','month');
 					  var viewObj = $('#fullcalendar').fullCalendar('getView');
-					  var start = $.fullCalendar.formatDate(viewObj.start,'yyyyMMdd');
-					  var end = $.fullCalendar.formatDate(viewObj.end,'yyyyMMdd');
+					  var start = $.fullCalendar.parseDate(viewObj.start);
+					  var end = $.fullCalendar.parseDate(viewObj.end);
 					  var evdate = $.fullCalendar.parseISO8601(jsondata.data.startdate);
 					  var eventdate = $.fullCalendar.formatDate(evdate,'yyyyMMdd');
 					  var calEvent = {};
@@ -1194,6 +1191,20 @@ var CalendarPlus = {
 					}
 				});
 			
+			}
+		},
+		destroyExisitingPopover : function() {
+			if($('.webui-popover').length>0){
+				if(CalendarPlus.popOverElem !== null){
+					CalendarPlus.popOverElem.webuiPopover('destroy');
+					CalendarPlus.popOverElem = null;
+					$('#event').remove();
+					$('.webui-popover').each(function(i,el){
+						var id = $(el).attr('id');
+						$('[data-target="'+id+'"]').removeAttr('data-target');
+						$(el).remove();
+					});
+				}
 			}
 		},
 	},
@@ -1384,7 +1395,7 @@ var CalendarPlus = {
 				var calEvent = {};
 				calEvent['id'] = $('#eventid').val();
 				calEvent['start'] = $('#choosendate').val();
-				//alert($('#eventid').val());
+				
 				var jsEvent = {};
 				jsEvent.target=targetElem;
 				CalendarPlus.UI.editEvent(calEvent, jsEvent, CalendarPlus.calendarConfig['defaultView']);
@@ -1518,8 +1529,6 @@ var CalendarPlus = {
 						text : t(CalendarPlus.appname, 'Yes'),
 						'class' : 'okDialog',
 						click : function() {
-							//alert(delink);
-							
 							var oDialog = $(this);
 							CalendarPlus.UI.submitDeleteEventForm(delink);
 							oDialog.dialog("close");
@@ -1832,13 +1841,8 @@ var CalendarPlus = {
 				$('#appsettings_popup').hide().remove();
 			}
 			
-			if($('.webui-popover').length>0){
-				if(CalendarPlus.popOverElem !== null){
-					CalendarPlus.popOverElem.webuiPopover('destroy');
-					CalendarPlus.popOverElem = null;
-					$('#event').remove();
-				}
-			}
+			CalendarPlus.Util.destroyExisitingPopover();
+			
 			CalendarPlus.popOverElem = $(jsEvent.target); 	
 			
 			CalendarPlus.popOverElem.webuiPopover({
@@ -1883,14 +1887,8 @@ var CalendarPlus = {
 			if($('#appsettings_popup').is(':visible')){
 				$('#appsettings_popup').hide().remove();
 			}
-			
-			if($('.webui-popover').length>0){
-				if(CalendarPlus.popOverElem !== null){
-					CalendarPlus.popOverElem.webuiPopover('destroy');
-					CalendarPlus.popOverElem = null;
-					$('#event').remove();
-				}
-			}
+		
+			CalendarPlus.Util.destroyExisitingPopover();
 			
 			if(id > 0){
 				CalendarPlus.popOverElem=$(jsEvent.target);
@@ -1919,14 +1917,15 @@ var CalendarPlus = {
 						}
 					},
 					multi:false,
-					closeable:false,
-					animation:'pop',
-					cache:false,
-					placement:'auto',
-					type:'async',
-					width:400,
-					height:50,
-					trigger:triggerClick
+				closeable:false,
+				cache:false,
+				placement:'auto',
+				type:'async',
+				width:400,
+				animation:'pop',
+				height:'auto',
+				trigger:'manual',
+				dismissible:true,
 				}).webuiPopover('show');
 			
 			}
@@ -1947,13 +1946,8 @@ var CalendarPlus = {
 				$('#appsettings_popup').hide().remove();
 			}
 			
-			if($('.webui-popover').length>0){
-				if(CalendarPlus.popOverElem !== null){
-					CalendarPlus.popOverElem.webuiPopover('destroy');
-					CalendarPlus.popOverElem = null;
-					$('#event').remove();
-				}
-			}
+			CalendarPlus.Util.destroyExisitingPopover();
+			
 			if(view === 'list'){
 				CalendarPlus.popOverElem = $(jsEvent.target);
 			}else{
@@ -2046,8 +2040,8 @@ var CalendarPlus = {
 					id :id,
 					choosendate : choosenDate,
 					allday : allDay,
-					viewstart: viewObj.start,
-					viewend: viewObj.end
+					viewstart: $.fullCalendar.parseDate(viewObj.start),
+					viewend: $.fullCalendar.parseDate(viewObj.end)
 				},
 				success : function(jsondata) {
 				//	CalendarPlus.UI.loading(false);
@@ -2103,8 +2097,8 @@ var CalendarPlus = {
 				data :{
 					id : id,
 					choosendate : choosenDate,
-					viewstart: viewObj.start,
-					viewend: viewObj.end
+					viewstart: $.fullCalendar.parseDate(viewObj.start),
+					viewend: $.fullCalendar.parseDate(viewObj.end)
 				},
 				success : function(jsondata) {
 					$('li.exdatelistrow[data-exdate=' + choosenDate + ']').remove();
@@ -2157,8 +2151,8 @@ var CalendarPlus = {
 						});
 						$('#categories').val(string);
 						var viewObj = $('#fullcalendar').fullCalendar('getView');
-						$('#viewstart').val(viewObj.start);
-						$('#viewend').val(viewObj.end);
+						$('#viewstart').val($.fullCalendar.parseDate(viewObj.start));
+						$('#viewend').val($.fullCalendar.parseDate(viewObj.end));
 					
 			var post = $("#event_form").serialize();
 			$("#errorbox").css('display', 'none').empty();
@@ -2245,8 +2239,8 @@ var CalendarPlus = {
 			data :{
 				id : iId,
 				category : category,
-				viewstart: viewObj.start,
-				viewend: viewObj.end
+				viewstart: $.fullCalendar.parseDate(viewObj.start),
+				viewend: $.fullCalendar.parseDate(viewObj.end)
 			},
 			success : function(jsondata) {
 				if(jsondata.status == 'success'){
@@ -3364,6 +3358,9 @@ $(document).ready(function() {
 
 	$('#choosecalendarGeneralsettings').on('click keydown', function(event) {
 		event.preventDefault();
+		
+		CalendarPlus.Util.destroyExisitingPopover();
+		
 		var popup = $('#appsettings_popup');
 		if(popup.length === 0) {
 			$('body').prepend('<div class="popup hidden" id="appsettings_popup"></div>');

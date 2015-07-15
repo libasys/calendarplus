@@ -260,6 +260,16 @@ class EventController extends Controller {
 			
 			$editedEvent = CalendarApp::getEventObject($id, false, false);
 			
+			if(stristr($pStart,'(')){
+				$temp = explode('(',$pStart);
+				$pStart = $temp[0];
+			}
+			
+			if(stristr($pEnd,'(')){
+				$temp = explode('(',$pEnd);
+				$pEnd = $temp[0];
+			}
+			
 			$start = new \DateTime($pStart);
 			$end = new \DateTime($pEnd);
 			
@@ -342,7 +352,17 @@ class EventController extends Controller {
 		Repeat::update($id);
 		
 		$editedEvent = CalendarApp::getEventObject($id, false, false);
-			
+		
+		if(stristr($pStart,'(')){
+			$temp = explode('(',$pStart);
+			$pStart = $temp[0];
+		}
+		
+		if(stristr($pEnd,'(')){
+			$temp = explode('(',$pEnd);
+			$pEnd = $temp[0];
+		}
+				
 		$start = new \DateTime($pStart);
 		$end = new \DateTime($pEnd);
 		
@@ -677,6 +697,7 @@ class EventController extends Controller {
 		$pStart = $this -> params('viewstart');
 		$pEnd = $this -> params('viewend');
 		
+	//	\OCP\Util::writeLog($this->appName,'foundDESCR  '.$pStart.':'.$Start, \OCP\Util::DEBUG);	
 		$calId = $this -> params('calendar');
 		
 		
@@ -691,6 +712,16 @@ class EventController extends Controller {
 			$id = Object::add($calId, $vcalendar->serialize());
 			
 			$editedEvent = CalendarApp::getEventObject($id, false, false);
+			
+			if(stristr($pStart,'(')){
+				$temp = explode('(',$pStart);
+				$pStart = $temp[0];
+			}
+			
+			if(stristr($pEnd,'(')){
+				$temp = explode('(',$pEnd);
+				$pEnd = $temp[0];
+			}
 			
 			$start = new \DateTime($pStart);
 			$end = new \DateTime($pEnd);
@@ -922,6 +953,16 @@ class EventController extends Controller {
 				Object::moveToCalendar($id, $calId);
 			}
 			$editedEvent = CalendarApp::getEventObject($id, false, false);
+			
+			if(stristr($pStart,'(')){
+				$temp = explode('(',$pStart);
+				$pStart = $temp[0];
+			}
+			
+			if(stristr($pEnd,'(')){
+				$temp = explode('(',$pEnd);
+				$pEnd = $temp[0];
+			}
 			
 			$start = new \DateTime($pStart);
 			$end = new \DateTime($pEnd);
@@ -1326,6 +1367,16 @@ class EventController extends Controller {
 		Object::edit($id, $vcalendar->serialize());
 		
 		$editedEvent = CalendarApp::getEventObject($id, false, false);
+		
+		if(stristr($pStart,'(')){
+			$temp = explode('(',$pStart);
+			$pStart = $temp[0];
+		}
+		
+		if(stristr($pEnd,'(')){
+			$temp = explode('(',$pEnd);
+			$pEnd = $temp[0];
+		}
 			
 		$start = new \DateTime($pStart);
 		$end = new \DateTime($pEnd);

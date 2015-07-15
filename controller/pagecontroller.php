@@ -91,7 +91,7 @@ class PageController extends Controller {
 		\OCP\Util::addScript($this->appName, "3rdparty/jquery.webui-popover");
 		
 		\OCP\Util::addScript($this->appName, "3rdparty/chosen.jquery.min");
-		\OCP\Util::addScript($this->appName,'jquery.nicescroll.min');
+		//\OCP\Util::addScript($this->appName,'jquery.nicescroll.min');
 		\OCP\Util::addStyle($this->appName, "3rdparty/chosen");
 		\OCP\Util::addScript($this->appName, '3rdparty/tag-it');
 		\OCP\Util::addStyle($this->appName, '3rdparty/jquery.tagit');
