@@ -7,33 +7,33 @@
 				<input type="hidden" name="viewend" id="viewend" value="" />
 				<input type="hidden" name="categories" id="categories" value="<?php p($_['categories']); ?>" />
 				<input type="hidden" name="calendar" id="hiddenCalSelection" value="<?php p($_['calendar']); ?>">
-				<input type="text" style="width:85%; font-size:16px; color:#555;padding:5px;"  placeholder="<?php p($l->t("Title of the Event"));?>" value="<?php p(isset($_['title']) ? $_['title'] : '') ?>" maxlength="100" name="title" id="event-title" autofocus="autofocus"/>
-			    
-			    <div id="sCalSelect" class="combobox">
-			    <div class="selector">Please select</div>
-			    <ul>
-			    	<?php
-			    	  foreach($_['calendar_options'] as $calInfo){
-			    	  	if($calInfo['permissions'] & OCP\PERMISSION_CREATE)	{
-			    	  	$selected='';	
-						$addCheckedClass='';
-						
-			    	  	if($_['calendar']==$calInfo['id']){
-			    	  		$selected='class="isSelected"';
-							$addCheckedClass='isSelectedCheckbox';
-						}	
-			    	  	print_unescaped('<li data-id="'.$calInfo['id'].'" data-color="'.$calInfo['calendarcolor'].'" '.$selected.'><span class="colCal '.$addCheckedClass.'" style="background:'.$calInfo['calendarcolor'].'"></span>'.$calInfo['displayname'].'</li>');
-			    	  	}  
-					}
-			    	?>
-			        
-			    </ul>
-			</div>
+				
+				<input type="text" style="width:100%;width:calc( 100% - 15px );font-size:16px; color:#555;padding:5px;"  placeholder="<?php p($l->t("Title of the Event"));?>" value="<?php p(isset($_['title']) ? $_['title'] : '') ?>" maxlength="100" name="title" id="event-title" autofocus="autofocus"/>
+				
+				<div id="sCalSelect" class="combobox">
+					<div class="selector"><?php p($l->t('Please choose a calendar')); ?></div>
+					<ul>
+						<?php
+						foreach($_['calendar_options'] as $calInfo){
+							if($calInfo['permissions'] & OCP\PERMISSION_CREATE) {
+								$selected='';
+								$addCheckedClass='';
+								
+								if($_['calendar']==$calInfo['id']) {
+									$selected='class="isSelected"';
+									$addCheckedClass='isSelectedCheckbox';
+								}
+								print_unescaped('<li data-id="'.$calInfo['id'].'" data-color="'.$calInfo['calendarcolor'].'" '.$selected.'><span class="colCal '.$addCheckedClass.'" style="background:'.$calInfo['calendarcolor'].'"></span>'.$calInfo['displayname'].'</li>');
+							}
+						}
+						?>
+					</ul>
+				</div>
 			</td>
 		</tr>
 		<tr>
 			<td>
-			<input type="text" style="width:85%;font-size:14px;font-family:Arial, fontello;float:left;"  placeholder="&#xe852; <?php p($l->t("Location of the Event"));?>" value="<?php p(isset($_['location']) ? $_['location'] : '') ?>" maxlength="100"  name="location" />
+			<input type="text" style="width:100%;width:calc( 100% - 15px );font-size:14px;font-family:Arial, fontello;float:left;"  placeholder="&#xe852; <?php p($l->t("Location of the Event"));?>" value="<?php p(isset($_['location']) ? $_['location'] : '') ?>" maxlength="100"  name="location" />
              <?php  if(isset($_['eventid']) && $_['eventid'] !='new'){
              		 if($_['permissions'] & OCP\PERMISSION_SHARE && $_['isShareApi'] === 'yes') { ?>
 		

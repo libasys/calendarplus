@@ -1258,7 +1258,7 @@ button.ui-multiselect{
 .combobox .selector{z-index:11;border:1px solid #cccccc;width:24px;height:29px;text-align:center;margin-top:5px;line-height:29px;padding-left:6px;border-radius:5px;}
 .combobox ul {z-index:300;padding:0;margin:0;display:inline-block;background-color:#f4f4f4;position:absolute;border:1px solid #bbb;border-radius:8px;padding:8px;}
 .combobox li {color:#616576;border-bottom:1px solid #999;height:26px; line-height:26px;z-index:300;display:block;width:150px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }
-.combobox li .colCal {margin-top:4px;}
+.combobox li .colCal {margin-top:4px;margin-right:5px;}
 .combobox li:hover {background-color:#ccc;}
 .combobox li.isSelected{}
 
@@ -1270,9 +1270,11 @@ button.ui-multiselect{
 	background:#fff;
 }
 
-
+#sCalSelect.combobox {
+	position: static;
+	display: block;
+}
 #sCalSelect.combobox ul {
-	right:0;
 	z-index:400;
 	padding:0;
 	margin:0;
@@ -1283,11 +1285,21 @@ button.ui-multiselect{
 	border-radius:8px;
 	height:auto;
 	padding:8px;
-	top:40px;
+	width: 100%;width: calc(100% - 36px);
 }
+#sCalSelect.combobox ul li {width: auto;}
 #sCalSelect .selector{
-	border:none;
-	margin:0;
+	width: 100%;width: calc(100% - 7px);
+	height: 25px;
+	margin: 3px 3px 3px 0;
+	padding: 2px;
+	border: 1px solid #DDD;
+	outline: medium none;
+	border-radius: 3px;
+	text-align: left;
+	color: #555;
+	font-size: 14px;
+	cursor:pointer;
 }
 #accordion span.labelLeft{
 	float:left;
@@ -1304,7 +1316,6 @@ button.ui-multiselect{
 	padding:0;
 	border:none;
 	width:160px;
-	
 }
 #sRepeatSelect.combobox{
 	z-index:200;

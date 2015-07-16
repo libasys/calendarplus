@@ -1685,7 +1685,7 @@ var CalendarPlus = {
 			var sCalendarSel = '#sCalSelect.combobox';
 			$(sCalendarSel + ' ul').hide();
 			if ($(sCalendarSel + ' li').hasClass('isSelected')) {
-				$(sCalendarSel + ' .selector').html('<span class="colCal" style="width:26px;height:26px;margin-top:5px;cursor:pointer;float:none;background-color:' + $(sCalendarSel + ' li.isSelected').data('color') + '">&nbsp;<span>');
+				$(sCalendarSel + ' .selector').html('<span class="colCal" style="width:25px;height:25px;margin:0;margin-right:5px;background-color:' + $(sCalendarSel + ' li.isSelected').data('color') + '">&nbsp;</span> ' + $(sCalendarSel + ' li.isSelected').text() );
 			}
 			$(sCalendarSel + ' .selector').on('click', function() {
 				if ($(sCalendarSel + ' ul').is(':visible')) {
@@ -1695,7 +1695,7 @@ var CalendarPlus = {
 				}
 			});
 			$(sCalendarSel + ' li').click(function() {
-				$(this).parents(sCalendarSel).find('.selector').html('<span class="colCal" style="width:26px;height:26px;margin-top:5px;float:none;background-color:' + $(this).data('color') + '">&nbsp;<span>');
+				$(this).parents(sCalendarSel).find('.selector').html('<span class="colCal" style="width:25px;height:25px;margin:0;margin-right:5px;background-color:' + $(this).data('color') + '">&nbsp;</span> ' + $(this).text() );
 				$(sCalendarSel + ' li .colCal').removeClass('isSelectedCheckbox');
 				$(sCalendarSel + ' li').removeClass('isSelected');
 				$('#hiddenCalSelection').val($(this).data('id'));
