@@ -52,7 +52,7 @@ class Provider extends \OCP\Search\Provider {
 				$isAktiv = $calendar['active'];
 				
 				if($config -> getUserValue(\OCP\USER::getUser(), CalendarApp::$appname, 'calendar_'.$calendar['id'])!=''){
-				    $isAktiv=$config -> getUserValue(\OCP\USER::getUser(),CalendarApp::$appname, 'calendar_'.$calendar['id']);
+				    $isAktiv= (int)$config -> getUserValue(\OCP\USER::getUser(),CalendarApp::$appname, 'calendar_'.$calendar['id']);
 			    }	
 				if(!array_key_exists('active', $calendar)){
 					$isAktiv = 1;

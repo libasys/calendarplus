@@ -40,10 +40,10 @@ $(document).ready(function(){
 			});
 			return false;
 		});
-		
+		/*
 		$('#timeformat').chosen();
 		$('#firstday').chosen();
-		$('#timezone').chosen();
+		$('#timezone').chosen();*/
 		
 		$('#timezone').change( function(){
 			var post = $( '#timezone' ).serialize();

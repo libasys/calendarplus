@@ -15,27 +15,29 @@
 		</a>
 			
 		<div class="header-right">
-			<span><a href="<?php print_unescaped($_['webcallink']); ?>" class="button"><?php p($l->t('Subscribe'));?></a></span>
+			<span><a href="<?php print_unescaped(\OC::$server->getURLGenerator()->linkToRoute($_['appname'].'.export.exportEvents')) ?>?t=<?php p($_['sharingToken']); ?>" class="button"><?php p($l->t('Subscribe'));?></a></span>
 			<span id="details"><?php p($l->t('%s shared the calendar %s with you',
 						array($_['displayName'], $_['calendarName']))) ?></span>
 		</div>
 		
 	</div></header>
-<div id="controls">
-	<div class="leftControls">
-	<div class="button-group" style="margin: 5px 3px;">	
-	<button class="button"  id="datecontrol_today"><?php p($l->t('Today'));?></button>
+
+<div id="app-navigation">
+	<div class="datenavigation">
+	<div id="datelabel"></div>
+	<div class="view button-group">
+	<button class="button fixed" data-action="prev" data-view="false" data-weekends="false"><i class="ioc ioc-angle-left"></i></button>		
+	<button class="button fixed"  data-action="next" data-view="false" data-weekends="false"><i class="ioc ioc-angle-right"></i></button>	
+</div>
+</div>
+	<div style="clear:both;" id="datepickerNav"></div>	
 	
+	<div id="view" class="button-group" style="margin: 5px 3px;float:none;">
 	</div>
+	<button class="button nomode"  id="datecontrol_today"><?php p($l->t('Today'));?></button>
+	<div id="timezoneDiv">
+	<label class="timezonelabel" for="timezone"><?php p($l->t('Timezone'));?></label>&nbsp;&nbsp;
 	
-	</div>
-	<div class="centerControls">
-		
-		<div id="view" class="button-group" style="margin: 5px 3px;float:none;"></div>
-  
-	</div>
-	<div class="rightControls">
-		<label for="timezone"><?php p($l->t('Timezone'));?></label>&nbsp;&nbsp;
 	<select style="display:none;width:130px;"  id="timezone" name="timezone" >
 				<?php
 				$continent = '';
@@ -54,21 +56,15 @@
 					print_unescaped('<option value="'.\OCP\Util::sanitizeHTML($timezone).'"'.($_['timezone'] == $timezone?' selected="selected"':'').'>'.\OCP\Util::sanitizeHTML($city).'</option>');
 				endforeach;?>
 				</select>
-	</div>	
-	
-	
-	
-	
+		</div>
 </div>
-<div id="leftcontent">
-	<div id="leftcontentInner">
-	<div id="datepickerNav"></div>	
-	</div>
-</div>
-
+<div id="app-content">
+	
 	<div id="fullcalendar" data-token="<?php p($_['sharingToken'])?>"></div>
 
-	<footer>
+	
+</div>
+<footer>
 		<p class="info">
 			<?php print_unescaped($theme->getLongFooter()); ?>
 		</p>

@@ -28,6 +28,8 @@
  namespace OCA\CalendarPlus;
  
  use \OCA\CalendarPlus\Share\Backend\Calendar as ShareCalendar;
+ use \OCA\CalendarPlus\Db\CalendarDAO;
+ use \OCA\CalendarPlus\AppInfo\Application;
  
 class Calendar{
 	/**
@@ -38,32 +40,11 @@ class Calendar{
 	 * @return array
 	 */
 	public static function allCalendars($uid, $active=false, $bSubscribe = true) {
-		$values = array($uid);
-		$active_where = '';
-		if ($active === true) {
-			$active_where = ' AND `active` = ?';
-			$values[] = (int)$active;
-		}
-		$subscribe_where ='';
-		if ($bSubscribe === false) {
-			$subscribe_where = ' AND `issubscribe` = ?';
-			$values[] = (int)$bSubscribe;
-		}
+			
+		$dbObject = \OC::$server->getDb();	
+		$calendarDB = new CalendarDAO($dbObject,$uid);	
 		
-		
-		$stmt = \OCP\DB::prepare( 'SELECT * FROM `'.App::CldCalendarTable.'` WHERE `userid` = ?' . $active_where.$subscribe_where );
-		$result = $stmt->execute($values);
-
-		$calendars = array();
-		while( $row = $result->fetchRow()) {
-			$row['permissions'] = \OCP\PERMISSION_ALL;
-			if($row['issubscribe']) {
-				$row['permissions'] = \OCP\PERMISSION_SHARE;
-			}
-			$row['description'] = '';
-			$row['active'] = (int) $row['active'];
-			$calendars[] = $row;
-		}
+		$calendars = $calendarDB->all($active, $bSubscribe);
 		
 		$calendars = array_merge($calendars, \OCP\Share::getItemsSharedWith(App::SHARECALENDAR, ShareCalendar::FORMAT_CALENDAR));
        
@@ -121,35 +102,40 @@ class Calendar{
 	 */
 	public static function find($id) {
 			
-		$stmt = \OCP\DB::prepare( 'SELECT * FROM `'.App::CldCalendarTable.'` WHERE `id` = ?' );
-		$result = $stmt->execute(array($id));
-
-		$row = $result->fetchRow();
-		
 		$user = \OCP\User::getUser();
 		
-		if($row['userid'] !== $user) {
-			$userExists = \OC::$server->getUserManager()->userExists($user);	
-				
-			if(!$userExists){
-				$sharedCalendar=\OCP\Share::getItemSharedWithByLink(App::SHARECALENDAR,App::SHARECALENDARPREFIX.$id,$row['userid']);
-			}else{
-				$sharedCalendar = \OCP\Share::getItemSharedWithBySource(App::SHARECALENDAR, App::SHARECALENDARPREFIX.$id);
-			}
-			
-			if ((!$sharedCalendar || !(isset($sharedCalendar['permissions']) && $sharedCalendar['permissions'] & \OCP\PERMISSION_READ))) {
-				
-				return $row; // I have to return the row so e.g. Object::getowner() works.
-			}
-			
-			 $row['permissions'] = $sharedCalendar['permissions'];
-			
-			
-		} else {
-			$row['permissions'] = \OCP\PERMISSION_ALL;
-		}
+		$dbObject = \OC::$server->getDb();	
+		$calendarDB = new CalendarDAO($dbObject,$user);	
 		
-		return $row;
+		$calendarInfo = $calendarDB->find($id);
+		
+		if($calendarInfo !== null){
+		
+			if($calendarInfo['userid'] !== $user) {
+					$userExists = \OC::$server->getUserManager()->userExists($user);	
+						
+					if(!$userExists){
+						$sharedCalendar=\OCP\Share::getItemSharedWithByLink(App::SHARECALENDAR,App::SHARECALENDARPREFIX.$id,$calendarInfo['userid']);
+					}else{
+						$sharedCalendar = \OCP\Share::getItemSharedWithBySource(App::SHARECALENDAR, App::SHARECALENDARPREFIX.$id);
+					}
+					
+					if ((!$sharedCalendar || !(isset($sharedCalendar['permissions']) && $sharedCalendar['permissions'] & \OCP\PERMISSION_READ))) {
+						
+						return $calendarInfo; // I have to return the row so e.g. Object::getowner() works.
+					}
+					
+					 $calendarInfo['permissions'] = $sharedCalendar['permissions'];
+					
+					
+				} else {
+					$calendarInfo['permissions'] = \OCP\PERMISSION_ALL;
+				}
+				
+				return $calendarInfo;
+		}else{
+			return null;
+		}
 	}
 
 	/**
@@ -173,27 +159,31 @@ class Calendar{
 		}
 		
 		$uri = self::createURI($name, $uris );
-
-		$stmt = \OCP\DB::prepare( 'INSERT INTO `'.App::CldCalendarTable.'` (`userid`,`displayname`,`uri`,`ctag`,`calendarorder`,`calendarcolor`,`timezone`,`components`,`issubscribe`,`externuri`,`lastmodifieddate`) VALUES(?,?,?,?,?,?,?,?,?,?,?)' );
-		$result = $stmt->execute(array($userid,$name,$uri,1,$order,$color,$timezone,$components,$issubscribe,$externuri,$lastmodified));
-
-		$insertid = \OCP\DB::insertid(App::CldCalendarTable);
-		\OCP\Util::emitHook('\OCA\CalendarPlus', 'addCalendar', $insertid);
 		
+		$dbObject = \OC::$server->getDb();	
+		$calendarDB = new CalendarDAO($dbObject, $userid);	
 		
-	     $link = \OC::$server->getURLGenerator()->linkToRoute(App::$appname.'.page.index');
+		$insertid = $calendarDB->add($name, $uri, $order, $color, $timezone, $components, $issubscribe, $externuri, $lastmodified);
 		
-		$params=array(
-		    'mode'=>'created',
-		    'link' =>$link,
-		    'trans_type' =>'',
-		    'summary' => $name,
-		    'cal_user'=>$userid,
-		    'cal_displayname'=>$name,
-		    );
+		if($insertid !== null){
+			\OCP\Util::emitHook('\OCA\CalendarPlus', 'addCalendar', $insertid);
+				
+		     $link = \OC::$server->getURLGenerator()->linkToRoute(App::$appname.'.page.index');
 			
-		ActivityData::logEventActivity($params,false,true);
-		return $insertid;
+			$params=array(
+			    'mode'=>'created',
+			    'link' =>$link,
+			    'trans_type' =>'',
+			    'summary' => $name,
+			    'cal_user'=>$userid,
+			    'cal_displayname'=>$name,
+			    );
+				
+			ActivityData::logEventActivity($params,false,true);
+			return $insertid;
+		}else{
+			return null;
+		}
 	}
 
 	/**
@@ -238,7 +228,10 @@ class Calendar{
 	 * @param string $color format: '#RRGGBB(AA)'
 	 * @return insertid
 	 */
+	
+	//$name, $uri, $order, $color, $timezone, $components, $issubscribe, $externuri, $lastmodified
 	public static function addCalendarFromDAVData($principaluri,$uri,$name,$components,$timezone,$order,$color,$transparent) {
+			
 		$userid = self::extractUserID($principaluri);
 		$all = self::allCalendars($userid);
 		$uris = array();
@@ -250,13 +243,17 @@ class Calendar{
 		
 		$uri = self::createURI($name, $uris );
 		
-		$stmt = \OCP\DB::prepare( 'INSERT INTO `'.App::CldCalendarTable.'` (`userid`,`displayname`,`uri`,`ctag`,`calendarorder`,`calendarcolor`,`timezone`,`components`,`transparent`) VALUES(?,?,?,?,?,?,?,?,?)' );
-		$result = $stmt->execute(array($userid,$name,$uri,1,$order,$color,$timezone,$components,$transparent));
-
-		$insertid = \OCP\DB::insertid(App::CldCalendarTable);
-		\OCP\Util::emitHook('\OCA\CalendarPlus', 'addCalendar', $insertid);
-
-		return $insertid;
+		$dbObject = \OC::$server->getDb();	
+		$calendarDB = new CalendarDAO($dbObject, $userid);	
+		
+		$insertid = $calendarDB->add($name, $uri, $order, $color, $timezone, $components, 0, '', 0);
+		
+		if($insertid !== null){
+			\OCP\Util::emitHook('\OCA\CalendarPlus', 'addCalendar', $insertid);
+			return $insertid;
+		}else{
+			return null;
+		}
 	}
 
 	/**
@@ -274,7 +271,9 @@ class Calendar{
 	public static function editCalendar($id,$name=null,$components=null,$timezone=null,$order=null,$color=null, $transparent = null) {
 		// Need these ones for checking uri
 		$calendar = self::find($id);
-		if($calendar['userid'] != \OCP\User::getUser()) {
+		$userid = \OCP\User::getUser();
+		
+		if($calendar['userid'] !== $userid) {
 			$sharedCalendar = \OCP\Share::getItemSharedWithBySource(App::SHARECALENDAR, App::SHARECALENDARPREFIX.$id);
 			if (!$sharedCalendar || !($sharedCalendar['permissions'] & \OCP\PERMISSION_UPDATE)) {
 				throw new \Exception(
@@ -292,26 +291,33 @@ class Calendar{
 		if(is_null($color)) $color = $calendar['calendarcolor'];
 		if(is_null($transparent)) $transparent = $calendar['transparent'];
 		
-		$stmt = \OCP\DB::prepare( 'UPDATE `'.App::CldCalendarTable.'` SET `displayname`=?,`calendarorder`=?,`calendarcolor`=?,`timezone`=?,`components`=?,`ctag`=`ctag`+1, `transparent`=?  WHERE `id`=?' );
-		$result = $stmt->execute(array($name,$order,$color,$timezone,$components,$transparent,$id));
 		
-
-		\OCP\Util::emitHook('\OCA\CalendarPlus', 'editCalendar', $id);
+		$dbObject = \OC::$server->getDb();	
+		$calendarDB = new CalendarDAO($dbObject, $userid);	
 		
-		$link = \OC::$server->getURLGenerator()->linkToRoute(App::$appname.'.page.index');
+		$bUpdateCalendar = $calendarDB->update($name, $order, $color, $timezone, $components, $transparent, $id);
 		
-		$params=array(
-		    'mode'=>'edited',
-		    'link' =>$link,
-		    'trans_type' =>'',
-		    'summary' => $calendar['displayname'],
-		    'cal_user'=>$calendar['userid'],
-		    'cal_displayname'=>$calendar['displayname'],
-		    );
+		if($bUpdateCalendar === true){
+			\OCP\Util::emitHook('\OCA\CalendarPlus', 'editCalendar', $id);
 			
-		ActivityData::logEventActivity($params,false,true);
-		
-		return true;
+			$link = \OC::$server->getURLGenerator()->linkToRoute(App::$appname.'.page.index');
+			
+			$params=array(
+			    'mode'=>'edited',
+			    'link' =>$link,
+			    'trans_type' =>'',
+			    'summary' => $calendar['displayname'],
+			    'cal_user'=>$calendar['userid'],
+			    'cal_displayname'=>$calendar['displayname'],
+			    );
+				
+			ActivityData::logEventActivity($params,false,true);
+			
+			return true;
+			
+		}else{
+			return null;
+		}
 	}
 
 	/**
@@ -321,14 +327,16 @@ class Calendar{
 	 * @return boolean
 	 */
 	public static function setCalendarActive($id,$active) {
+		
+		$userid = \OCP\User::getUser();
 			
-		if($id !== 'birthday_'. \OCP\User::getUser()){	
+		if($id !== 'birthday_'. $userid){	
 			$calendar = self::find($id);
-			if ($calendar['userid'] !== \OCP\User::getUser()) {
+			if ($calendar['userid'] !== $userid) {
 				$sharedCalendar = \OCP\Share::getItemSharedWithBySource(App::SHARECALENDAR, App::SHARECALENDARPREFIX.$id);
 				
 				if($sharedCalendar){
-					\OCP\Config::setUserValue(\OCP\USER::getUser(),App::$appname, 'calendar_'.$id, $active);
+					\OCP\Config::setUserValue($userid,App::$appname, 'calendar_'.$id, $active);
 				}
 				/*
 				if (!$sharedCalendar || !($sharedCalendar['permissions'] & \OCP\PERMISSION_UPDATE)) {
@@ -339,11 +347,16 @@ class Calendar{
 					);
 				}*/
 			}else{
-				$stmt = \OCP\DB::prepare( 'UPDATE `'.App::CldCalendarTable.'` SET `active` = ? WHERE `id` = ?' );
-				$stmt->execute(array((int)$active, $id));
+				
+				$dbObject = \OC::$server->getDb();	
+				$calendarDB = new CalendarDAO($dbObject, $userid);	
+				
+				$bUpdateCalendar = $calendarDB->activate($active, $id);	
+				
+				return $bUpdateCalendar;
 			}
 	} else{
-		\OCP\Config::setUserValue(\OCP\USER::getUser(), App::$appname, 'calendar_'.$id, $active);
+		\OCP\Config::setUserValue($userid, App::$appname, 'calendar_'.$id, $active);
 	}
 		return true;
 	}
@@ -354,10 +367,16 @@ class Calendar{
 	 * @return boolean
 	 */
 	public static function touchCalendar($id) {
-		$stmt = \OCP\DB::prepare( 'UPDATE `'.App::CldCalendarTable.'` SET `ctag` = `ctag` + 1 WHERE `id` = ?' );
-		$stmt->execute(array($id));
-
-		return true;
+			
+		$userid = \OCP\User::getUser();
+		
+		$dbObject = \OC::$server->getDb();	
+		$calendarDB = new CalendarDAO($dbObject, $userid);	
+		
+		$bUpdateCalendar = $calendarDB->touch($id);	
+		
+		return $bUpdateCalendar;	
+		
 	}
 
 	/**
@@ -371,7 +390,8 @@ class Calendar{
 		
 		$group = \OC::$server->getGroupManager()->get('admin');
 		$user = \OCP\User::getUser();
-		if($calendar['userid'] != $user && !$group->inGroup($user)) {
+		
+		if($calendar['userid'] != $user && !$group->inGroup(\OC::$server->getUserSession()->getUser())) {
 			$sharedCalendar = \OCP\Share::getItemSharedWithBySource(App::SHARECALENDAR,App::SHARECALENDARPREFIX. $id);
 			if (!$sharedCalendar || !($sharedCalendar['permissions'] & \OCP\PERMISSION_DELETE)) {
 				throw new \Exception(
@@ -381,36 +401,48 @@ class Calendar{
 				);
 			}
 		}
-		$stmt = \OCP\DB::prepare( 'DELETE FROM `'.App::CldCalendarTable.'` WHERE `id` = ?' );
-		$stmt->execute(array($id));
-
-		$stmt = \OCP\DB::prepare( 'DELETE FROM `'.App::CldObjectTable.'` WHERE `calendarid` = ?' );
-		$stmt->execute(array($id));
-
-		\OCP\Share::unshareAll(App::SHARECALENDAR,App::SHARECALENDARPREFIX. $id);
-
-		\OCP\Util::emitHook('\OCA\CalendarPlus', 'deleteCalendar', $id);
-		$calendars = self::allCalendars(\OCP\USER::getUser(), false, false);
-		if((\OCP\USER::isLoggedIn() && count($calendars) === 0) || (count($calendars) == 1 && $calendars[0]['id']=='birthday_'.\OCP\USER::getUser())) {
-			self::addDefaultCalendars(\OCP\USER::getUser());
-		}
 		
-		
- 		
- 		$link = \OC::$server->getURLGenerator()->linkToRoute(App::$appname.'.page.index');
-		
-		$params=array(
-		    'mode'=>'deleted',
-		    'link' =>$link,
-		    'trans_type' =>'',
-		    'summary' => $calendar['displayname'],
-		     'cal_user' =>$user,
-		    'cal_displayname'=>$calendar['displayname'],
-		    );
+		$dbObject = \OC::$server->getDb();	
+		$calendarDB = new CalendarDAO($dbObject, $user);	
+		$bDeleteCalendar = $calendarDB->delete($id);	
+
+		if($bDeleteCalendar === true){
+				
+			$stmt = \OCP\DB::prepare( 'DELETE FROM `'.App::CldObjectTable.'` WHERE `calendarid` = ?' );
+			$stmt->execute(array($id));
 			
-		ActivityData::logEventActivity($params,false,true);
+	
+			\OCP\Share::unshareAll(App::SHARECALENDAR, App::SHARECALENDARPREFIX. $id);
+	
+			//\OCP\Util::emitHook('\OCA\CalendarPlus', 'deleteCalendar', $id);
+			$app = new Application();
+			$c = $app->getContainer();
+			$repeatController = $c->query('RepeatController');
+			$repeatController->cleanCalendar($id);
+			
+			$calendars = self::allCalendars(\OCP\USER::getUser(), false, false);
+			
+			if((\OCP\USER::isLoggedIn() && count($calendars) === 0) || (count($calendars) === 1 && $calendars[0]['id'] === 'birthday_'.$user)) {
+				self::addDefaultCalendars($user);
+			}
+ 		
+	 		$link = \OC::$server->getURLGenerator()->linkToRoute(App::$appname.'.page.index');
+			
+			$params=array(
+			    'mode'=>'deleted',
+			    'link' =>$link,
+			    'trans_type' =>'',
+			    'summary' => $calendar['displayname'],
+			    'cal_user' =>$user,
+			    'cal_displayname'=>$calendar['displayname'],
+			 );
+				
+			ActivityData::logEventActivity($params,false,true);
 		
-		return true;
+		return $bDeleteCalendar;
+		}else{
+			return $bDeleteCalendar;
+		}
 	}
 
 	/**
@@ -423,7 +455,8 @@ class Calendar{
 		$calendar = self::find($id1);
 		$group = \OC::$server->getGroupManager()->get('admin');
 		$user = \OCP\User::getUser();
-		if($calendar['userid'] != $user && !$group->inGroup($user)) {
+		
+		if($calendar['userid'] !== $user && !$group->inGroup($user)) {
 		
 			$sharedCalendar = \OCP\Share::getItemSharedWithBySource(App::SHARECALENDAR,App::SHARECALENDARPREFIX. $id1);
 			if (!$sharedCalendar || !($sharedCalendar['permissions'] & \OCP\PERMISSION_UPDATE)) {
@@ -434,10 +467,18 @@ class Calendar{
 				);
 			}
 		}
-		$stmt = \OCP\DB::prepare('UPDATE `'.App::CldObjectTable.'` SET `calendarid` = ? WHERE `calendarid` = ?');
-		$stmt->execute(array($id1, $id2));
-		self::touchCalendar($id1);
-		self::deleteCalendar($id2);
+		
+		$dbObject = \OC::$server->getDb();	
+		$calendarDB = new CalendarDAO($dbObject, $user);	
+		$bMergeCalendar = $calendarDB->merge($id1, $id2);	
+		
+		if($bMergeCalendar === true){
+			self::touchCalendar($id1);
+			self::deleteCalendar($id2);
+			return $bMergeCalendar;
+		}else{
+			return $bMergeCalendar;
+		}
 	}
 
 	/**
@@ -496,16 +537,34 @@ class Calendar{
 		if($calendar['issubscribe'] || $isPublic === true){
 			$bEdit=false;
 		}	
+		
+			
+			$bgColor = '';
+			$borderColor = '';
+			$textColor = '';
+			if(isset($calendar['calendarcolor'])){
+				$bgColor = $calendar['calendarcolor'];
+				$borderColor = $bgColor;
+				$textColor = self::generateTextColor($bgColor);
+			}
+			
+			$addClass = 'events-all-generic';
+			if(isset($calendar['className'])){
+				$addClass = $calendar['className'];
+			}
+			
+		
 		return array(
 			'url' => \OC::$server->getURLGenerator()->linkToRoute(App::$appname.'.event.getEvents').'?calendar_id='.$calendar['id'],
-			'backgroundColor' => $calendar['calendarcolor'],
-			'borderColor' => $calendar['calendarcolor'],
-			'textColor' => self::generateTextColor($calendar['calendarcolor']),
+			'backgroundColor' => $bgColor,
+			'borderColor' => $borderColor,
+			'textColor' => $textColor,
 			'ctag'=>$calendar['ctag'],
 			'id'=>$calendar['id'],
 			'issubscribe'=>$calendar['issubscribe'],
 			'startEditable'=> $bEdit,
-			'cache' => true,
+			'className' => $addClass,
+			'cache' => false,
 		);
 	}
 

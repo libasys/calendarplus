@@ -28,7 +28,6 @@ use \OCP\AppFramework\Http\TemplateResponse;
 use \OCP\AppFramework\Http\JSONResponse;
 use \OCP\IRequest;
 use \OCP\IL10N;
-use \OCP\Share;
 use \OCP\IURLGenerator;
 use \OCP\ISession;
 use \OCP\Security\IHasher;
@@ -40,6 +39,7 @@ use \OCA\CalendarPlus\Calendar as CalendarCalendar;
 use \OCA\CalendarPlus\VObject;
 use \OCA\CalendarPlus\Object;
 
+use OCA\CalendarPlus\Share\ShareConnector;
 
 /**
  * Controller class for main page.
@@ -63,13 +63,18 @@ class PublicController extends Controller {
 
 	private $token;
 	
+	private $eventController;
+	
+	private $shareConnector;
 
-	public function __construct($appName, IRequest $request,  IL10N $l10n, ISession $session, IControllerMethodReflector $reflector, IURLGenerator $urlGenerator) {
+	public function __construct($appName, IRequest $request,  IL10N $l10n, ISession $session, IControllerMethodReflector $reflector, IURLGenerator $urlGenerator, $eventController) {
 		parent::__construct($appName, $request);
 		$this->l10n = $l10n;
 		$this->urlGenerator = $urlGenerator;
 		$this->session = $session;
 		$this->reflector=$reflector;
+		$this->eventController = $eventController;
+		$this->shareConnector = new ShareConnector();
 	}
 	
 	public function getLanguageCode() {
@@ -101,22 +106,28 @@ class PublicController extends Controller {
 	 */
 	 
 	public function index($token) {
+			
+		
+		
 		
 		if ($token) {
-			$linkItem = Share::getShareByToken($token, false);
+			
+			
+				
+			$linkItem = $this->shareConnector->getShareByToken($token) ;
 			if (is_array($linkItem) && isset($linkItem['uid_owner'])) {
-				if($linkItem['item_type'] === CalendarApp::SHARECALENDAR){
-					$sPrefix =CalendarApp::SHARECALENDARPREFIX;
+				if($linkItem['item_type'] === $this->shareConnector->getConstShareCalendar()){
+					$sPrefix = $this->shareConnector->getConstSharePrefixCalendar();
 				}
-				if($linkItem['item_type'] === CalendarApp::SHAREEVENT){
-					$sPrefix = CalendarApp::SHAREEVENTPREFIX;
+				if($linkItem['item_type'] === $this->shareConnector->getConstShareEvent()){
+					$sPrefix = $this->shareConnector->getConstSharePrefixEvent();
 				}
-				$itemSource = CalendarApp :: validateItemSource($linkItem['item_source'],$sPrefix);
+				$itemSource = $this->shareConnector->validateItemSource($linkItem['item_source'], $sPrefix);
 				
 				$itemType= $linkItem['item_type'];
 				$shareOwner = $linkItem['uid_owner'];
 				$calendarName= $linkItem['item_target'];
-				$rootLinkItem = \OCP\Share::resolveReShare($linkItem);
+				$rootLinkItem = $this->shareConnector->resolveReShare($linkItem);
 				
 				// stupid copy and paste job
 					if (isset($linkItem['share_with'])) {
@@ -126,7 +137,7 @@ class PublicController extends Controller {
 						
 						if (isset($password)) {
 							
-							if ($linkItem['share_type'] == \OCP\Share::SHARE_TYPE_LINK) {
+							if ($linkItem['share_type'] ==  $this->shareConnector->getShareTypeLink()) {
 								// Check Password
 								$newHash = '';
 								if(\OC::$server->getHasher()->verify($password, $linkItem['share_with'], $newHash)) {
@@ -160,7 +171,8 @@ class PublicController extends Controller {
 						}
 					}
 				
-				if($itemType === CalendarApp::SHARECALENDAR){
+				if($itemType ===  $this->shareConnector->getConstShareCalendar()){
+						
 					\OCP\Util::addStyle($this->appName, '3rdparty/fullcalendar');	
 					\OCP\Util::addStyle($this->appName, "3rdparty/chosen");
 					\OCP\Util::addStyle($this->appName, '3rdparty/fontello/css/animation');
@@ -175,18 +187,18 @@ class PublicController extends Controller {
 					\OCP\Util::addScript($this->appName,'timepicker');
 					\OCP\Util::addScript($this->appName, "3rdparty/jquery.webui-popover");
 					\OCP\Util::addScript($this->appName, "3rdparty/chosen.jquery.min");
-					\OCP\Util::addScript($this->appName,'jquery.nicescroll.min');
+					//\OCP\Util::addScript($this->appName,'jquery.nicescroll.min');
 					\OCP\Util::addScript($this->appName, 'share');
 					\OCP\Util::addScript($this->appName, 'share.config');
 					
-					$timezone=\OC::$server->getSession()->get('public_link_timezone');
+					$timezone = \OC::$server->getSession()->get('public_link_timezone');
 					
 					
-					$webcalUrl=\OC::$server->getRequest()->getRequestUri();
+					//$webcalUrl = \OC::$server->getRequest()->getRequestUri();
 					//\OCP\Util::writeLog($this->appName,'PUBLIC FOUND'.$timezone, \OCP\Util::DEBUG);
 					$params = [
 					'timezone' => $timezone,
-					'webcallink' => 'webcal:/'.$webcalUrl.'&webcal',
+					'appname' => $this->appName,
 					'uidOwner' => $shareOwner,
 					'timezones' => \DateTimeZone::listIdentifiers(),
 					'calendarName' => $calendarName,
@@ -197,7 +209,7 @@ class PublicController extends Controller {
 				$response = new TemplateResponse($this->appName, 'public',$params,'base');
 				return $response;
 			}
-			if($itemType === CalendarApp::SHAREEVENT){
+			if($itemType ===  $this->shareConnector->getConstShareEvent()){
 					\OCP\Util::addStyle($this->appName, '3rdparty/fontello/css/fontello');	
 					\OCP\Util::addStyle($this->appName, 'style');
 					\OCP\Util::addStyle($this->appName, 'share');
@@ -232,13 +244,13 @@ class PublicController extends Controller {
 		
 		if (isset($token)) {
 			
-			$linkItem = \OCP\Share::getShareByToken($token, false);
+			$linkItem =  $this->shareConnector->getShareByToken($token);
 			if (is_array($linkItem) && isset($linkItem['uid_owner'])) {
-				$rootLinkItem = \OCP\Share::resolveReShare($linkItem);
+				$rootLinkItem =  $this->shareConnector->resolveReShare($linkItem);
 				
 				if (isset($rootLinkItem['uid_owner'])) {
 					\OCP\JSON::checkUserExists($rootLinkItem['uid_owner']);	
-					$calendar_id = CalendarApp :: validateItemSource($linkItem['item_source'],CalendarApp::SHARECALENDARPREFIX);
+					$calendar_id =$this->shareConnector->validateItemSource($linkItem['item_source'], $this->shareConnector->getConstSharePrefixCalendar());
 					
 				}
 			}
@@ -253,7 +265,7 @@ class PublicController extends Controller {
 		
 		foreach($events as $event) {
 		     
-				$eventArray=	CalendarApp::generateEventOutput($event, $start, $end);
+				$eventArray=	$this->eventController->generateEventOutput($event, $start, $end);
 				if(is_array($eventArray)) $output = array_merge($output, $eventArray);
 			
 		}
@@ -314,31 +326,37 @@ class PublicController extends Controller {
    
    		$token= $this -> params('t');
 		if (isset($token)) {
-			$linkItem = \OCP\Share::getShareByToken($token, false);
+			$linkItem = $this->shareConnector->getShareByToken($token);
 			if (is_array($linkItem) && isset($linkItem['uid_owner'])) {
 				// seems to be a valid share
-				if($linkItem['item_type'] === CalendarApp::SHARECALENDAR){
-					$sPrefix = CalendarApp::SHARECALENDARPREFIX;
+				if($linkItem['item_type'] ===  $this->shareConnector->getConstShareCalendar()){
+					$sPrefix =  $this->shareConnector->getConstSharePrefixCalendar();
 				}
-				if($linkItem['item_type'] === CalendarApp::SHAREEVENT){
-					$sPrefix = CalendarApp::SHAREEVENTPREFIX;
+				if($linkItem['item_type'] ===  $this->shareConnector->getConstShareEvent()){
+					$sPrefix =  $this->shareConnector->getConstSharePrefixEvent();
 				}
 				
-				$itemSource = CalendarApp :: validateItemSource($linkItem['item_source'],$sPrefix);
+				$itemSource =  $this->shareConnector->validateItemSource($linkItem['item_source'],$sPrefix);
 				$shareOwner = $linkItem['uid_owner'];
-				$rootLinkItem = \OCP\Share::resolveReShare($linkItem);
+				$rootLinkItem = $this->shareConnector->resolveReShare($linkItem);
 				
 				if (isset($rootLinkItem['uid_owner'])) {
 					\OCP\JSON::checkUserExists($rootLinkItem['uid_owner']);
 					
-					$calendar =CalendarCalendar::find($itemSource);
+					$calendar = CalendarCalendar::find($itemSource);
 					   if(!array_key_exists('active', $calendar)){
 						$calendar['active'] = 1;
 					}
 					if($calendar['active'] == 1) {
 						$eventSources[] = CalendarCalendar::getEventSourceInfo($calendar, true);
+						
 						$eventSources[0]['url']= \OC::$server->getURLGenerator()->linkToRoute($this->appName.'.public.getEventsPublic').'?t='.$token;
-						$calendarInfo[$calendar['id']]=array('bgcolor'=>$calendar['calendarcolor'],'color'=>CalendarCalendar::generateTextColor($calendar['calendarcolor']));
+						
+						$calendarInfo[$calendar['id']]=array(
+						'bgcolor'=>$calendar['calendarcolor'],
+						'color'=> CalendarCalendar::generateTextColor($calendar['calendarcolor'])
+						);
+						
 						$myRefreshChecker[$calendar['id']]=$calendar['ctag'];
 						
 					}
@@ -409,7 +427,7 @@ class PublicController extends Controller {
 	
 	private function getPublicEvent($itemSource, $shareOwner, $token){
 				
-			$itemSource = CalendarApp::validateItemSource($itemSource,CalendarApp::SHAREEVENTPREFIX);
+			$itemSource = $this->shareConnector->validateItemSource($itemSource, $this->shareConnector->getConstSharePrefixEvent());
 				
 			$data = CalendarApp::getEventObject($itemSource, false, false);
 			$object = VObject::parse($data['calendardata']);

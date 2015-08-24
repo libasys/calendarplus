@@ -24,12 +24,19 @@
 
 namespace OCA\CalendarPlus\Share\Backend;
 
-use OCA\CalendarPlus\App;
-
+use OCA\CalendarPlus\Connector\CalendarConnector;
+use OCA\CalendarPlus\Share\ShareConnector;
 
 class Calendar implements \OCP\Share_Backend_Collection {
+		
 	const FORMAT_CALENDAR = 1;
-
+	private $calendarConnector;
+	private $shareConnector;
+	
+	public function __construct(){
+		$this->calendarConnector = new CalendarConnector();
+		$this->shareConnector = new ShareConnector();	
+	}
 	/**
 	* @brief Get the source of the item to be stored in the database
 	* @param string Item
@@ -42,8 +49,10 @@ class Calendar implements \OCP\Share_Backend_Collection {
 	* The formatItems() function will translate the source returned back into the item
 	*/
 	public function isValidSource($itemSource, $uidOwner) {
-		$itemSource = App::validateItemSource($itemSource, App::SHARECALENDARPREFIX);
-		$calendar = App::getCalendar( $itemSource );
+		
+		$itemSource = $this->shareConnector->validateItemSource($itemSource, $this->shareConnector->getConstSharePrefixCalendar());
+		$calendar = $this->calendarConnector->getCalendar( $itemSource );
+		
 		if ($calendar === false || $calendar['userid'] != $uidOwner) {
 			return false;
 		}
@@ -67,10 +76,12 @@ class Calendar implements \OCP\Share_Backend_Collection {
 	* If it does generate a new name e.g. name_#
 	*/
 	public function generateTarget($itemSource, $shareWith, $exclude = null) {
-		$itemSource = App::validateItemSource($itemSource, App::SHARECALENDARPREFIX);
-		$calendar = App::getCalendar( $itemSource );
+		
+		$itemSource = $this->shareConnector->validateItemSource($itemSource, $this->shareConnector->getConstSharePrefixCalendar());
+		$calendar = $this->calendarConnector->getCalendar( $itemSource );
+		
 		$user_calendars = array();
-		foreach(\OCA\CalendarPlus\Calendar::allCalendars($shareWith) as $user_calendar) {
+		foreach($this->calendarConnector->all($shareWith) as $user_calendar) {
 			$user_calendars[] = $user_calendar['displayname'];
 		}
 		$name = $calendar['userid']."'s ".$calendar['displayname'];
@@ -99,8 +110,9 @@ class Calendar implements \OCP\Share_Backend_Collection {
 		$calendars = array();
 		if ($format == self::FORMAT_CALENDAR) {
 			foreach ($items as $item) {
-				$item['item_source'] = App::validateItemSource($item['item_source'], App::SHARECALENDARPREFIX);	
-				$calendar = App::getCalendar($item['item_source'], false);
+				$item['item_source'] = $this->shareConnector->validateItemSource($item['item_source'], $this->shareConnector->getConstSharePrefixCalendar());
+				$calendar = $this->calendarConnector->getCalendar( $item['item_source'], false );
+				
 				if(!$calendar) {
 					continue;
 				}
@@ -110,7 +122,6 @@ class Calendar implements \OCP\Share_Backend_Collection {
 				}
 				$calendar['displayname'] = $item['item_target'];
 				$calendar['permissions'] = $item['permissions'];
-				
 				$calendar['calendarid'] = $calendar['id'];
 				$calendar['owner'] = $calendar['userid'];
 				$calendar['active'] = (int)$calendar['active'];
@@ -121,13 +132,17 @@ class Calendar implements \OCP\Share_Backend_Collection {
 	}
 
 	public function getChildren($itemSource) {
-		$itemSource = self::validateItemSource($itemSource);		
-		$query = \OCP\DB::prepare('SELECT `id`, `summary` FROM `'.App::CldObjectTable.'` WHERE `calendarid` = ?');
-		$result = $query->execute(array($itemSource));
+			
+		$itemSource = $this->shareConnector->validateItemSource($itemSource, $this->shareConnector->getConstSharePrefixCalendar());
+		
+		$aObjects = $this->calendarConnector->allObjects($itemSource);	
 		$children = array();
-		while ($object = $result->fetchRow()) {
-			$children[] = array('source' => $object['id'], 'target' => $object['summary']);
+		if($aObjects !== null){
+			foreach($aObjects as $object){
+				$children[] = array('source' => $object['id'], 'target' => $object['summary']);
+			}
 		}
+		
 		return $children;
 	}
 

@@ -28,6 +28,8 @@
  */
  namespace OCA\CalendarPlus;
  
+ use OCA\CalendarPlus\AppInfo\Application;
+ 
 class Object{
 	/**
 	 * @brief Returns all objects of a calendar
@@ -72,6 +74,8 @@ class Object{
 	 * @brief Returns all  shared events where user is owner
 	 * 
 	 * @return array
+	 * 
+	 * FIXME search for function on OCP\Share
 	 */
 	 
     public static function getEventSharees(){
@@ -94,11 +98,12 @@ class Object{
 	 * @brief Returns all  shared calendar where user is owner
 	 * 
 	 * @return array
+	 * FIXME search for function on OCP\Share
 	 */
 	
 	public static function getCalendarSharees(){
     	
-		$SQL='SELECT item_source,share_with,share_type,permissions,item_type FROM `*PREFIX*share` 
+		$SQL='SELECT `item_source`, `share_with`, `share_type` ,`permissions`, `item_type` FROM `*PREFIX*share` 
 		WHERE `uid_owner` = ? AND `item_type` = ? 
 		ORDER BY `item_source` ASC
 		';
@@ -164,6 +169,8 @@ class Object{
 	 */
 	 
 	 public static function allInPeriod($id, $start, $end) {
+			
+		//\OCP\Util::writeLog(App::$appname,'EVENTS: ->'.$start, \OCP\Util::DEBUG);
 		
 	   $sharedwithByEvents = self::getEventSharees();
    
@@ -182,6 +189,7 @@ class Object{
     
 		$calendarobjects = array();
 		while( $row = $result->fetchRow()) {
+			
 			
 			
 			$row['shared'] = 0;
@@ -234,8 +242,10 @@ class Object{
 	 * @return insertid
 	 */
 	public static function add($id,$data, $shared = false, $eventid=0) {
+			
 		$calendar = Calendar::find($id);
-		if ($calendar['userid'] != \OCP\User::getUser()) {
+		
+		if ($calendar['userid'] !== \OCP\User::getUser()) {
 			$sharedCalendar = \OCP\Share::getItemSharedWithBySource(App::SHARECALENDAR, App::SHARECALENDARPREFIX.$id);
 			if (!$sharedCalendar || !($sharedCalendar['permissions'] & \OCP\PERMISSION_CREATE)) {
 				throw new \Exception(
@@ -256,6 +266,7 @@ class Object{
 		}
 
 		$uri = 'owncloud-'.md5($data.rand().time()).'.ics';
+		
 		$values=[$id,$type,$startdate,$enddate,$repeating,$summary,$data,$uri,time(),$isAlarm,$uid,$relatedTo];
 		if($shared === true){
 			$values[]=$eventid;
@@ -265,18 +276,23 @@ class Object{
 			$values[]=null;
 		}
 		
+		
+		
 		$stmt = \OCP\DB::prepare( 'INSERT INTO `'.App::CldObjectTable.'` (`calendarid`,`objecttype`,`startdate`,`enddate`,`repeating`,`summary`,`calendardata`,`uri`,`lastmodified`,`isalarm`,`eventuid`,`relatedto`,`org_objid`,`userid`) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)' );
 		$stmt->execute($values);
 		$object_id = \OCP\DB::insertid(App::CldObjectTable);
-        
 		
 		
-		//\OCP\Util::writeLog('core','FINDERCAL->'.$object->VEVENT->CATEGORIES->getParts(), \OCP\Util::DEBUG);		
-		
+    	
 		App::loadCategoriesFromVCalendar($object_id, $object);
-
+		
+		$app = new Application();
+		$c = $app->getContainer();
+		$repeatController = $c->query('RepeatController');
+		$repeatController->generateEventCache($object_id);
+		
 		Calendar::touchCalendar($id);
-		\OCP\Util::emitHook('\OCA\CalendarPlus', 'addEvent', $object_id);
+		//\OCP\Util::emitHook('\OCA\CalendarPlus', 'addEvent', $object_id);
 		
 		 $linkTypeApp=App::$appname;
 	     if($type=='VTODO') {
@@ -342,7 +358,13 @@ class Object{
 		$object_id = \OCP\DB::insertid(App::CldObjectTable);
 
 		Calendar::touchCalendar($id);
-		\OCP\Util::emitHook('\OCA\CalendarPlus', 'addEvent', $object_id);
+		
+		$app = new Application();
+		$c = $app->getContainer();
+		$repeatController = $c->query('RepeatController');
+		$repeatController->generateEventCache($object_id);
+		
+		//\OCP\Util::emitHook('\OCA\CalendarPlus', 'addEvent', $object_id);
 		
 		$linkTypeApp=App::$appname;
 	     if($type=='VTODO'){
@@ -468,7 +490,13 @@ class Object{
 		$stmt->execute(array($type,$startdate,$enddate,$repeating,$summary,$data,time(),$isAlarm,$id));
 
 		Calendar::touchCalendar($oldobject['calendarid']);
-		\OCP\Util::emitHook('\OCA\CalendarPlus', 'editEvent', $id);
+		
+		$app = new Application();
+		$c = $app->getContainer();
+		$repeatController = $c->query('RepeatController');
+		$repeatController->updateEvent($id);
+		
+		//\OCP\Util::emitHook('\OCA\CalendarPlus', 'editEvent', $id);
 		
 		/****Activity New ***/
 		
@@ -535,7 +563,12 @@ class Object{
 				}
 		}*/
 		Calendar::touchCalendar($oldobject['calendarid']);
-		\OCP\Util::emitHook('\OCA\CalendarPlus', 'editEvent', $oldobject['id']);
+		//\OCP\Util::emitHook('\OCA\CalendarPlus', 'editEvent', $oldobject['id']);
+		
+		$app = new Application();
+		$c = $app->getContainer();
+		$repeatController = $c->query('RepeatController');
+		$repeatController->updateEvent($oldobject['id']);
         
         $linkTypeApp=App::$appname;
 	     if($type=='VTODO') {
@@ -599,7 +632,12 @@ class Object{
 		
         Calendar::touchCalendar($oldobject['calendarid']);
 		
-		\OCP\Util::emitHook('\OCA\CalendarPlus', 'deleteEvent', $id);
+		$app = new Application();
+		$c = $app->getContainer();
+		$repeatController = $c->query('RepeatController');
+		$repeatController->cleanEvent($id);
+		
+		//\OCP\Util::emitHook('\OCA\CalendarPlus', 'deleteEvent', $id);
 		
 		
 		$params=array(
@@ -642,9 +680,13 @@ class Object{
 		$stmt = \OCP\DB::prepare( 'DELETE FROM `'.App::CldObjectTable.'` WHERE `calendarid`= ? AND `uri`=?' );
 		$stmt->execute(array($cid,$uri));
 		Calendar::touchCalendar($cid);
-		\OCP\Util::emitHook('\OCA\CalendarPlus', 'deleteEvent', $oldobject['id']);
-       
-	    
+		
+		$app = new Application();
+		$c = $app->getContainer();
+		$repeatController = $c->query('RepeatController');
+		$repeatController->cleanEvent($oldobject['id']);
+		
+		//\OCP\Util::emitHook('\OCA\CalendarPlus', 'deleteEvent', $oldobject['id']);
 		
 		$params=array(
 		    'mode'=>'deleted',
@@ -663,9 +705,9 @@ class Object{
 
 	public static function moveToCalendar($id, $calendarid) {
 		$calendar = Calendar::find($calendarid);
-		if ($calendar['userid'] != \OCP\User::getUser()) {
+		if ($calendar['userid'] !== \OCP\User::getUser()) {
 			$sharedCalendar = \OCP\Share::getItemSharedWithBySource(App::SHARECALENDAR,App::SHARECALENDARPREFIX. $calendarid);
-			if (!$sharedCalendar || !($sharedCalendar['permissions'] & \OCP\PERMISSION_DELETE)) {
+			if (!$sharedCalendar || !($sharedCalendar['permissions'] & \OCP\PERMISSION_UPDATE)) {
 				throw new \Exception(
 					App::$l10n->t(
 						'You do not have the permissions to add events to this calendar.'
@@ -673,11 +715,18 @@ class Object{
 				);
 			}
 		}
+		
 		$stmt = \OCP\DB::prepare( 'UPDATE `'.App::CldObjectTable.'` SET `calendarid`=? WHERE `id`=?' );
 		$stmt->execute(array($calendarid,$id));
 
 		Calendar::touchCalendar($calendarid);
-		\OCP\Util::emitHook('\OCA\CalendarPlus', 'moveEvent', $id);
+		
+		$app = new Application();
+		$c = $app->getContainer();
+		$repeatController = $c->query('RepeatController');
+		$repeatController->updateEvent($id);
+		
+		//\OCP\Util::emitHook('\OCA\CalendarPlus', 'moveEvent', $id);
 
 		return true;
 	}
@@ -908,7 +957,7 @@ class Object{
 			$velement = $vobject->VTODO;
 		}
 
-		if($velement!='') {
+		if($velement !== '') {
 			$accessclass = $velement->getAsString('CLASS');
 		   return App::getAccessClassPermissions($accessclass);
 		}else return false;
@@ -1358,11 +1407,14 @@ class Object{
 			|| $minutes < 0 || $minutes > 60;
 	}
 
+
 	/**
 	 * @brief creates an VCalendar Object from the request data
 	 * @param array $request
 	 * @return object created $vcalendar
-	 */	public static function createVCalendarFromRequest($request) {
+	 */	
+	 
+	 public static function createVCalendarFromRequest($request) {
 		$vcalendar = new VObject('VCALENDAR');
 		$vcalendar->add('PRODID', 'ownCloud Calendar');
 		$vcalendar->add('VERSION', '2.0');

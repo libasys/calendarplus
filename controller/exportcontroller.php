@@ -99,7 +99,8 @@ class ExportController extends Controller {
 		}
 		
 		if(!is_null($calid)) {
-			$calendar = CalendarApp::getCalendar($calid, true);
+			//check shared calendar also	
+			$calendar = CalendarApp::getCalendar($calid, true, true);
 			if(!$calendar) {
 				$params = [
 				'status' => 'error',

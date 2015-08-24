@@ -369,10 +369,11 @@ class Import{
 	 */
 	private function isDuplicate($insertid) {
 		$newobject = Object::find($insertid);
-		$endDate=$newobject['enddate'];
+		$endDate = $newobject['enddate'];
 		if(!$newobject['enddate']) {
 			$endDate=null;
 		}
+		
 		
 		$stmt = \OCP\DB::prepare('SELECT COUNT(*) AS `COUNTING` FROM `'.App::CldObjectTable.'` `CO`
 								 INNER JOIN `'.App::CldCalendarTable.'` ON `CO`.`calendarid`=`'.App::CldCalendarTable.'`.`id`

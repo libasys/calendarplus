@@ -23,12 +23,14 @@
 namespace OCA\CalendarPlus\Controller;
 
 
-use \OCA\CalendarPlus\App as CalendarApp;
-use \OCA\CalendarPlus\Calendar as CalendarCalendar;
-use \OCA\CalendarPlus\VObject;
-use \OCA\CalendarPlus\Object;
-use \OCA\CalendarPlus\Repeat;
-use \OCA\CalendarPlus\Alarm;
+use OCA\CalendarPlus\App as CalendarApp;
+use OCA\CalendarPlus\Calendar as CalendarCalendar;
+use OCA\CalendarPlus\VObject;
+use OCA\CalendarPlus\Object;
+use OCA\CalendarPlus\Alarm;
+//new
+use OCA\CalendarPlus\Service\ObjectParser;
+use OCA\CalendarPlus\Share\ShareConnector;
 
 use \OCP\AppFramework\Controller;
 use \OCP\AppFramework\Http\JSONResponse;
@@ -42,12 +44,22 @@ class EventController extends Controller {
 	private $userId;
 	private $l10n;
 	private $configInfo;
-
-	public function __construct($appName, IRequest $request, $userId, $l10n, IConfig $settings) {
+	private $repeatController;
+	private $objectParser;
+	private $session;
+	private $appConfig;
+	private $shareConnector;
+	
+	public function __construct($appName, IRequest $request, $userId, $l10n, IConfig $settings, $repeatController, $session, $appConfig) {
 		parent::__construct($appName, $request);
 		$this -> userId = $userId;
 		$this->l10n = $l10n;
 		$this->configInfo = $settings;
+		$this->repeatController = $repeatController;
+		$this->objectParser = new ObjectParser($this -> userId);
+		$this->session = $session;
+		$this->appConfig = $appConfig;
+		$this->shareConnector = new ShareConnector();
 	}
 	
 	/**
@@ -58,7 +70,8 @@ class EventController extends Controller {
 		$pStart = $this -> params('start');
 		$pEnd = $this -> params('end');
 		$calendar_id = null;
-		\OC::$server->getSession()->close();
+		
+		$this->session->close();
 		
 		$getId = $this -> params('calendar_id');
 			
@@ -70,7 +83,7 @@ class EventController extends Controller {
 					$calendar_id = $id;
 					
 				}else{
-					if(\OCP\Share::getItemSharedWithBySource(CalendarApp::SHARECALENDAR, CalendarApp::SHARECALENDARPREFIX.$id) === false){
+					if($this->shareConnector->getItemSharedWithBySourceCalendar($id) === false){
 						exit;
 					}
 				}
@@ -80,14 +93,18 @@ class EventController extends Controller {
 		$start = new \DateTime('@' . $pStart);
 		$end = new \DateTime('@' . $pEnd);
 		
+		//\OCP\Util::writeLog($this->appName,'EVENTS: ->'.$pStart, \OCP\Util::DEBUG);
 		$events = CalendarApp::getrequestedEvents($calendar_id, $start, $end);
 		
 		$output = array();
 		
 		foreach($events as $event) {
 		     
-				$eventArray=	CalendarApp::generateEventOutput($event, $start, $end);
-				if(is_array($eventArray)) $output = array_merge($output, $eventArray);
+				$eventArray = $this->generateEventOutput($event, $start, $end);
+			
+				if(is_array($eventArray)){
+					$output = array_merge($output, $eventArray);
+				}
 			
 		}
 		
@@ -101,7 +118,9 @@ class EventController extends Controller {
 	 * @NoAdminRequired
 	 */
 	public function getEventsDayView() {
-		\OC::$server->getSession()->close();	
+			
+		$this->session->close();
+			
 		if (\OCP\User::isLoggedIn()) {
 			$monthToCalc=intval($this -> params('month'))+1;
 			$year=intval($this -> params('year'));
@@ -172,16 +191,17 @@ class EventController extends Controller {
 										$aSort[$startTimeStampNew]=$startDateNew;
 										//OCP\Util::writeLog('calendar','STARTDATE'.$startDateNew.' -> '.$eventInfo['summary'], OCP\Util::DEBUG);
 										
-										$eventArray[$startDateNew][]=CalendarApp::generateEventOutput($eventInfo, $start, $end);
+										$eventArray[$startDateNew][]= $this->generateEventOutput($eventInfo, $start, $end);
 									}
 								}
 								 
-								 $eventArray[$startDate][]=CalendarApp::generateEventOutput($eventInfo, $start, $end);
+								 $eventArray[$startDate][]= $this->generateEventOutput($eventInfo, $start, $end);
 							}
 							
 							if((int)$eventInfo['repeating'] === 1) {
 							  	
-							  $cachedinperiod = Repeat::get_inperiod($eventInfo['id'], $start, $end);
+							  	$cachedinperiod = $this->repeatController->getEventInperiod($eventInfo['id'], $start, $end);
+								
 								$counter=0;
 								foreach($cachedinperiod as $cacheinfo){
 									 $start_dt_cache = new \DateTime($cacheinfo['startdate'], new \DateTimeZone('UTC'));
@@ -190,7 +210,7 @@ class EventController extends Controller {
 								     $startCacheTimeStamp=$start_Cachetmst->format('U');
 									 $aSort[$startCacheTimeStamp]=$startCacheDate;
 									
-									$eventArray[$startCacheDate][]=CalendarApp::generateEventOutput($eventInfo, $start, $end);
+									$eventArray[$startCacheDate][] = $this->generateEventOutput($eventInfo, $start, $end);
 									 
 									 $counter++;
 								}
@@ -226,7 +246,7 @@ class EventController extends Controller {
 		$pStart = $this -> params('viewstart');
 		$pEnd = $this -> params('viewend');
 		
-		$aCheckPermissions =$this->checkPermissions($id, \OCP\PERMISSION_UPDATE);
+		$aCheckPermissions =$this->checkPermissions($id, $this->shareConnector->getUpdateAccess());
 		if($aCheckPermissions['status'] === 'success'){
 			$category = $this -> params('category');
 			$vcalendar = CalendarApp::getVCalendar($id, false, false);
@@ -255,7 +275,9 @@ class EventController extends Controller {
 			$vevent->setDateTime('LAST-MODIFIED', 'now');
 			$vevent->setDateTime('DTSTAMP', 'now');
 			Object::edit($id, $vcalendar->serialize());
-			Repeat::update($id);
+			
+			$this->repeatController->updateEvent($id);
+			
 			$lastmodified = $vevent->__get('LAST-MODIFIED')->getDateTime();
 			
 			$editedEvent = CalendarApp::getEventObject($id, false, false);
@@ -273,7 +295,7 @@ class EventController extends Controller {
 			$start = new \DateTime($pStart);
 			$end = new \DateTime($pEnd);
 			
-		    $events = CalendarApp::generateEventOutput($editedEvent, $start, $end);
+		    $events = $this->generateEventOutput($editedEvent, $start, $end);
 			
 			$params = [
 				'status' => 'success',
@@ -349,7 +371,7 @@ class EventController extends Controller {
 		$output='success';
 	
 		Object::edit($id, $vcalendar->serialize());
-		Repeat::update($id);
+		$this->repeatController->updateEvent($id);
 		
 		$editedEvent = CalendarApp::getEventObject($id, false, false);
 		
@@ -366,7 +388,7 @@ class EventController extends Controller {
 		$start = new \DateTime($pStart);
 		$end = new \DateTime($pEnd);
 		
-	    $events = CalendarApp::generateEventOutput($editedEvent, $start, $end);
+	    $events = $this->generateEventOutput($editedEvent, $start, $end);
 		
 		$params = ['status' => 'success',
 			'data' =>[
@@ -387,8 +409,9 @@ class EventController extends Controller {
 	public function moveEvent() {
 			
 		$id = $this -> params('id');
-		$aCheckPermissions =$this->checkPermissions($id, \OCP\PERMISSION_UPDATE);
+		$aCheckPermissions =$this->checkPermissions($id,$this->shareConnector->getUpdateAccess());
 		if($aCheckPermissions['status'] === 'success'){
+				
 			$vcalendar = CalendarApp::getVCalendar($id, false, false);
 			$vevent = $vcalendar->VEVENT;
 			
@@ -398,6 +421,7 @@ class EventController extends Controller {
 			$delta->i = $this -> params('minuteDelta');
 			$lastModified = $this -> params('lastmodified');
 			CalendarApp::isNotModified($vevent, $lastModified);
+			
 			
 			$dtstart = $vevent->DTSTART;
 			$dtend = Object::getDTEndFromVEvent($vevent);
@@ -434,7 +458,8 @@ class EventController extends Controller {
 			$vevent->setDateTime('DTSTAMP', 'now');
 					
 			Object::edit($id, $vcalendar->serialize());
-			Repeat::update($id);
+			
+			$this->repeatController->updateEvent($id);
 			
 			$lastmodified = $vevent->__get('LAST-MODIFIED')->getDateTime();
 			$params = [
@@ -468,9 +493,9 @@ class EventController extends Controller {
 		if ($calendar['userid'] !== $this->userId) {
 			$shareMode=Object::checkShareMode($calid);
 			if($shareMode){
-				$sharedCalendar = \OCP\Share::getItemSharedWithBySource(CalendarApp::SHARECALENDAR,CalendarApp::SHARECALENDARPREFIX. $calid);
+				$sharedCalendar = $this->shareConnector->getItemSharedWithBySourceCalendar($calid);
 			}else{
-				$sharedCalendar = \OCP\Share::getItemSharedWithBySource(CalendarApp::SHAREEVENT,CalendarApp::SHAREEVENTPREFIX. $id); 
+				$sharedCalendar =$this->shareConnector->getItemSharedWithBySourceEvent($id); 
 			}
 			
 			if (!$sharedCalendar || !($sharedCalendar['permissions'] & $cPERMISSIONS)){
@@ -498,7 +523,7 @@ class EventController extends Controller {
 	public function resizeEvent() {
 		$id = $this -> params('id');
 		
-		$aCheckPermissions =$this->checkPermissions($id, \OCP\PERMISSION_UPDATE);
+		$aCheckPermissions =$this->checkPermissions($id, $this->shareConnector->getUpdateAccess());
 		if($aCheckPermissions['status'] === 'success'){
 		
 			$vcalendar = CalendarApp::getVCalendar($id, false, false);
@@ -506,7 +531,7 @@ class EventController extends Controller {
 			
 			$accessclass = $vevent->getAsString('CLASS');
 			$permissions = CalendarApp::getPermissions($id, CalendarApp::EVENT, $accessclass);
-			if(!$permissions & \OCP\PERMISSION_UPDATE) {
+			if(!$permissions & $this->shareConnector->getUpdateAccess()) {
 				exit;
 			}
 			
@@ -560,13 +585,30 @@ class EventController extends Controller {
 		$start->setTimezone(new \DateTimeZone($timezone));
 		$end->setTimezone(new \DateTimeZone($timezone));
 		
-		$calendars = CalendarCalendar::allCalendars($this -> userId);
+		$calendarsAll = CalendarCalendar::allCalendars($this -> userId);
+		$calendars = array();
+		
+		foreach($calendarsAll as $calendar){
+			$isAktiv= (int) $calendar['active'];
+			
+			if($this ->configInfo -> getUserValue($this -> userId, $this->appName, 'calendar_'.$calendar['id']) !== ''){
+			    $isAktiv = (int) $this ->configInfo -> getUserValue($this -> userId, $this->appName, 'calendar_'.$calendar['id']);
+		    }	
+			if(!array_key_exists('active', $calendar)){
+				$isAktiv = 1;
+			}
+			
+			if((int)$isAktiv === 1) {
+				$calendars[] = $calendar;
+			}
+		}
+		
 		$calendar_options = array();
 		
 		foreach($calendars as $calendar) {
 			if($calendar['userid'] !== $this -> userId) {
-				$sharedCalendar = \OCP\Share::getItemSharedWithBySource(CalendarApp::SHARECALENDAR,'calendar-'. $calendar['id']);
-				if ($sharedCalendar && ($sharedCalendar['permissions'] & \OCP\PERMISSION_CREATE)) {
+				$sharedCalendar = $this->shareConnector->getItemSharedWithBySourceCalendar($calendar['id']);
+				if ($sharedCalendar && ($sharedCalendar['permissions'] & $this->shareConnector->getCreateAccess())) {
 					array_push($calendar_options, $calendar);
 				}
 			} else {
@@ -701,14 +743,14 @@ class EventController extends Controller {
 		$calId = $this -> params('calendar');
 		
 		
-		$errarr = Object::validateRequest($postRequestAll);
+		$errarr = $this->objectParser->validateRequest($postRequestAll);
 		if($errarr) {
 			$errarr['status'] = 'error';	
 			$response = new JSONResponse($errarr);
 			return $response;
 			
 		}else{
-			$vcalendar = Object::createVCalendarFromRequest($postRequestAll);
+			$vcalendar = $this->objectParser->createVCalendarFromRequest($postRequestAll);
 			$id = Object::add($calId, $vcalendar->serialize());
 			
 			$editedEvent = CalendarApp::getEventObject($id, false, false);
@@ -726,7 +768,7 @@ class EventController extends Controller {
 			$start = new \DateTime($pStart);
 			$end = new \DateTime($pEnd);
 			
-		    $events = CalendarApp::generateEventOutput($editedEvent, $start, $end);
+		    $events = $this->generateEventOutput($editedEvent, $start, $end);
 			
 			$params = ['status' => 'success',
 			'data' =>[
@@ -750,7 +792,7 @@ class EventController extends Controller {
        
        $editInfo = $this -> getVobjectData($id, $choosenDate, $data);
        
-       if($editInfo['permissions'] !== \OCP\PERMISSION_ALL){
+       if($editInfo['permissions'] !== $this->shareConnector->getAllAccess()){
             $aCalendar=CalendarCalendar::find($data['calendarid']);
              $calendar_options[0]['id']=$data['calendarid'];
              $calendar_options[0]['permissions']=$editInfo['permissions'];
@@ -758,7 +800,24 @@ class EventController extends Controller {
              $calendar_options[0]['calendarcolor']=$aCalendar['calendarcolor'];
              
         }else{
-            $calendar_options = CalendarCalendar::allCalendars($this -> userId);
+            $calendarsAll = CalendarCalendar::allCalendars($this -> userId);
+			
+				$calendar_options = array();
+				
+				foreach($calendarsAll as $calendar){
+					$isAktiv= (int) $calendar['active'];
+					
+					if($this ->configInfo -> getUserValue($this -> userId, $this->appName, 'calendar_'.$calendar['id']) !== ''){
+					    $isAktiv = (int) $this ->configInfo -> getUserValue($this -> userId, $this->appName, 'calendar_'.$calendar['id']);
+				    }	
+					if(!array_key_exists('active', $calendar)){
+						$isAktiv = 1;
+					}
+					
+					if((int)$isAktiv === 1) {
+						$calendar_options[] = $calendar;
+					}
+				}
         }
         
         
@@ -789,7 +848,7 @@ class EventController extends Controller {
        
         $start = new \DateTime($editInfo['dtstart'], new \DateTimeZone('UTC'));
         
-        $tWeekDay=Object::getWeeklyOptionsCheck($start->format('D'));
+        $tWeekDay = Object::getWeeklyOptionsCheck($start->format('D'));
         $transWeekDay[$tWeekDay]=$tWeekDay;
         
         
@@ -899,21 +958,21 @@ class EventController extends Controller {
         'link' => $editInfo['link'],
         'addSingleDeleteButton' => $editInfo['addSingleDeleteButton'],
         'choosendate' => $choosenDate,
-        'isShareApi' => \OC::$server->getAppConfig()->getValue('core', 'shareapi_enabled', 'yes'),
+        'isShareApi' => $this->appConfig->getValue('core', 'shareapi_enabled', 'yes'),
         'repeat' => $editInfo['rrule']['repeat'],
-        'mailNotificationEnabled' => \OC::$server->getAppConfig() -> getValue('core', 'shareapi_allow_mail_notification', 'yes'),
-        'allowShareWithLink' => \OC::$server->getAppConfig() -> getValue('core', 'shareapi_allow_links', 'yes'),
-        'mailPublicNotificationEnabled' => \OC::$server->getAppConfig()->getValue('core', 'shareapi_allow_public_notification', 'no'),
-        'sharetypeevent' => CalendarApp::SHAREEVENT,
-        'sharetypeeventprefix' => CalendarApp::SHAREEVENTPREFIX
+        'mailNotificationEnabled' => $this->appConfig->getValue('core', 'shareapi_allow_mail_notification', 'yes'),
+        'allowShareWithLink' => $this->appConfig->getValue('core', 'shareapi_allow_links', 'yes'),
+        'mailPublicNotificationEnabled' => $this->appConfig->getValue('core', 'shareapi_allow_public_notification', 'no'),
+        'sharetypeevent' => $this->shareConnector->getConstShareEvent(),
+        'sharetypeeventprefix' => $this->shareConnector->getConstSharePrefixEvent()
       ];
         
        
         $params = array_merge($params, $paramsRepeat);
       
-       if ($editInfo['permissions'] & \OCP\PERMISSION_UPDATE) {
+       if ($editInfo['permissions'] & $this->shareConnector->getUpdateAccess()) {
            $response = new TemplateResponse($this->appName, 'part.editevent',$params, '');  
-        } elseif ($editInfo['permissions'] & \OCP\PERMISSION_READ) {
+        } elseif ($editInfo['permissions'] & $this->shareConnector->getReadAccess()) {
              //$response = new TemplateResponse('calendar', 'part.showevent',$params, '');  
         }
         
@@ -933,10 +992,10 @@ class EventController extends Controller {
 		$lastmodified = $this -> params('lastmodified');
 		
 		if(!array_key_exists('calendar', $postRequestAll)) {
-			$calId = Object::getCalendarid($id);
+			$calId = (int)Object::getCalendarid($id);
 		}
 		
-		$errarr = Object::validateRequest($postRequestAll);
+		$errarr = $this->objectParser->validateRequest($postRequestAll);
 		if($errarr) {
 			$errarr['status'] = 'error';	
 			$response = new JSONResponse($errarr);
@@ -947,9 +1006,11 @@ class EventController extends Controller {
 			$vcalendar = VObject::parse($data['calendardata']);
 		
 			CalendarApp::isNotModified($vcalendar->VEVENT, $lastmodified);
-			Object::updateVCalendarFromRequest($postRequestAll, $vcalendar);
+			
+			$this->objectParser->updateVCalendarFromRequest($postRequestAll, $vcalendar);
+			
 			Object::edit($id, $vcalendar->serialize());
-			if ($data['calendarid'] !== $calId) {
+			if ((int)$data['calendarid'] !== $calId) {
 				Object::moveToCalendar($id, $calId);
 			}
 			$editedEvent = CalendarApp::getEventObject($id, false, false);
@@ -967,7 +1028,7 @@ class EventController extends Controller {
 			$start = new \DateTime($pStart);
 			$end = new \DateTime($pEnd);
 			
-		    $events = CalendarApp::generateEventOutput($editedEvent, $start, $end);
+		    $events = $this->generateEventOutput($editedEvent, $start, $end);
 			
 			$params = ['status' => 'success',
 			'data' =>[
@@ -1019,10 +1080,15 @@ class EventController extends Controller {
             exit ;
         }
         $object = VObject::parse($data['calendardata']);
+		
+		//FIXME Working with objectparser
+		
         $vevent = $object -> VEVENT;
         
         $object = Object::cleanByAccessClass($id, $object);
+		
         $accessclass = $vevent -> getAsString('CLASS');
+		
         $permissions = CalendarApp::getPermissions($id, CalendarApp::EVENT, $accessclass);
         $dtstart = $vevent -> DTSTART;
         
@@ -1165,7 +1231,7 @@ class EventController extends Controller {
             $repeat['repeat'] = 'doesnotrepeat';
         }
         
-        if ($permissions !== \OCP\PERMISSION_ALL) {
+        if ($permissions !== $this->shareConnector->getAllAccess()) {
             $calendar_options[0]['id'] = $data['calendarid'];
             
         } else {
@@ -1247,7 +1313,7 @@ class EventController extends Controller {
 
         }
         
-        if ($permissions & \OCP\PERMISSION_READ) {
+        if ($permissions & $this->shareConnector->getReadAccess()) {
             $bShareOnlyEvent = 0;
             if (Object::checkShareEventMode($id)) {
                 $bShareOnlyEvent = 1;
@@ -1276,10 +1342,10 @@ class EventController extends Controller {
                 'access_class_options' => $access_class_options,
                 'sReminderTrigger' => $sAlarm,
                 'cValarm' => $count,
-                'isShareApi' => \OC::$server->getAppConfig() -> getValue('core', 'shareapi_enabled', 'yes'),
-                'mailNotificationEnabled' => \OC::$server->getAppConfig() -> getValue('core', 'shareapi_allow_mail_notification', 'yes'),
-                'allowShareWithLink' => \OC::$server->getAppConfig() -> getValue('core', 'shareapi_allow_links', 'yes'),
-                'mailPublicNotificationEnabled' => \OC::$server->getAppConfig()->getValue('core', 'shareapi_allow_public_notification', 'no'), 
+                'isShareApi' => $this->appConfig->getValue('core', 'shareapi_enabled', 'yes'),
+                'mailNotificationEnabled' => $this->appConfig->getValue('core', 'shareapi_allow_mail_notification', 'yes'),
+                'allowShareWithLink' => $this->appConfig->getValue('core', 'shareapi_allow_links', 'yes'),
+                'mailPublicNotificationEnabled' => $this->appConfig->getValue('core', 'shareapi_allow_public_notification', 'no'), 
                 'title' => $summary,
                 'accessclass' => $accessclass,
                 'location' => $location,
@@ -1302,8 +1368,8 @@ class EventController extends Controller {
                 'repeat' => $repeat['repeat'],
                 'repeat_rules' => isset($repeat['repeat_rules']) ? $repeat['repeat_rules'] : '',
                 'repeatInfo' => $pRepeatInfo,
-                'sharetypeevent' => CalendarApp::SHAREEVENT,
-                'sharetypeeventprefix' => CalendarApp::SHAREEVENTPREFIX
+                'sharetypeevent' =>$this->shareConnector->getConstShareEvent() ,
+                'sharetypeeventprefix' => $this->shareConnector->getConstSharePrefixEvent()
             ];
 
             
@@ -1362,8 +1428,8 @@ class EventController extends Controller {
 				}
 		}
 		
+		$this->repeatController->updateEvent($id);
 		
-		Repeat::update($id);
 		Object::edit($id, $vcalendar->serialize());
 		
 		$editedEvent = CalendarApp::getEventObject($id, false, false);
@@ -1381,7 +1447,7 @@ class EventController extends Controller {
 		$start = new \DateTime($pStart);
 		$end = new \DateTime($pEnd);
 		
-	    $events = CalendarApp::generateEventOutput($editedEvent, $start, $end);
+	    $events = $this->generateEventOutput($editedEvent, $start, $end);
 		
 		$params = ['status' => 'success',
 			'data' =>[
@@ -1452,6 +1518,174 @@ class EventController extends Controller {
 	}
 	
 	/**
+	 * @NoAdminRequired
+	 * 
+	 * @brief generates the output for an event which will be readable for our js
+	 * @param (mixed) $event - event object / array
+	 * @param (int) $start - DateTime object of start
+	 * @param (int) $end - DateTime object of end
+	 * @return (array) $output - readable output
+	 */
+	
+	public function generateEventOutput(array $event, $start, $end, $list = false) {
+
+		if (!isset($event['calendardata']) && !isset($event['vevent'])) {
+			return false;
+		}
+		
+		if (!isset($event['calendardata']) && isset($event['vevent'])) {
+			$event['calendardata'] = "BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:ownCloud's Internal iCal System\n" . $event['vevent'] -> serialize() . "END:VCALENDAR";
+		}
+		
+		try {
+			$object = VObject::parse($event['calendardata']);
+			if (!$object) {
+				\OCP\Util::writeLog($this->appName, __METHOD__ . ' Error parsing event: ' . print_r($event, true), \OCP\Util::DEBUG);
+				return array();
+			}
+
+			$output = array();
+
+			if ($object -> name === 'VEVENT') {
+				$vevent = $object;
+			} elseif (isset($object -> VEVENT)) {
+				$vevent = $object -> VEVENT;
+			} else {
+				\OCP\Util::writeLog($this->appName, __METHOD__ . ' Object contains not event: ' . print_r($event, true), \OCP\Util::DEBUG);
+				return $output;
+			}
+			$id = $event['id'];
+
+			$SUMMARY = (!is_null($vevent -> SUMMARY) && $vevent -> SUMMARY -> getValue() != '') ? strtr($vevent -> SUMMARY -> getValue(), array('\,' => ',', '\;' => ';')) : (string) $this->l10n -> t('unnamed');
+			if ($event['summary'] != '') {
+				$SUMMARY = $event['summary'];
+			}
+			
+			if (Object::getowner($id) !== \OCP\USER::getUser()) {
+				// do not show events with private or unknown access class
+				if (isset($vevent -> CLASS) && $vevent -> CLASS -> getValue() === 'CONFIDENTIAL') {
+					$SUMMARY = (string) $this->l10n -> t('Busy');
+				}
+
+				if (isset($vevent -> CLASS) && ($vevent -> CLASS -> getValue() === 'PRIVATE' || $vevent -> CLASS -> getValue() === '')) {
+					return $output;
+				}
+
+				$object = Object::cleanByAccessClass($id, $object);
+			}
+
+			$event['orgevent'] = '';
+
+			if (array_key_exists('org_objid', $event) && $event['org_objid'] > 0) {
+				$event['orgevent'] = array('calendarcolor' => '#000');
+			}
+
+			$event['isalarm'] = false;
+			if (isset($vevent -> VALARM)) {
+				$event['isalarm'] = true;
+			}
+
+			$event['privat'] = false;
+			if (isset($vevent -> CLASS) && ($vevent -> CLASS -> getValue() === 'PRIVATE')) {
+				$event['privat'] = 'private';
+			}
+			
+			if (isset($vevent -> CLASS) && ($vevent -> CLASS -> getValue() === 'CONFIDENTIAL')) {
+				$event['privat'] = 'confidential';
+			}
+
+			$allday = ($vevent -> DTSTART -> getValueType() == 'DATE') ? true : false;
+			$last_modified = @$vevent -> __get('LAST-MODIFIED');
+			$calid = '';
+			if (array_key_exists('calendarid', $event)) {
+				$calid = $event['calendarid'];
+			}
+			
+			
+			$bDay = false;
+			if (array_key_exists('bday', $event)) {
+				$bDay = $event['bday'];
+			}
+			
+			$isEventShared = false;
+			if(isset($event['shared']) && $event['shared'] === 1){
+				$isEventShared = $event['shared'];
+			}
+			
+			$lastmodified = ($last_modified) ? $last_modified -> getDateTime() -> format('U') : 0;
+			$staticoutput = array(
+				'id' => (int)$event['id'],
+				'title' => $SUMMARY, 
+				'lastmodified' => $lastmodified, 
+				'categories' => $vevent -> getAsArray('CATEGORIES'), 
+				'calendarid' => (int)$calid, 
+				'bday' => $bDay, 
+				'shared' => $isEventShared, 
+				'privat' => $event['privat'], 
+				'isrepeating' => false, 
+				'isalarm' => $event['isalarm'], 
+				'orgevent' => $event['orgevent'], 
+				'allDay' => $allday
+			);
+     		
+		
+				
+			$cachedinperiod = $this->repeatController->getEventInperiod($id, $start, $end);
+			
+			
+			
+			if (Object::isrepeating($id) &&  $cachedinperiod !== null) {
+				
+				foreach ($cachedinperiod as $cachedevent) {
+					$dynamicoutput = array();
+					if ($allday) {
+						$start_dt = new \DateTime($cachedevent['startdate'], new \DateTimeZone('UTC'));
+						$end_dt = new \DateTime($cachedevent['enddate'], new \DateTimeZone('UTC'));
+						$dynamicoutput['start'] = $start_dt -> format('Y-m-d');
+						$dynamicoutput['end'] = $end_dt -> format('Y-m-d');
+						$dynamicoutput['startlist'] = $start_dt -> format('Y/m/d');
+						$dynamicoutput['endlist'] = $end_dt -> format('Y/m/d');
+					} else {
+						$start_dt = new \DateTime($cachedevent['startdate'], new \DateTimeZone('UTC'));
+						$end_dt = new \DateTime($cachedevent['enddate'], new \DateTimeZone('UTC'));
+						$start_dt -> setTimezone(new \DateTimeZone(CalendarApp::$tz));
+						$end_dt -> setTimezone(new \DateTimeZone(CalendarApp::$tz));
+						$dynamicoutput['start'] = $start_dt -> format('Y-m-d H:i:s');
+						$dynamicoutput['end'] = $end_dt -> format('Y-m-d H:i:s');
+						$dynamicoutput['startlist'] = $start_dt -> format('Y/m/d H:i:s');
+						$dynamicoutput['endlist'] = $end_dt -> format('Y/m/d H:i:s');
+					}
+					$dynamicoutput['isrepeating'] = true;
+
+					$output[] = array_merge($staticoutput, $dynamicoutput);
+
+				}
+			} else {
+				if (Object::isrepeating($id) || $event['repeating'] == 1) {
+					$object -> expand($start, $end);
+				}
+				foreach ($object->getComponents() as $singleevent) {
+					if (!($singleevent instanceof \Sabre\VObject\Component\VEvent)) {
+						continue;
+					}
+					$dynamicoutput = Object::generateStartEndDate($singleevent -> DTSTART, Object::getDTEndFromVEvent($singleevent), $allday, CalendarApp::$tz);
+
+					$output[] = array_merge($staticoutput, $dynamicoutput);
+
+				}
+			}
+			return $output;
+		} catch(\Exception $e) {
+			$uid = 'unknown';
+			if (isset($event['uri'])) {
+				$uid = $event['uri'];
+			}
+			\OCP\Util::writeLog($this->appName, 'Event (' . $uid . ') contains invalid data!', \OCP\Util::WARN);
+		}
+	}
+	
+	
+	/**
      * @PublicPage
 	 * @NoCSRFRequired
 	  * @UseSession
@@ -1466,18 +1700,18 @@ class EventController extends Controller {
 				$ALARMDATA->setEventSources($EvSource);
 				$resultRefresh = $ALARMDATA->checkAutoRefresh();
 				if($resultRefresh === false){
-					 $resultRefresh='onlyTimeLine';
+					 $resultRefresh = 'onlyTimeLine';
 				}
 			}else{
-				$resultRefresh='onlyTimeLine';
+				$resultRefresh = 'onlyTimeLine';
 			}
 			$result='';
 			if (\OCP\User::isLoggedIn()) {
 				$ALARMDATA->checkAlarm();
-				$result=$ALARMDATA->getAlarms();
+				$result = $ALARMDATA->getAlarms();
 			}
 		
-			if(count($result)>0 || $resultRefresh !== ''){
+			if(count($result) > 0 || $resultRefresh !== ''){
 					
 				$params=[
 					'data' => $result,

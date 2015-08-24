@@ -46,11 +46,11 @@ class Hooks{
 			}
 			
 	//		\OCP\Util::connectHook('OCP\Share', 'share_internal_mail', 'OCA\Calendar\Hooks', 'shareInternalMail');
-			\OCP\Util::connectHook('\OCA\CalendarPlus', 'addEvent', '\OCA\CalendarPlus\Repeat', 'generate');
-			\OCP\Util::connectHook('\OCA\CalendarPlus', 'editEvent', '\OCA\CalendarPlus\Repeat', 'update');
-			\OCP\Util::connectHook('\OCA\CalendarPlus', 'deleteEvent', '\OCA\CalendarPlus\Repeat', 'clean');
-			\OCP\Util::connectHook('\OCA\CalendarPlus', 'moveEvent', '\OCA\CalendarPlus\Repeat', 'update');
-			\OCP\Util::connectHook('\OCA\CalendarPlus', 'deleteCalendar', '\OCA\CalendarPlus\Repeat', 'cleanCalendar');
+			//\OCP\Util::connectHook('\OCA\CalendarPlus', 'addEvent', '\OCA\CalendarPlus\Repeat', 'generate');
+			//\OCP\Util::connectHook('\OCA\CalendarPlus', 'editEvent', '\OCA\CalendarPlus\Repeat', 'update');
+		//	\OCP\Util::connectHook('\OCA\CalendarPlus', 'deleteEvent', '\OCA\CalendarPlus\Repeat', 'clean');
+		//	\OCP\Util::connectHook('\OCA\CalendarPlus', 'moveEvent', '\OCA\CalendarPlus\Repeat', 'update');
+			//\OCP\Util::connectHook('\OCA\CalendarPlus', 'deleteCalendar', '\OCA\CalendarPlus\Repeat', 'cleanCalendar');
 			
 			
 	   }

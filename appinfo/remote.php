@@ -70,6 +70,10 @@ $caldavBackend    = new OCA\CalendarPlus\Connector\Sabre\Backend();
 	$server->addPlugin(new \Sabre\CalDAV\Plugin());
 	$server->addPlugin(new \Sabre\DAVACL\Plugin());
 	$server->addPlugin(new \Sabre\CalDAV\ICSExportPlugin());
+	//$server->addPlugin(new \Sabre\CalDAV\Schedule\Plugin());
+	//$server->addPlugin(
+	 //   new \Sabre\CalDAV\Schedule\IMipPlugin('sebastian.doell@owncms.de')
+	//);
 	$server->addPlugin(new \OC\Connector\Sabre\ExceptionLoggerPlugin('caldav', \OC::$server->getLogger()));
 	$server->addPlugin(new \OC\Connector\Sabre\AppEnabledPlugin(
 		'calendarplus',

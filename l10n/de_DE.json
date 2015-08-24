@@ -304,6 +304,8 @@
     "Add Reminder, Repeat" : "Erinnerung, Wiederholung hinzufügen",
     "Notice" : "Notizen",
     "Tags" : "Schlagwörter",
+    "Select Day" : "Tag auswählen",
+    "Link to a subscribed Calendar" : "Link zu einem abonnierten Kalender",
     "%s shared the Event \"%s\" with you" : "%s teilt den Termin \"%s\" mit Ihnen",
     "%s shared the calendar \"%s\" with you" : "%s teilt den Kalender \"%s\" mit Ihnen",
     "A event or todo has been <strong>created</strong> on a shared Calendar" :"Neuer Termin oder Aufgabe wurde in einem freigegebenen Kalender <strong>erstellt</strong>",

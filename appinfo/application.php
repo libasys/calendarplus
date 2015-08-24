@@ -36,6 +36,11 @@ use \OCA\CalendarPlus\Controller\TasksController;
 use \OCA\CalendarPlus\Controller\CalendarSettingsController;
 use \OCA\CalendarPlus\Controller\ImportController;
 use \OCA\CalendarPlus\Controller\ExportController;
+use \OCA\CalendarPlus\Controller\RepeatController;
+use \OCA\CalendarPlus\Db\EventDAO;
+use \OCA\CalendarPlus\Db\CalendarDAO;
+use \OCA\CalendarPlus\Db\RepeatDAO;
+use \OCA\CalendarPlus\Service\ObjectParser;
 
 class Application extends App {
 	
@@ -63,7 +68,8 @@ class Application extends App {
 			$c->query('L10N'),
 			$c->query('Session'),
 			$c->query('OCP\AppFramework\Utility\IControllerMethodReflector'),
-			$c->query('ServerContainer')->getURLGenerator()
+			$c->query('ServerContainer')->getURLGenerator(),
+			$c->query('EventController')
 			);
 		});
 		
@@ -73,7 +79,10 @@ class Application extends App {
 			$c->query('Request'),
 			$c->query('UserId'),
 			$c->query('L10N'),
-			$c->query('Settings')
+			$c->query('Settings'),
+			$c->query('RepeatController'),
+			$c->query('Session'),
+			$c->query('AppConfig')
 			);
 		});
 		
@@ -83,7 +92,8 @@ class Application extends App {
 			$c->query('Request'),
 			$c->query('UserId'),
 			$c->query('L10N'),
-			$c->query('Settings')
+			$c->query('Settings'),
+			$c->query('CalendarDAO')
 			);
 		});
 		
@@ -104,7 +114,8 @@ class Application extends App {
 			$c->query('UserId'),
 			$c->query('L10N'),
 			$c->query('Settings'),
-			$c->query('Session')
+			$c->query('Session'),
+			$c->query('RepeatController')
 			);
 		});
 	
@@ -128,6 +139,42 @@ class Application extends App {
 			);
 		});
 		
+		$container->registerService('RepeatController', function(IContainer $c) {
+			return new RepeatController(
+			$c->query('AppName'),
+			$c->query('Request'),
+			$c->query('UserId'),
+			$c->query('RepeatDAO')
+			);
+		});
+		
+		/**
+         * Database Layer
+         */
+         
+          $container->registerService('RepeatDAO', function(IContainer $c) {
+            return new RepeatDAO(
+            $c->query('ServerContainer')->getDb(),
+            $c->query('UserId')
+ 			);
+        });
+		
+          $container->registerService('EventDAO', function(IContainer $c) {
+            return new EventDAO(
+            $c->query('ServerContainer')->getDb(),
+            $c->query('UserId'),
+            $c->query('CalendarDAO')
+ 			);
+        });
+		
+		$container->registerService('CalendarDAO', function(IContainer $c) {
+            return new CalendarDAO(
+            $c->query('ServerContainer')->getDb(),
+            $c->query('UserId')
+			);
+        });
+		
+		
           /**
 		 * Core
 		 */
@@ -137,7 +184,13 @@ class Application extends App {
 			$server = $c->query('ServerContainer');
 			return $server->getURLGenerator();
 		});
-		 
+		
+		$container->registerService('AppConfig', function(IContainer $c) {
+			/** @var \OC\Server $server */
+			$server = $c->query('ServerContainer');
+			return $server->getAppConfig();
+		}); 
+		
 		$container -> registerService('UserId', function(IContainer $c) {
 			$server = $c->query('ServerContainer');
 

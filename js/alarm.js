@@ -52,7 +52,7 @@ function liveReminderCheck(){
 	
 		var url = OC.generateUrl('/apps/calendarplus/getreminderevents');
 		var myRefChecker='';
-		 if (timerRefresher){
+		 if (timerRefresher !== null){
 			window.clearInterval(timerRefresher);
 		}
 		
@@ -65,7 +65,7 @@ function liveReminderCheck(){
 			
 			$.post(url,{EvSource:myRefChecker},function(jasondata){
 					
-					if($('#fullcalendar').length==1){
+					if($('#fullcalendar').length === 1){
 					  if(jasondata.refresh !== 'onlyTimeLine'){
 						
 							CalendarPlus.calendarConfig['myRefreshChecker'][jasondata.refresh.id]=jasondata.refresh.ctag;
@@ -75,22 +75,23 @@ function liveReminderCheck(){
 							if(CalendarPlus.UI.timerLock == true) {
 								CalendarPlus.UI.timerLock=false;
 							}
-							CalendarPlus.Util.setTimeline();
 						}
-						if(jasondata.refresh=='onlyTimeLine'){
-							CalendarPlus.Util.setTimeline();
-							//alert(jasondata.refresh);
-						}
+						
+						
 					}
 					//
-					if(jasondata.data!=''){
+					if(jasondata.data != ''){
+						
 						openReminderDialog(jasondata.data);
 					} 
-				
+					
 				//
 			});
 			
-		
+			if($('#fullcalendar').length === 1){
+				CalendarPlus.Util.setTimeline();
+				
+			}
 			
 		}, 60000);
 		

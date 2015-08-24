@@ -30,8 +30,9 @@
 */
 
 namespace OCA\CalendarPlus\Connector\Sabre;
-use OCA\CalendarPlus\App as CalendarApp;
-use OCA\CalendarPlus\Calendar as CalendarCalendar;
+
+use OCA\CalendarPlus\Connector\CalendarConnector;
+use OCA\CalendarPlus\Share\ShareConnector;
 
 class Calendar extends \Sabre\CalDAV\Calendar {
 
@@ -51,25 +52,30 @@ class Calendar extends \Sabre\CalDAV\Calendar {
 
 		$readprincipal = $this->getOwner();
 		$writeprincipal = $this->getOwner();
-		$uid =CalendarCalendar::extractUserID($this->getOwner());
 		
-		$calendar = CalendarApp::getCalendar($this->calendarInfo['id'], false, false);
+		$calendarConnector = new CalendarConnector();
+		$shareConnector = new ShareConnector();
 		
-        if($uid === \OCP\USER::getUser() && (bool)$calendar['issubscribe'] === true) {
-         		$readprincipal = 'principals/' . \OCP\USER::getUser();
+		$uid = $calendarConnector->extractUserID($this->getOwner());
+		$calendar = $calendarConnector->getCalendar($this->calendarInfo['id'], false, false);
+		$user = \OCP\USER::getUser();
+		
+        if($uid === $user && (bool)$calendar['issubscribe'] === true) {
+         		$readprincipal = 'principals/' .$user;
 				$writeprincipal ='';
          }
 		
-		if($uid !== \OCP\USER::getUser()) {
-			$sharedCalendar = \OCP\Share::getItemSharedWithBySource(CalendarApp::SHARECALENDAR, CalendarApp::SHARECALENDARPREFIX.$this->calendarInfo['id']);
-			if ($sharedCalendar && ($sharedCalendar['permissions'] & \OCP\PERMISSION_READ)) {
-				$readprincipal = 'principals/' . \OCP\USER::getUser();
+		if($uid !== $user) {
+			$sharedCalendar = $shareConnector->getItemSharedWithBySourceCalendar($this->calendarInfo['id']);
+			
+			if ($sharedCalendar && ($sharedCalendar['permissions'] & $shareConnector->getReadAccess())) {
+				$readprincipal = 'principals/' . $user;
 				$writeprincipal = '';
 				
 			}
-			if ($sharedCalendar && ($sharedCalendar['permissions'] & \OCP\PERMISSION_UPDATE)) {
-				$readprincipal = 'principals/' . \OCP\USER::getUser();	
-				$writeprincipal = 'principals/' . \OCP\USER::getUser();
+			if ($sharedCalendar && ($sharedCalendar['permissions'] & $shareConnector->getUpdateAccess())) {
+				$readprincipal = 'principals/' . $user;	
+				$writeprincipal = 'principals/' . $user;
 			}
 		}
 

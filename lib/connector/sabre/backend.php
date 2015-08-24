@@ -23,12 +23,22 @@
  */
 namespace OCA\CalendarPlus\Connector\Sabre;
 
-use OCA\CalendarPlus\Calendar as CalendarCalendar;
-use OCA\CalendarPlus\App as CalendarApp;
-use OCA\CalendarPlus\Object;
-use OCA\CalendarPlus\VObject;
+use OCA\CalendarPlus\Connector\CalendarConnector;
+use OCA\CalendarPlus\Share\ShareConnector;
+use OCA\CalendarPlus\Service\ObjectParser;
 
 class Backend extends \Sabre\CalDAV\Backend\AbstractBackend  {
+
+	private $calendarConnector;
+	private $shareConnector;
+	private $objectParser;
+	
+    public function __construct(){
+		 $this->calendarConnector = new CalendarConnector();
+		 $this->shareConnector = new ShareConnector();
+		 $this->objectParser = new ObjectParser(\OCP\USER::getUser());
+	}
+
 	/**
 	 * List of CalDAV properties, and how they map to database fieldnames
 	 *
@@ -63,14 +73,14 @@ class Backend extends \Sabre\CalDAV\Backend\AbstractBackend  {
 	 */
 	public function getCalendarsForUser($principalUri) {
 			
-		$raw = CalendarCalendar::allCalendarsWherePrincipalURIIs($principalUri);
+		$raw = $this->calendarConnector->allCalendarsWherePrincipalURIIs($principalUri);
 
 		$calendars = array();
 		
 		foreach( $raw as $row ) {
 			$components = explode(',',$row['components']);
 
-			if($row['userid'] != \OCP\USER::getUser()) {
+			if($row['userid'] !== \OCP\USER::getUser()) {
 				$row['uri'] = $row['uri'] . '_shared_by_' . $row['userid'];
 			}
 			
@@ -143,7 +153,7 @@ class Backend extends \Sabre\CalDAV\Backend\AbstractBackend  {
             $values['calendarcolor'] = substr($values['calendarcolor'], 0, 7);
         }
 
-        return CalendarCalendar::addCalendarFromDAVData($principalUri,$calendarUri,$values['displayname'],$values['components'],$values['timezone'],$values['calendarorder'],$values['calendarcolor'],$values['transparent']);
+        return $this->calendarConnector->add($principalUri,$calendarUri,$values['displayname'],$values['components'],$values['timezone'],$values['calendarorder'],$values['calendarcolor']);
     }
 	 
 	 
@@ -218,12 +228,10 @@ class Backend extends \Sabre\CalDAV\Backend\AbstractBackend  {
 			$newValues['calendarcolor'] = substr($newValues['calendarcolor'], 0, 7);
 		}
 
-		CalendarCalendar::editCalendar($calendarId,$newValues['displayname'],null,$newValues['timezone'],$newValues['calendarorder'],$newValues['calendarcolor']);
+		$this->calendarConnector->edit($calendarId,$newValues['displayname'],null,$newValues['timezone'],$newValues['calendarorder'],$newValues['calendarcolor']);
 	   return true;
 	});
-	//	return \OCA\Calendar\Calendar::editCalendarFromDAVData($principalUri,$calendarUri,$values['displayname'],$values['components'],$values['timezone'],$values['calendarorder'],$values['calendarcolor']);
-		
-		//return true;
+	
 
 	}
 
@@ -237,8 +245,8 @@ class Backend extends \Sabre\CalDAV\Backend\AbstractBackend  {
 	    if(preg_match( '=iCal/[1-4]?.*Mac OS X/10.[1-6](.[0-9])?=', $_SERVER['HTTP_USER_AGENT'] )) {
 	    	//throw new \Sabre\DAV\Exception\Forbidden("Action is not possible with OSX 10.6.x", 403);
 		}
-		//\OCP\Util::writeLog('calendar', 'DEL ID-> '.$calendarId, \OCP\Util::DEBUG);
-		CalendarCalendar::deleteCalendar($calendarId);
+		
+		$this->calendarConnector->delete($calendarId);
 		return true;
 	}
 
@@ -266,10 +274,10 @@ class Backend extends \Sabre\CalDAV\Backend\AbstractBackend  {
 	 */
 	public function getCalendarObjects($calendarId) {
 		$data = array();
-		$calendar = CalendarCalendar::find($calendarId);
+		$calendar = $this->calendarConnector->find($calendarId);
 		$isShared = ($calendar['userid'] !== \OCP\USER::getUser());
 		
-		foreach(Object::all($calendarId) as $row) {
+		foreach($this->calendarConnector->allObjects($calendarId) as $row) {
 			if (!$isShared) {
 					
 				$data[] = $this->OCAddETag($row);
@@ -278,7 +286,9 @@ class Backend extends \Sabre\CalDAV\Backend\AbstractBackend  {
 				if (substr_count($row['calendardata'], 'CLASS') === 0) {
 						$data[] = $this->OCAddETag($row);
 					} else {
-							$object = VObject::parse($row['calendardata']);
+								
+							$object = $this->objectParser->parse($row['calendardata']);
+							
 							if(!$object) {
 								return false;
 							}
@@ -313,15 +323,20 @@ class Backend extends \Sabre\CalDAV\Backend\AbstractBackend  {
 	 * @return array
 	 */
 	public function getCalendarObject($calendarId,$objectUri) {
-		$data = Object::findWhereDAVDataIs($calendarId,$objectUri);
+			
+		$data = $this->calendarConnector->findObjectWhereDAVDataIs($calendarId,$objectUri);
 		
 		if(is_array($data)) {
 			$data = $this->OCAddETag($data);	
-			$object = VObject::parse($data['calendardata']);
+			
+			$object = $this->objectParser->parse($data['calendardata']);
 			if(!$object) {
 				return false;
 			}
-			$object = Object::cleanByAccessClass($data['id'], $object);
+			
+			$ownerId = $this->calendarConnector->getOwner($data['id'])	;
+			
+			$object = $this->objectParser->cleanByAccessClass($ownerId, $object);
 			$data['calendardata'] = $object->serialize();
 			//$data = $this->OCAddETag($data);
 			return $data;
@@ -338,19 +353,7 @@ class Backend extends \Sabre\CalDAV\Backend\AbstractBackend  {
 	 * @return void
 	 */
 	public function createCalendarObject($calendarId,$objectUri,$calendarData) {
-		$calendar = CalendarCalendar::find($calendarId);
-		$bAccess=true;
-		if($calendar['userid'] !== \OCP\User::getUser()) {
-			$sharedCalendar = \OCP\Share::getItemSharedWithBySource(CalendarApp::SHARECALENDAR, CalendarApp::SHARECALENDARPREFIX. $calendarId);
-			if (!$sharedCalendar || !($sharedCalendar['permissions'] & \OCP\PERMISSION_UPDATE)) {	
-				$bAccess=false;
-				$calendarData=null;
-				\OCP\Util::writeLog('calendarplus', 'CALDAV -> CREATE Permission denied! Calendar '.$calendar['displayname'], \OCP\Util::DEBUG);
-			}
-		}
-		if($bAccess === true){	
-			Object::addFromDAVData($calendarId,$objectUri,$calendarData);
-		}
+			$this->calendarConnector->addObject($calendarId,$objectUri,$calendarData);
 	}
 
 	/**
@@ -362,18 +365,9 @@ class Backend extends \Sabre\CalDAV\Backend\AbstractBackend  {
 	 * @return void
 	 */
 	public function updateCalendarObject($calendarId,$objectUri,$calendarData) {
-		$calendar = CalendarCalendar::find($calendarId);
-		$bAccess=true;
-		if($calendar['userid'] != \OCP\User::getUser()) {
-			$sharedCalendar = \OCP\Share::getItemSharedWithBySource(CalendarApp::SHARECALENDAR, CalendarApp::SHARECALENDARPREFIX.$calendarId);
-			if (!$sharedCalendar || !($sharedCalendar['permissions'] & \OCP\PERMISSION_UPDATE)) {	
-				$bAccess=false;
-				\OCP\Util::writeLog('calendarplus', 'CALDAV -> UPDATE Permission denied! Calendar '.$calendar['displayname'], \OCP\Util::DEBUG);
-			}
-		}
-		if($bAccess === true){
-			Object::editFromDAVData($calendarId,$objectUri,$calendarData);
-		}
+		
+			$this->calendarConnector->updateObject($calendarId,$objectUri,$calendarData);
+		
 	}
 
 	/**
@@ -384,18 +378,9 @@ class Backend extends \Sabre\CalDAV\Backend\AbstractBackend  {
 	 * @return void
 	 */
 	public function deleteCalendarObject($calendarId,$objectUri) {
-		$calendar = CalendarCalendar::find($calendarId);
-		$bAccess=true;
-		if($calendar['userid'] !== \OCP\User::getUser()) {
-			$sharedCalendar = \OCP\Share::getItemSharedWithBySource(CalendarApp::SHARECALENDAR,CalendarApp::SHARECALENDARPREFIX.$calendarId);
-			if (!$sharedCalendar || !($sharedCalendar['permissions'] & \OCP\PERMISSION_UPDATE)) {	
-				$bAccess=false;
-				\OCP\Util::writeLog('calendarplus', 'CALDAV -> DELETE Permission denied! Calendar '.$calendar['displayname'], \OCP\Util::DEBUG);
-			}
-		}
-		if($bAccess === true){	
-			Object::deleteFromDAVData($calendarId,$objectUri);
-		}
+		
+			$this->calendarConnector->deleteObject($calendarId,$objectUri);
+		
 	}
 
 	/**

@@ -33,7 +33,12 @@
 		</tr>
 		<tr>
 			<td>
-			<input type="text" style="width:100%;width:calc( 100% - 15px );font-size:14px;font-family:Arial, fontello;float:left;"  placeholder="&#xe852; <?php p($l->t("Location of the Event"));?>" value="<?php p(isset($_['location']) ? $_['location'] : '') ?>" maxlength="100"  name="location" />
+			<?php 
+			$calcWidthLoc = '88%';
+			 if(isset($_['eventid']) && $_['eventid'] ==='new'){
+				$calcWidthLoc = '95%';
+			}	?>
+			<input type="text" style="width:<?php p($calcWidthLoc) ?>;font-size:14px;font-family:Arial, fontello;float:left;"  placeholder="&#xe852; <?php p($l->t("Location of the Event"));?>" value="<?php p(isset($_['location']) ? $_['location'] : '') ?>" maxlength="100"  name="location" />
              <?php  if(isset($_['eventid']) && $_['eventid'] !='new'){
              		 if($_['permissions'] & OCP\PERMISSION_SHARE && $_['isShareApi'] === 'yes') { ?>
 		

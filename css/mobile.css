@@ -23,26 +23,15 @@
 
 
 /* do not show Deleted Files on mobile, not optimized yet and button too long */
-#controls .view.button-group {
-	display:none;
-}
+
 .view.navigation-left {
 	display:block;
 }
 .view.navigation-left .ioc-next{
 	
 }
-#app-navigation{
-	margin-top:-45px;
-}
-#leftcontentInner .button-group > .button, #leftcontentInner .button-group > button {
-	min-width:74px;
-	margin:2px 2px;
-	padding: 3px 5px;
-}
-
-#leftcontentInner .button-group > button:last-child {
-	margin-left:84px;
+#rightCalendarNav{
+	display:none;
 }
 
 /* proper notification area for multi line messages */

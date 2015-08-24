@@ -27,7 +27,7 @@ use \OCA\CalendarPlus\App as CalendarApp;
 use \OCA\CalendarPlus\Calendar as CalendarCalendar;
 use \OCA\CalendarPlus\VObject;
 use \OCA\CalendarPlus\Object;
-use \OCA\CalendarPlus\Repeat;
+
 
 use \OCP\AppFramework\Controller;
 use \OCP\AppFramework\Http\JSONResponse;
@@ -42,17 +42,19 @@ class CalendarSettingsController extends Controller {
 	private $userId;
 	private $l10n;
 	private $configInfo;
+	private $repeatController;
 	/**
 	 * @type ISession
 	 * */
 	private $session;
 	
-	public function __construct($appName, IRequest $request, $userId, $l10n, IConfig $settings ,ISession $session) {
+	public function __construct($appName, IRequest $request, $userId, $l10n, IConfig $settings ,ISession $session, $repeatController) {
 		parent::__construct($appName, $request);
 		$this -> userId = $userId;
 		$this->l10n = $l10n;
 		$this->configInfo = $settings;
 		$this->session = $session;
+		$this->repeatController = $repeatController;
 	}
 	
 	/**
@@ -64,7 +66,7 @@ class CalendarSettingsController extends Controller {
 		$calendars = CalendarCalendar::allCalendars($this -> userId);	
 		$allcached = true;
 		foreach($calendars as $calendar) {
-			if(!Repeat::is_calendar_cached($calendar['id'])) {
+			if(!$this->repeatController->isCalendarCached($calendar['id'])){	
 				$allcached = false;
 			}
 		}
@@ -110,7 +112,7 @@ class CalendarSettingsController extends Controller {
 		$defaultTime ='hh:mm tt';
 		if($this ->configInfo ->getUserValue($this -> userId, $this->appName, 'timeformat', '24') === '24'){
 			$agendaTime ='HH:mm { - HH:mm}';
-			$defaultTime ='HH:mm';
+			$defaultTime ='HH:mm { - HH:mm}';
 		}
 
 		$checkCat=CalendarApp::loadTags();
@@ -131,23 +133,48 @@ class CalendarSettingsController extends Controller {
 		$myRefreshChecker=[];
 		
 		foreach($calendars as $calendar) {
-			$isAktiv= $calendar['active'];
+				
+			$isAktiv= (int) $calendar['active'];
 			
 			if($this ->configInfo -> getUserValue($this -> userId, $this->appName, 'calendar_'.$calendar['id']) !== ''){
-			    $isAktiv = (int)$this ->configInfo -> getUserValue($this -> userId, $this->appName, 'calendar_'.$calendar['id']);
+			    $isAktiv = (int) $this ->configInfo -> getUserValue($this -> userId, $this->appName, 'calendar_'.$calendar['id']);
 		    }	
 			if(!array_key_exists('active', $calendar)){
 				$isAktiv = 1;
 			}
-			if((int)$isAktiv === 1) {
-				$eventSources[] = CalendarCalendar::getEventSourceInfo($calendar);
-				$calendarInfo[$calendar['id']]=[
-					'bgcolor'=>$calendar['calendarcolor'],
-					'color'=>CalendarCalendar::generateTextColor($calendar['calendarcolor'])
+			if($this->userId !== $calendar['userid']){
+				$calendar['uri'] = $calendar['uri'] . '_shared_by_' . $calendar['userid'];
+			}
+			$addClass = '';
+			if(isset($calendar['className'])){
+				$addClass = $calendar['className'];
+			}
+			
+			$bgColor = '';
+			$textColor = '';
+			if(isset($calendar['calendarcolor'])){
+				$bgColor = $calendar['calendarcolor'];
+				$textColor = CalendarCalendar::generateTextColor($bgColor);
+			}
+			
+			if(isset($calendar['textColor'])){
+				$textColor = $calendar['textColor'];
+			}
+			
+			$calendarInfo[$calendar['id']]=[
+					'bgcolor' => $bgColor,
+					'color' => $textColor,
+					'name' => $calendar['displayname'],
+					'externuri' => $calendar['externuri'],
+					'uri' => $calendar['uri'],
+					'className' => $addClass
 				];
 				
+			if((int)$isAktiv === 1) {
+				$eventSources[] = CalendarCalendar::getEventSourceInfo($calendar);
+				
 				$myCalendars[$calendar['id']]=[
-					'id'=>$calendar['id'],
+					'id'=> $calendar['id'],
 					'name'=>$calendar['displayname'],
 					'issubscribe' => (int) $calendar['issubscribe'],
 					'permissions' => (int) $calendar['permissions'],
@@ -159,10 +186,9 @@ class CalendarSettingsController extends Controller {
 			
 		
 		$events_baseURL = \OC::$server->getURLGenerator()->linkToRoute($this->appName.'.event.getEvents');
-		$eventSources[] = array('url' => $events_baseURL.'?calendar_id=shared_events',
-				'backgroundColor' => '#1D2D44',
-				'borderColor' => '#888',
-				'textColor' => 'white',
+		$eventSources[] = array(
+				'url' => $events_baseURL.'?calendar_id=shared_events',
+				'className' => 'shared-events',
 				'editable' => 'false');
 				
 		if ($this -> configInfo -> getUserValue($this -> userId,$this->appName, 'userconfig')) {	
@@ -172,6 +198,10 @@ class CalendarSettingsController extends Controller {
 			$userConfig='{"agendaDay":"true","agendaThreeDays":"false","agendaWorkWeek":"false","agendaWeek":"true","month":"true","year":"false","list":"false"}';
 			$userConfig = json_decode($userConfig);
 		}
+		
+		$leftNavAktiv = $this->configInfo->getUserValue($this->userId, $this->appName, 'calendarnav');
+		$rightNavAktiv = $this->configInfo->getUserValue($this->userId, $this->appName, 'tasknav');
+		$taskAppActive = \OC::$server->getAppManager()->isEnabledForUser('tasksplus');
 		
     	$params = [
 			'status' => 'success',
@@ -189,6 +219,9 @@ class CalendarSettingsController extends Controller {
 			'userConfig' => $userConfig,
 			'sharetypeevent' => CalendarApp::SHAREEVENT,
 			'sharetypecalendar' => CalendarApp::SHARECALENDAR,
+			'leftnavAktiv' => $leftNavAktiv,
+			'rightnavAktiv' =>$rightNavAktiv,
+			'taskAppActive' =>$taskAppActive,
 		];
 		
 		$response = new JSONResponse($params);
@@ -457,8 +490,8 @@ class CalendarSettingsController extends Controller {
     	
 		$calendars = CalendarCalendar::allCalendars($this -> userId);
 		foreach($calendars as $calendar) {
-			Repeat::cleancalendar($calendar['id']);
-			Repeat::generatecalendar($calendar['id']);
+			$this->repeatController->cleanCalendar($calendar['id']);
+			$this->repeatController->generateCalendar($calendar['id']);	
 		}
 	
 		$params = [

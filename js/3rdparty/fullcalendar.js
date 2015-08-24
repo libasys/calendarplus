@@ -1558,7 +1558,9 @@ function parseTime(s) { // returns minutes since start of day
 
 
 function formatDate(date, format, options) {
+
 	return formatDates(date, null, format, options);
+	
 }
 
 
@@ -5040,6 +5042,7 @@ function AgendaEventRenderer() {
 		}else{
 			html += "div";
 		}
+		
 		html +=
 			" class='" + classes.join(' ') + "'" +
 			" style=" +
@@ -6427,6 +6430,7 @@ function DayEventRenderer() {
 			">" +
 			"<div class='fc-event-inner'>";
 		if (!event.allDay && segment.isStart) {
+		
 			html +=
 				"<span class='fc-event-time'>" +
 				htmlEscape(
@@ -6438,7 +6442,7 @@ function DayEventRenderer() {
 			"<span class='fc-event-title'>" +
 			htmlEscape(event.title || '') +
 			"</span>" +
-			"</div>";
+			"</div><div class='fc-event-bg'></div>";
 		if (segment.isEnd && isEventResizable(event)) {
 			html +=
 				"<div class='ui-resizable-handle ui-resizable-" + (isRTL ? 'w' : 'e') + "'>" +

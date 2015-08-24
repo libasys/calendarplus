@@ -23,36 +23,75 @@ body{
 	background:#fff;
 }
 #controls{
-	top:44px;
+	left:0;
+	margin-left:-240px;
 	background:#fff;
+	width:95%;
 }
 #fullcalendar{
-	top:88px;
+	
 	padding-left:10px;
 }
-#leftcontent{
-	top:88px;
+#app-content{
+	top:50px;
+	height:100%;
+	float:left;
+	position:relative;
+	display:block;
+	width:75%;
 }
-
-
-#datepickerNav{
+#timezoneDiv{
+	float:none;
+	position:relative;
+	display:block;
+	width:98%;
+	
+	min-height:40px;
+}
+#app-navigation{
+	clear:both;
 	width:250px;
+	position:relative;
+	float:left;
+	display:block;
+	top:50px;
+	height:95%;
+	left:0;
 }
+#view{
+	
+	display:inline-block;
+}
+
+#datecontrol_today{
+	float:none;
+	margin: 5px 3px;
+	padding: 6px 7px;
+}
+
+.button-group button + button{
+  margin-left: -5px;
+}
+
+.button-group > button:first-child {
+  margin-left: 0;
+   border-top-left-radius: 3px;
+  border-bottom-left-radius: 3px;
+}
+
+.button-group > button:last-child {
+ 
+   border-top-right-radius: 3px;
+  border-bottom-right-radius: 3px;
+}
+
 
 .fc-view-list{
 	overflow:auto;
 	height:auto;
 }
 
-#leftcontent{
-	width:255px;
-}
-#leftcontentInner{
-	position:relative;
-	top:0px;
-	padding:0;
-	margin:0;
-}
+
 #view button.active{
 	background:#fff;
 }
@@ -66,6 +105,7 @@ footer{
 .leftControls{
 	position:relative;
 	float:left;
+	left:0;
 	width:25%;
 	display:none;
 	
@@ -119,7 +159,18 @@ footer{
 }
 footer{
 	display:none;
+	
 }
+.datenavigation{
+	padding-left:4px;
+}
+
+.timezonelabel{
+	padding-left:8px;
+	font-weight:bold;
+}
+
+
 .header-right{
 	
 	height:30px;
@@ -200,10 +251,7 @@ th.leftDescr{
 	.leftControls{
 		width:10%;
 	}
-	#leftcontent{
-		display:none;
-		width:0;
-	}
+	
 	.centerControls{
 		width:90%;
 	}

@@ -22,6 +22,8 @@
  */
 
 namespace OCA\CalendarPlus;
+use OCA\CalendarPlus\DB\RepeatDAO;
+
 Alarm::$tz = App::getTimezone();
 class Alarm {
 	private $nowTime = 0;
@@ -65,8 +67,10 @@ class Alarm {
 				$this -> aCalendars[] = $rootLinkItem;
 			}
 		} else {
-			$this -> aCalendars = Calendar::allCalendars(\OCP\User::getUser());
-			$this -> checkAlarm();
+			if (\OCP\User::isLoggedIn()){	
+				$this -> aCalendars = Calendar::allCalendars(\OCP\User::getUser());
+				$this -> checkAlarm();
+			}
 		}
 
 	}
@@ -135,54 +139,63 @@ class Alarm {
 		
 		$addWhereSql = '';
 
+		
+		$ids = array();
+		
+		//\OCP\Util::writeLog('calendarplus','COUNT ALARM:'.count($ids) ,\OCP\Util::DEBUG);
 		$aExec = array('1', 'VJOURNAL');
-
 		foreach ($this->aCalendars as $calInfo) {
-			if ($addWhereSql == '') {
-				$addWhereSql = "`calendarid` = ? ";
-				array_push($aExec, $calInfo['id']);
-			} else {
-				$addWhereSql .= "OR `calendarid` = ? ";
-				array_push($aExec, $calInfo['id']);
+			if($calInfo['id'] !== 'birthday_'.\OCP\USER::getUser()){	
+				$ids[] = $calInfo['id'];	
+				array_push($aExec,$calInfo['id']);
 			}
-			//\OCP\Util::writeLog('calendar','AlarmDB ID :'.$calInfo['id'] ,\OCP\Util::DEBUG);
 		}
-		if($addWhereSql!=''){
-			$addWhereSql="AND (". $addWhereSql . ") ";
-		}
-
-		$stmt = \OCP\DB::prepare( 'SELECT * FROM `'.App::CldObjectTable.'` WHERE `isalarm` = ? AND `objecttype`!= ? '.$addWhereSql.' ' 
-		.' AND ((`startdate` >= ? AND `enddate` <= ? AND `repeating` = 0)'
-		.' OR (`enddate` >= ? AND `startdate` <= ? AND `repeating` = 0)'
-		.' OR (`startdate` <= ? AND `repeating` = 1) )' );
-		array_push($aExec, $start, $end, $start, $end,$start);
-		$result = $stmt -> execute($aExec);
-		$calendarobjects = array();
-		while ($row = $result -> fetchRow()) {
-
+		
+		$id_sql = '';
+		if(count($ids) > 0){
+		 	$id_sql = join(',', array_fill(0, count($ids), '?'));
+			array_push($aExec,$start, $end, $start, $end, $start, $start);
 			
+			$repeatDB = new RepeatDAO(\OC::$server->getDb(),  \OCP\USER::getUser());	
 			
-			if($row['repeating']){
-				$cachedinperiod = Repeat::get_inperiod_Alarm($row['id'], $start, $end);
-				$rowRepeat=array();
-				foreach ($cachedinperiod as $cachedevent) {
-					$rowRepeat['startdate'] =$cachedevent['startdate'];
-					$rowRepeat['enddate'] =$cachedevent['enddate'];
-					$rowRepeat['calendardata']=$row['calendardata'];
-					$rowRepeat['id'] =$row['id'];
-					$rowRepeat['summary'] =$row['summary'];
-					$calendarobjects[]=$rowRepeat;
+			$stmt = \OCP\DB::prepare( 'SELECT * FROM `'.App::CldObjectTable.'` WHERE `isalarm` = ? AND `objecttype`!= ?  AND `calendarid` IN ('.$id_sql.') ' 
+			.' AND ((`startdate` >= ? AND `enddate` <= ? AND `repeating` = 0)'
+			.' OR (`enddate` >= ? AND `startdate` <= ? AND `repeating` = 0)'
+			.' OR (`startdate` <= ? AND `repeating` = 1) '
+			.' OR (`startdate` >= ? AND `repeating` = 1)
+			)' );
+			$result = $stmt -> execute($aExec);
+			$calendarobjects = array();
+			while ($row = $result -> fetchRow()) {
+				
+				if($row['repeating']){
+					
+					$cachedinperiod = $repeatDB->getEventInperiod($row['id'], $start, $end, true);
+					//\OCP\Util::writeLog('calendarplus','REPEAT ALARM:'.$row['id'] ,\OCP\Util::DEBUG);
+					$rowRepeat=array();
+					if(is_array($cachedinperiod)){
+						foreach($cachedinperiod as $cachedevent) {
+							$rowRepeat['startdate'] = $cachedevent['startdate'];
+							$rowRepeat['enddate'] = $cachedevent['enddate'];
+							$rowRepeat['calendardata'] = $row['calendardata'];
+							$rowRepeat['id'] = $row['id'];
+							$rowRepeat['summary'] = $row['summary'];
+							
+							$calendarobjects[] = $rowRepeat;
+							
+						}
+					}
 				}
+				
+				$calendarobjects[] = $row;
 			}
-			
-			$calendarobjects[] = $row;
 		}
-
-		if (is_array($calendarobjects)){
+		if (count($calendarobjects) > 0){
 			$this -> parseAlarm($calendarobjects);
 		}
-		else
+		else{
 			return false;
+		}
 
 	}
 

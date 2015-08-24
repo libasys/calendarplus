@@ -31,7 +31,40 @@ class VObject{
 	/** @var Sabre\VObject\Component */
 	protected $vobject;
 	protected $vcomponent;
-
+	
+	
+	/**
+	 * Constuctor
+	 * @param Sabre\VObject\Component or string
+	 */
+	public function __construct($vobject_or_name) {
+		if (is_object($vobject_or_name)) {
+			$this->vobject = $vobject_or_name;
+		} else {
+			switch($vobject_or_name){
+				case 'VCALENDAR':
+				case 'VTODO':
+				case 'VEVENT':
+				case 'VALARM':
+				case 'VFREEBUSY':	
+				case 'VJOURNAL':
+				case 'VTIMEZONE':	
+					$this->vcomponent = new \Sabre\VObject\Component\VCalendar();
+					break;	
+				case 'VCARD':
+					$this->vcomponent = new \Sabre\VObject\Component\VCard();
+					break;
+				default:
+				 	$this->vcomponent = new \Sabre\VObject\Component\VCalendar();
+					break;			
+			}
+			
+			$this->vobject  = $this->vcomponent->createComponent($vobject_or_name);	
+			
+		}
+	}
+	
+	
 	/**
 	 * @returns Sabre\VObject\Component
 	 */
@@ -92,37 +125,7 @@ class VObject{
 		return $array;
 	}
 
-	/**
-	 * Constuctor
-	 * @param Sabre\VObject\Component or string
-	 */
-	public function __construct($vobject_or_name) {
-		if (is_object($vobject_or_name)) {
-			$this->vobject = $vobject_or_name;
-		} else {
-			switch($vobject_or_name){
-				case 'VCALENDAR':
-				case 'VTODO':
-				case 'VEVENT':
-				case 'VALARM':
-				case 'VFREEBUSY':	
-				case 'VJOURNAL':
-				case 'VTIMEZONE':	
-					$this->vcomponent = new \Sabre\VObject\Component\VCalendar();
-					break;	
-				case 'VCARD':
-					$this->vcomponent = new \Sabre\VObject\Component\VCard();
-					break;
-				default:
-				 	$this->vcomponent = new \Sabre\VObject\Component\VCalendar();
-					break;			
-			}
-			
-			$this->vobject  = $this->vcomponent->createComponent($vobject_or_name);	
-			
-		}
-	}
-
+	
 	public function add($item, $itemValue = null) {
 		if ($item instanceof VObject) {
 			$item = $item->getVObject();

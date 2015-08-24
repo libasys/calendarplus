@@ -63,19 +63,19 @@ CalendarShare={
 					if(CalendarShare.defaultConfig['smallCalendarLeft'] === true){
 						CalendarShare.buildLeftNavigation();
 					}else{
-						$('#leftcontent').remove();
+						$('#app-navigation').remove();
 					}
 					if(CalendarShare.defaultConfig['header'] === false){
 						$('header').remove();
 						$('#controls').css('top',0);
 						$('#fullcalendar').css('top','50px');
-						$('#leftcontent').css('top','50px');
+						$('#app-navigation').css('top','50px');
 						if(CalendarShare.defaultConfig['calendarViews'] === null 
 						&& CalendarShare.defaultConfig['showTodayButton'] === false
 						&& CalendarShare.defaultConfig['showTimeZone'] === false
 						){
 							$('#fullcalendar').css('top','10px');
-							$('#leftcontent').css('top','40px');
+							$('#app-navigation').css('top','40px');
 							$('#controls').remove();
 						}
 					}else{
@@ -95,9 +95,9 @@ CalendarShare={
 					}
 					
 					if(CalendarShare.defaultConfig['showTimeZone'] === false){
-						$('.rightControls').html('');
+						$('#timezoneDiv').html('');
 					}else{
-						$('.rightControls').show();
+						$('#timezoneDiv').show();
 					}	
 					
 					CalendarShare.buildAvailableViews();
@@ -199,11 +199,7 @@ CalendarShare={
 		];
 		
 		$('#fullcalendar').fullCalendar({
-			header : {
-				center : 'title',
-				left : '',
-				right : ''
-			},
+			header : false,
 			firstDay : CalendarShare.calendarConfig['firstDay'],
 			editable : false,
 			startEditable:false,
@@ -211,7 +207,7 @@ CalendarShare={
 			aspectRatio : 1.5,
 			weekNumberTitle :  t(myAppName, 'CW '),
 			weekNumbers : true,
-			weekMode : 'variable',
+			weekMode : 'fixed',
 			yearColumns: CalendarShare.defaultConfig['yearColumns'],
 			firstMonth:CalendarShare.defaultConfig['firstMonth'],
 			lastMonth:CalendarShare.defaultConfig['lastMonth'],
@@ -256,19 +252,42 @@ CalendarShare={
 		var heightToSet=0;
 		if(CalendarShare.defaultConfig['footer'] === false && CalendarShare.defaultConfig['header'] === false){
 			heightToSet+= 60; 
+			$('#app-content').css('top','-50px');
+			$('#app-navigation').css('top',0);
+			$('#app-navigation').height($(window).height());
+		}else{
+			$('#app-navigation').height($(window).height()-55);
 		}
 		if(CalendarShare.defaultConfig['footer'] === true){
 			heightToSet+=50; 
 		}
 		if(CalendarShare.defaultConfig['header'] === true){
 			heightToSet+=80; 
+			
 		}
+		if(CalendarShare.defaultConfig['footer'] === true && CalendarShare.defaultConfig['header'] === true){
+			$('#app-navigation').height($(window).height()-$('#header').height()-5);
+		}
+		var calcWidth =$(window).width()-$('#app-navigation').width()-20;
+		
 		$("#fullcalendar").height(($(window).height()-heightToSet));
+		$('#app-content').width(calcWidth);
 		
-		
-		$('#fullcalendar').width($(window).width()-$('#leftcontent').width()-25);
+		$('#fullcalendar').width(calcWidth -20);
 	
-		$('#fullcalendar').fullCalendar('option', 'height', $(window).height() - $('#controls').height() - $('#header').height()-45 );
+		$('#fullcalendar').fullCalendar('option', 'height', $(window).height()-heightToSet);
+		$('#app-content').height($(window).height()-heightToSet+50);
+		
+		var view = $('#fullcalendar').fullCalendar('getView');
+		$('#datelabel').html(view.title);
+		$('#datepickerNav').hide();
+		$('#datelabel').click(function(){
+			if (! $('#datepickerNav').is(':visible')) {
+				$('#datepickerNav').slideDown();
+			}else{
+				$('#datepickerNav').slideUp();
+			}
+		});
     },
     buildLeftNavigation:function(){
     
@@ -310,22 +329,39 @@ CalendarShare={
 	     		})
 	     		.html(CalendarShare.availableViews[el].title)
 	     		.click(function(){
-		     		 if($(this).data('view') === false){
-							$('#fullcalendar').fullCalendar($(this).data('action'));
-					   }else{
-				   	   $('#fullcalendar').fullCalendar('option', 'weekends', $(this).data('weekends'));
-					   	   $('#fullcalendar').fullCalendar('changeView',$(this).data('action'));
+		     		if(!$(this).hasClass('nomode')){
+			     		 if($(this).data('view') === false){
+								$('#fullcalendar').fullCalendar($(this).data('action'));
+						   }else{
+					   	   $('#fullcalendar').fullCalendar('option', 'weekends', $(this).data('weekends'));
+						   	   $('#fullcalendar').fullCalendar('changeView',$(this).data('action'));
+						   }
 					   }
 		     	});
 	     	});
 	     	$('#view').append(views);
+	     	
+	     	$('.view button.fixed').each(function(i, el) {
+						$(el).on('click', function() {
+							if ($(this).data('view') === false) {
+								$('#fullcalendar').fullCalendar($(this).data('action'));
+							} else {
+								$('#fullcalendar').fullCalendar('option', 'weekends', $(this).data('weekends'));
+								$('#fullcalendar').fullCalendar('changeView', $(this).data('action'));
+				
+							}
+						});
+					
+				});
+	     	
+	     	/*
 	     	if($('#view button').length === 2){
 	     		if($('#view button[data-action="prev"]').length === 1 &&  $('#view button[data-action="next"]').length === 1){
 	     			$('#datecontrol_today').remove();
 	     			var TodayButton=$('<button />').attr({'id':'datecontrol_today','class':'button'}).text(t(myAppName,'Today'));
 	     			$('#view button[data-action="prev"]').after(TodayButton);
 	     		}
-	     	}
+	     	}*/
 	     	
      	}
      	
@@ -570,9 +606,10 @@ CalendarShare={
 				multi:false,
 				closeable:false,
 				animation:'pop',
-				placement:'auto-left-right',
+				placement:'auto',
 				cache:false,
 				type:'async',
+				trigger:'manual',
 				width:400,
 				height:50,
 			}).webuiPopover('show');
@@ -633,7 +670,7 @@ CalendarShare={
 		},
 		viewRender:function(view,element){
 			 $( "#datepickerNav" ).datepicker("setDate", $('#fullcalendar').fullCalendar('getDate'));
-
+				$('#datelabel').html(view.title);
 			    if (view.name != CalendarShare.calendarConfig['defaultView']) {
 				$.post(OC.generateUrl('apps/'+myAppName+'/changeviewcalendarpublic'), {
 					v : view.name
@@ -974,11 +1011,20 @@ $(window).resize(_.debounce(function() {
 			if(CalendarShare.defaultConfig['header'] === true){
 				heightToSet+=80; 
 			}
-			$("#fullcalendar").height(($(window).height()-heightToSet));
 			
-			$('#fullcalendar').width($(window).width()-$('#leftcontent').width()-25);
+			var calcWidth =$(window).width()-$('#app-navigation').width()-20;
+			var calcHeight = $(window).height();
+			
+			$('#app-content').width(calcWidth);
+			$('#fullcalendar').width(calcWidth -20);
+			$('#app-content').height(calcHeight-50);
+			$("#fullcalendar").height((calcHeight-heightToSet));
+			
+			
 		
-			$('#fullcalendar').fullCalendar('option', 'height', $(window).height() - $('#controls').height() - $('#header').height()-45 );
+			$('#fullcalendar').fullCalendar('option', 'height', $(window).height() - heightToSet);
+		  
+		   
 		}
 	
 	}, 500);

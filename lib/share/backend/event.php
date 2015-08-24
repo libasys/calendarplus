@@ -23,18 +23,26 @@
  */
 namespace OCA\CalendarPlus\Share\Backend;
 
-use OCA\CalendarPlus\Object;
-use OCA\CalendarPlus\App;
+use OCA\CalendarPlus\Connector\CalendarConnector;
+use OCA\CalendarPlus\Share\ShareConnector;
+
 
 class Event implements \OCP\Share_Backend {
 
 	const FORMAT_EVENT = 0;
 
 	private static $event;
-
+	
+	public function __construct(){
+		$this->calendarConnector = new CalendarConnector();
+		$this->shareConnector = new ShareConnector();	
+	}
+	
 	public function isValidSource($itemSource, $uidOwner) {
-		$itemSource = App::validateItemSource($itemSource, App::SHAREEVENTPREFIX);
-		self::$event = Object::find($itemSource);
+			
+		$itemSource = $this->shareConnector->validateItemSource($itemSource, $this->shareConnector->getConstSharePrefixEvent());
+		
+		self::$event = $this->calendarConnector->findObject($itemSource);
 		if (self::$event) {
 			return true;
 		}
@@ -44,15 +52,17 @@ class Event implements \OCP\Share_Backend {
 	
 	
 	public function generateTarget($itemSource, $shareWith, $exclude = null) {
-		$itemSource = App::validateItemSource($itemSource, App::SHAREEVENTPREFIX);
+		
+		$itemSource = $this->shareConnector->validateItemSource($itemSource, $this->shareConnector->getConstSharePrefixEvent());
+		
 		if(!self::$event) {
-			self::$event = Object::find($itemSource);
+			self::$event = $this->calendarConnector->findObject($itemSource);
 		}
 		return self::$event['summary'];
 	}
 
 	public function isShareTypeAllowed($shareType) {
-	return true;
+		return true;
 	}
 
 	public function formatItems($items, $format, $parameters = null) {
@@ -60,22 +70,24 @@ class Event implements \OCP\Share_Backend {
 		if ($format == self::FORMAT_EVENT) {
 			
 			foreach ($items as $item) {
-				$item['item_source'] = App::validateItemSource($item['item_source'], App::SHAREEVENTPREFIX);	
+					
+				$item['item_source'] = $this->shareConnector->validateItemSource($item['item_source'], $this->shareConnector->getConstSharePrefixEvent());
 				
-				if(!Object::checkSharedEvent($item['item_source'])){	
-				$event = Object::find($item['item_source']);
-				
-				$event['summary'] = $item['item_target'];
-				$event['item_source'] = (int) $item['item_source'];
-				$event['privat'] =false;
-				$event['shared'] =false;
-				$event['isalarm']=$event['isalarm'];
-				$event['permissions'] = $item['permissions'];
-				//$event['userid'] = $event['userid'];
-				$event['orgevent'] =false;
-				
-				
-				$events[] = $event;
+				if(!$this->calendarConnector->checkIfObjectIsShared($item['item_source'])){
+						
+					$event =  $this->calendarConnector->findObject($item['item_source']); 
+					
+					$event['summary'] = $item['item_target'];
+					$event['item_source'] = (int) $item['item_source'];
+					$event['privat'] =false;
+					$event['shared'] =false;
+					$event['isalarm']=$event['isalarm'];
+					$event['permissions'] = $item['permissions'];
+					//$event['userid'] = $event['userid'];
+					$event['orgevent'] =false;
+					
+					
+					$events[] = $event;
 				}
 			}
 		}

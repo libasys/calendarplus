@@ -27,7 +27,7 @@ namespace OCA\CalendarPlus;
 
 use  \OCA\CalendarPlus\Calendar as CalendarCalendar;
 use \OCA\CalendarPlus\Share\Backend\Event as ShareEvent;
-
+use \OCA\CalendarPlus\AppInfo\Application;
 
 App::$appname = 'calendarplus';
 
@@ -75,10 +75,8 @@ class App {
 		if (!is_numeric($id)) {
 			return false;
 		}
-       //\OCP\Util::writeLog('calendar_id', 'ID'.$id, \OCP\Util::DEBUG);
-		$calendar = Calendar::find($id);
 		
-		\OCP\Util::writeLog(self::$appname,$id. ':USERID'.$calendar['userid'], \OCP\Util::DEBUG);
+		$calendar = Calendar::find($id);
 		
 		// FIXME: Correct arguments to just check for permissions
 		if ($security === true && $shared === false) {
@@ -88,6 +86,7 @@ class App {
 				return false;
 			}
 		}
+		
 		if ($security === true && $shared === true) {
 			if (\OCP\Share::getItemSharedWithBySource(self::SHARECALENDAR, App::SHARECALENDARPREFIX.$id) || \OCP\Share::getItemSharedWithByLink(self::SHARECALENDAR, App::SHARECALENDARPREFIX.$id, $calendar['userid'])) {
 				return $calendar;
@@ -107,13 +106,13 @@ class App {
 		}
 	}
 	
+	
 	/**
 	 * @brief returns informations about a calendar
 	 * @param int $id - id of the calendar
-	 * @param bool $security - check access rights or not
-	 * @param bool $shared - check if the user got access via sharing
-	 * @return mixed - bool / array
+	 * @return associative array
 	 */
+	 /**FIXME not in use**/
 	public static function getSharedCalendarInfo($id) {
 		if (!is_numeric($id)) {
 			return false;
@@ -181,9 +180,26 @@ class App {
 	 * @return (array) $categories
 	 */
 	public static function getDefaultCategories() {
-		return array((string)self::$l10n -> t('Birthday'), (string)self::$l10n -> t('Business'), (string)self::$l10n -> t('Call'), (string)self::$l10n -> t('Clients'), (string)self::$l10n -> t('Deliverer'), (string)self::$l10n -> t('Holidays'), (string)self::$l10n -> t('Ideas'), (string)self::$l10n -> t('Journey'), (string)self::$l10n -> t('Jubilee'), (string)self::$l10n -> t('Meeting'), (string)self::$l10n -> t('Other'), (string)self::$l10n -> t('Personal'), (string)self::$l10n -> t('Projects'), (string)self::$l10n -> t('Questions'), (string)self::$l10n -> t('Work'), );
+		return array(
+		(string)self::$l10n -> t('Birthday'), 
+		(string)self::$l10n -> t('Business'), 
+		(string)self::$l10n -> t('Call'), 
+		(string)self::$l10n -> t('Clients'), 
+		(string)self::$l10n -> t('Deliverer'), 
+		(string)self::$l10n -> t('Holidays'), 
+		(string)self::$l10n -> t('Ideas'), 
+		(string)self::$l10n -> t('Journey'), 
+		(string)self::$l10n -> t('Jubilee'), 
+		(string)self::$l10n -> t('Meeting'), 
+		(string)self::$l10n -> t('Other'), 
+		(string)self::$l10n -> t('Personal'), 
+		(string)self::$l10n -> t('Projects'), 
+		(string)self::$l10n -> t('Questions'), 
+		(string)self::$l10n -> t('Work'), );
 	}
 
+
+	/*FIXME NOT MORE IN USE*/
 	public static function loadCategoriesCalendar() {
 		$tags = array();
 		$result = null;
@@ -579,7 +595,7 @@ class App {
 		if ($type == self::CALENDAR) {
 			$calendar = self::getCalendar($id, false, false);
 
-			if ($calendar['userid'] == \OCP\USER::getUser()) {
+			if ($calendar['userid'] === \OCP\USER::getUser()) {
 				if (isset($calendar['issubscribe'])) {
 					$permissions_all = \OCP\PERMISSION_READ;
 				}
@@ -675,7 +691,7 @@ class App {
 
 				$startCheck_dt = new \DateTime($singleevent['startdate'], new \DateTimeZone('UTC'));
 				$checkStartSE = $startCheck_dt -> format('U');
-				//   \OCP\Util::writeLog('calendar','STARTDATE'.$checkStart.' -> '.$checkStartSE, \OCP\Util::DEBUG);
+
 				if ($checkStartSE > $checkStart) {
 					$singleevent['summary'] .= ' (' . (string) self::$l10n -> t('by') . ' ' . Object::getowner($singleevent['id']) . ')';
 					$events[] = $singleevent;
@@ -686,11 +702,10 @@ class App {
 					
 			if (is_numeric($calendarid)) {
 				$calendar = self::getCalendar($calendarid);
-
 				\OCP\Response::enableCaching(0);
 				\OCP\Response::setETagHeader($calendar['ctag']);
 
-				$events = Object::allInPeriod($calendarid, $start, $end, $calendar['userid'] !== \OCP\User::getUser());
+				$events = Object::allInPeriod($calendarid, $start, $end);
 
 			} else {
 				
@@ -700,172 +715,7 @@ class App {
 		return $events;
 	}
 
-	/**
-	 * @brief generates the output for an event which will be readable for our js
-	 * @param (mixed) $event - event object / array
-	 * @param (int) $start - DateTime object of start
-	 * @param (int) $end - DateTime object of end
-	 * @return (array) $output - readable output
-	 */
-	public static function generateEventOutput(array $event, $start, $end, $list = false) {
-
-		if (!isset($event['calendardata']) && !isset($event['vevent'])) {
-			return false;
-		}
-		if (!isset($event['calendardata']) && isset($event['vevent'])) {
-			$event['calendardata'] = "BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:ownCloud's Internal iCal System\n" . $event['vevent'] -> serialize() . "END:VCALENDAR";
-		}
-		
-		
-		try {
-			$object = VObject::parse($event['calendardata']);
-			if (!$object) {
-				\OCP\Util::writeLog(self::$appname, __METHOD__ . ' Error parsing event: ' . print_r($event, true), \OCP\Util::DEBUG);
-				return array();
-			}
-
-			$output = array();
-
-			if ($object -> name === 'VEVENT') {
-				$vevent = $object;
-			} elseif (isset($object -> VEVENT)) {
-				$vevent = $object -> VEVENT;
-			} else {
-				\OCP\Util::writeLog(self::$appname, __METHOD__ . ' Object contains not event: ' . print_r($event, true), \OCP\Util::DEBUG);
-				return $output;
-			}
-			$id = $event['id'];
-
-			$SUMMARY = (!is_null($vevent -> SUMMARY) && $vevent -> SUMMARY -> getValue() != '') ? strtr($vevent -> SUMMARY -> getValue(), array('\,' => ',', '\;' => ';')) : (string) self::$l10n -> t('unnamed');
-			if ($event['summary'] != '') {
-				$SUMMARY = $event['summary'];
-			}
-			
-			if (Object::getowner($id) !== \OCP\USER::getUser()) {
-				// do not show events with private or unknown access class
-				// \OCP\Util::writeLog('calendar','Sharee ID: ->'.$event['calendarid'].':'.$event['summary'], \OCP\Util::DEBUG);
-				if (isset($vevent -> CLASS) && $vevent -> CLASS -> getValue() === 'CONFIDENTIAL') {
-					$SUMMARY = (string) self::$l10n -> t('Busy');
-				}
-
-				if (isset($vevent -> CLASS) && ($vevent -> CLASS -> getValue() === 'PRIVATE' || $vevent -> CLASS -> getValue() === '')) {
-					return $output;
-				}
-
-				$object = Object::cleanByAccessClass($id, $object);
-			}
-
-			$event['orgevent'] = '';
-
-			if (array_key_exists('org_objid', $event) && $event['org_objid'] > 0) {
-				$event['orgevent'] = array('calendarcolor' => '#000');
-			}
-
-			$event['isalarm'] = false;
-			if (isset($vevent -> VALARM)) {
-				$event['isalarm'] = true;
-			}
-
-			$event['privat'] = false;
-			if (isset($vevent -> CLASS) && ($vevent -> CLASS -> getValue() === 'PRIVATE')) {
-				$event['privat'] = 'private';
-			}
-			
-			if (isset($vevent -> CLASS) && ($vevent -> CLASS -> getValue() === 'CONFIDENTIAL')) {
-				$event['privat'] = 'confidential';
-			}
-
-			$allday = ($vevent -> DTSTART -> getValueType() == 'DATE') ? true : false;
-			$last_modified = @$vevent -> __get('LAST-MODIFIED');
-			$calid = '';
-			if (array_key_exists('calendarid', $event)) {
-				$calid = $event['calendarid'];
-			}
-			/*
-			$eventPerm = '';
-
-			if (array_key_exists('permissions', $event)) {
-				$eventPerm = Calendar::permissionReader($event['permissions']);
-			}
-
-			$location = (!is_null($vevent -> LOCATION) && $vevent -> LOCATION -> getValue() != '') ? $vevent -> getAsString('LOCATION') : '';
-			*/
-			
-			$bDay = false;
-			if (array_key_exists('bday', $event)) {
-				$bDay = $event['bday'];
-			}
-			$isEventShared = false;
-			if(isset($event['shared']) && $event['shared'] === 1){
-				$isEventShared = $event['shared'];
-			}
-			
-			$lastmodified = ($last_modified) ? $last_modified -> getDateTime() -> format('U') : 0;
-			$staticoutput = array(
-				'id' => (int)$event['id'],
-				'title' => $SUMMARY, 
-				'lastmodified' => $lastmodified, 
-				'categories' => $vevent -> getAsArray('CATEGORIES'), 
-				'calendarid' => (int)$calid, 
-				'bday' => $bDay, 
-				'shared' => $isEventShared, 
-				'privat' => $event['privat'], 
-				'isrepeating' => false, 
-				'isalarm' => $event['isalarm'], 
-				'orgevent' => $event['orgevent'], 
-				'allDay' => $allday
-			);
-
-			if (Object::isrepeating($id) && Repeat::is_cached_inperiod($event['id'], $start, $end)) {
-				$cachedinperiod = Repeat::get_inperiod($id, $start, $end);
-				foreach ($cachedinperiod as $cachedevent) {
-					$dynamicoutput = array();
-					if ($allday) {
-						$start_dt = new \DateTime($cachedevent['startdate'], new \DateTimeZone('UTC'));
-						$end_dt = new \DateTime($cachedevent['enddate'], new \DateTimeZone('UTC'));
-						$dynamicoutput['start'] = $start_dt -> format('Y-m-d');
-						$dynamicoutput['end'] = $end_dt -> format('Y-m-d');
-						$dynamicoutput['startlist'] = $start_dt -> format('Y/m/d');
-						$dynamicoutput['endlist'] = $end_dt -> format('Y/m/d');
-					} else {
-						$start_dt = new \DateTime($cachedevent['startdate'], new \DateTimeZone('UTC'));
-						$end_dt = new \DateTime($cachedevent['enddate'], new \DateTimeZone('UTC'));
-						$start_dt -> setTimezone(new \DateTimeZone(self::$tz));
-						$end_dt -> setTimezone(new \DateTimeZone(self::$tz));
-						$dynamicoutput['start'] = $start_dt -> format('Y-m-d H:i:s');
-						$dynamicoutput['end'] = $end_dt -> format('Y-m-d H:i:s');
-						$dynamicoutput['startlist'] = $start_dt -> format('Y/m/d H:i:s');
-						$dynamicoutput['endlist'] = $end_dt -> format('Y/m/d H:i:s');
-					}
-					$dynamicoutput['isrepeating'] = true;
-
-					$output[] = array_merge($staticoutput, $dynamicoutput);
-
-				}
-			} else {
-				if (Object::isrepeating($id) || $event['repeating'] == 1) {
-					$object -> expand($start, $end);
-				}
-				foreach ($object->getComponents() as $singleevent) {
-					if (!($singleevent instanceof \Sabre\VObject\Component\VEvent)) {
-						continue;
-					}
-					$dynamicoutput = Object::generateStartEndDate($singleevent -> DTSTART, Object::getDTEndFromVEvent($singleevent), $allday, self::$tz);
-
-					$output[] = array_merge($staticoutput, $dynamicoutput);
-
-				}
-			}
-			return $output;
-		} catch(\Exception $e) {
-			$uid = 'unknown';
-			if (isset($event['uri'])) {
-				$uid = $event['uri'];
-			}
-			\OCP\Util::writeLog(self::$appname, 'Event (' . $uid . ') contains invalid data!', \OCP\Util::WARN);
-		}
-	}
-
+	
 	/**
 	 * @brief use to create HTML emails and send them
 	 * @param $eventid The event id
@@ -874,6 +724,7 @@ class App {
 	 * @param $dtstart The start date
 	 * @param $dtend The end date
 	 *
+	 * FIXME NOT MORE IN USE
 	 */
 	public static function sendEmails($eventid, $summary, $dtstart, $dtend, $emails) {
 

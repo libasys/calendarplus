@@ -51,6 +51,7 @@ if(\OC::$server->getAppManager()->isEnabledForUser('activity')){
 \OCA\CalendarPlus\Hooks::register();
 
 \OCP\Util::addScript($appName,'alarm');
+
 if (\OCP\User::isLoggedIn() && !\OCP\App::isEnabled('calendar')) {
 	$request = $c->query('Request');
 	if (isset($request->server['REQUEST_URI'])) {
