@@ -858,13 +858,16 @@ var CalendarPlus = {
 						$(el).on('click', function() {
 							
 							if ($(this).data('view') === false) {
+								
 								$('#fullcalendar').fullCalendar($(this).data('action'));
+								
 							} else {
 				
 								$('#fullcalendar').fullCalendar('option', 'weekends', $(this).data('weekends'));
 								$('#fullcalendar').fullCalendar('changeView', $(this).data('action'));
 				
 							}
+							
 						});
 					}
 				});
@@ -1204,15 +1207,16 @@ var CalendarPlus = {
 					timelineBall.hide();
 					timelineText.hide();
 				}
-	
-				var curSeconds = (curTime.getHours() * 60 * 60) + (curTime.getMinutes() * 60) + curTime.getSeconds();
-				var percentOfDay = curSeconds / 86400;
-				//24 * 60 * 60 = 86400, # of seconds in a day
-				var topLoc = Math.floor(parentDiv.height() * percentOfDay);
-	
-				timeline.css({'top':topLoc + 'px','left':$(".fc-today").position().left+'px','width':$(".fc-today").width()});
-				timelineText.css({'top': (topLoc - 10) + 'px','left':$(".fc-today").position().left+'px'});
-				timelineBall.css({'top': (topLoc - 4) + 'px','left':($(".fc-today").position().left-4)+'px'});
+				if($(".fc-today").length > 0){
+					var curSeconds = (curTime.getHours() * 60 * 60) + (curTime.getMinutes() * 60) + curTime.getSeconds();
+					var percentOfDay = curSeconds / 86400;
+					//24 * 60 * 60 = 86400, # of seconds in a day
+					var topLoc = Math.floor(parentDiv.height() * percentOfDay);
+		
+					timeline.css({'top':topLoc + 'px','left':$(".fc-today").position().left+'px','width':$(".fc-today").width()});
+					timelineText.css({'top': (topLoc - 10) + 'px','left':$(".fc-today").position().left+'px'});
+					timelineBall.css({'top': (topLoc - 4) + 'px','left':($(".fc-today").position().left-4)+'px'});
+				}
 			}
 		},
 		initAddDayView : function() {
