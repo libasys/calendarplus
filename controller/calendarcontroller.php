@@ -586,7 +586,18 @@ class CalendarController extends Controller {
 				$activeCal = $aCalendars['cal'][0]['id'];
 				$this -> configInfo -> setUserValue($this -> userId, $this -> appName, 'choosencalendar',$activeCal);
 			}
-			$params = ['calendars' => $aCalendars, 'activeCal' => $activeCal, 'shareType' => $this -> shareConnector -> getConstShareCalendar(), 'shareTypePrefix' => $this -> shareConnector -> getConstSharePrefixCalendar(), 'timezone' => $this -> configInfo -> getUserValue($this -> userId, $this -> appName, 'timezone', ''), 'timezones' => \DateTimeZone::listIdentifiers(), 'timeformat' => $this -> configInfo -> getUserValue($this -> userId, $this -> appName, 'timeformat', '24'), 'timezonedetection' => $this -> configInfo -> getUserValue($this -> userId, $this -> appName, 'timezonedetection'), 'firstday' => $this -> configInfo -> getUserValue($this -> userId, $this -> appName, 'firstday', 'mo'), 'userConfig' => $userConfig, 'appname' => $this -> appName];
+			$params = [
+			'calendars' => $aCalendars, 
+			'activeCal' => $activeCal, 
+			'shareType' => $this -> shareConnector -> getConstShareCalendar(), 
+			'shareTypePrefix' => $this -> shareConnector -> getConstSharePrefixCalendar(), 
+			'timezone' => $this -> configInfo -> getUserValue($this -> userId, $this -> appName, 'timezone', ''), 
+			'timezones' => \DateTimeZone::listIdentifiers(), 
+			'timeformat' => $this -> configInfo -> getUserValue($this -> userId, $this -> appName, 'timeformat', '24'),
+			'dateformat' => $this -> configInfo -> getUserValue($this -> userId, $this -> appName, 'dateformat', 'd-m-Y'), 
+			'timezonedetection' => $this -> configInfo -> getUserValue($this -> userId, $this -> appName, 'timezonedetection'), 
+			'firstday' => $this -> configInfo -> getUserValue($this -> userId, $this -> appName, 'firstday', 'mo'), 
+			'userConfig' => $userConfig, 'appname' => $this -> appName];
 
 			$response = new TemplateResponse($this -> appName, 'navigationleft', $params, '');
 

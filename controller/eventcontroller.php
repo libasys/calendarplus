@@ -683,7 +683,9 @@ class EventController extends Controller {
 		}else{
 			$myChoosenCalendar = $calendar_options[0]['id'];
 		}
-
+		$sDateFormat = $this ->configInfo -> getUserValue($this -> userId,$this->appName, 'dateformat', 'd-m-Y');
+		
+		
 		$params = [
         'eventid' => 'new',
         'appname' => $this->appName,
@@ -718,9 +720,9 @@ class EventController extends Controller {
         'categories' => '',
         'calendar' => $myChoosenCalendar,
         'allday' => $allday,
-        'startdate' =>$start->format('d-m-Y'),
+        'startdate' =>$start->format($sDateFormat),
         'starttime' => $start->format('H:i'),
-        'enddate' => $end->format('d-m-Y'),
+        'enddate' => $end->format($sDateFormat),
         'endtime' => $end->format('H:i'),
        ];
 	   
@@ -1073,7 +1075,33 @@ class EventController extends Controller {
 	public function getShowEvent() {
 	   $id = $this -> params('id');
        $choosenDate = $this -> params('choosendate');
-       
+	   
+	   if(\OCP\User::isLoggedIn()){
+		   $sDateFormat = $this ->configInfo -> getUserValue($this -> userId,$this->appName, 'dateformat', 'd-m-Y');
+		   $sTimeFormat = $this -> configInfo -> getUserValue($this -> userId,$this->appName,'timeformat','24');
+		   
+		   if($sTimeFormat == 24){
+		   		$sTimeFormatRead = 'H:i';
+		   }else{
+		   		$sTimeFormatRead = 'g:i a';
+		   }
+		   
+	       if($sDateFormat === 'd-m-Y'){
+				$sDateFormat ='d.m.Y';
+			}
+	   }else{
+	   	  if($this->session->get('public_dateformat')!=''){
+	   	  	$sDateFormat = $this->session->get('public_dateformat');
+	   	  }else{
+	   	  	$sDateFormat ='d.m.Y';
+	   	  }
+		  if($this->session->get('public_timeformat')!=''){
+	   	  	$sTimeFormatRead = $this->session->get('public_timeformat');
+	   	  }else{
+	   	  	$sTimeFormatRead ='H:i';
+	   	  }
+	   }
+
 	   $data = CalendarApp::getEventObject($id, false, false);
        
        if (!$data) {
@@ -1131,9 +1159,9 @@ class EventController extends Controller {
             $allday = true;
 			
 			if($startdate === $enddate){
-				$datetimedescr = (string)$this -> l10n -> t('On').' '.$dtstart -> getDateTime() -> format('d.m.Y');
+				$datetimedescr = (string)$this -> l10n -> t('On').' '.$dtstart -> getDateTime() -> format($sDateFormat);
 			}else{
-				$datetimedescr= (string)$this->l10n -> t('From').' '.$dtstart -> getDateTime() -> format('d.m.Y').' '.(string)$this->l10n ->t('To').' '.$dtend -> getDateTime()-> modify('-1 day') -> format('d.m.Y');
+				$datetimedescr= (string)$this->l10n -> t('From').' '.$dtstart -> getDateTime() -> format($sDateFormat).' '.(string)$this->l10n ->t('To').' '.$dtend -> getDateTime()-> modify('-1 day') -> format($sDateFormat);
 			}
 			
          }
@@ -1146,13 +1174,18 @@ class EventController extends Controller {
             $start_dt -> setTimezone(new \DateTimeZone($tz));
             $end_dt -> setTimezone(new \DateTimeZone($tz));
             $startdate = $start_dt -> format('d-m-Y');
-            $starttime = $start_dt -> format('H:i');
+            
+            $starttime = $start_dt -> format($sTimeFormatRead);
+           
+           
             $enddate = $end_dt -> format('d-m-Y');
-            $endtime = $end_dt -> format('H:i');
+		    $endtime = $end_dt -> format($sTimeFormatRead);
+            
+			
             if($startdate === $enddate){
-				$datetimedescr = (string)$this -> l10n -> t('On').' '.$start_dt -> format('d.m.Y'). ' '.(string)$this -> l10n -> t('From').' '.$starttime.' '.(string)$this -> l10n -> t('To').' '.$endtime;
+				$datetimedescr = (string)$this -> l10n -> t('On').' '.$start_dt -> format($sDateFormat). ' '.(string)$this -> l10n -> t('From').' '.$starttime.' '.(string)$this -> l10n -> t('To').' '.$endtime;
 			}else{
-				$datetimedescr = (string)$this -> l10n -> t('From').' '.$start_dt -> format('d.m.Y').' '.$starttime.' '.(string)$this -> l10n -> t('To').' '.$end_dt -> format('d.m.Y').' '.$endtime;
+				$datetimedescr = (string)$this -> l10n -> t('From').' '.$start_dt -> format($sDateFormat).' '.$starttime.' '.(string)$this -> l10n -> t('To').' '.$end_dt -> format($sDateFormat).' '.$endtime;
 				
 			}
             $allday = false;
@@ -1211,7 +1244,11 @@ class EventController extends Controller {
                 $endbydate_day = substr($rrulearr['UNTIL'], 6, 2);
                 $endbydate_month = substr($rrulearr['UNTIL'], 4, 2);
                 $endbydate_year = substr($rrulearr['UNTIL'], 0, 4);
-                $repeat['date'] = $endbydate_day . '-' . $endbydate_month . '-' . $endbydate_year;
+				
+				$rEnd_dt = new \DateTime($endbydate_day . '-' . $endbydate_month . '-' . $endbydate_year, new \DateTimeZone('UTC'));
+           		
+                $repeat['date'] = $rEnd_dt -> format($sDateFormat);
+				//Switch it
             } else {
                 $repeat['end'] = 'never';
             }
@@ -1256,7 +1293,7 @@ class EventController extends Controller {
         
             foreach ($vevent->EXDATE as $param) {
                 $param = new \DateTime($param);
-                $aOExdate[$param -> format('U')] = $param -> format('d-m-Y');
+                $aOExdate[$param -> format('U')] = $param -> format($sDateFormat);
             }
         
         }
@@ -1954,6 +1991,11 @@ class EventController extends Controller {
     private function parseValarm($vevent, $reminder_options){
        
 	   	$aAlarm='';
+		$sDateFormat = $this ->configInfo -> getUserValue($this -> userId,$this->appName, 'dateformat', 'd-m-Y');
+		if($sDateFormat === 'd-m-Y'){
+			$sDateFormat ='d.m.Y';
+		}
+		
        if($vevent -> VALARM){
         	$valarm = $vevent -> VALARM;
 			$valarmTrigger = $valarm->TRIGGER;
@@ -2056,13 +2098,13 @@ class EventController extends Controller {
 				   
 				
 				if($valarmTrigger->getValueType() === 'DATE'){
-					$aAlarm['reminderdate'] = $valarmTrigger -> getDateTime() -> format('d-m-Y');
+					$aAlarm['reminderdate'] = $valarmTrigger -> getDateTime() -> format($sDateFormat);
 					$aAlarm['remindertime'] ='';
 					$aAlarm['reminder_time_input'] = '';
 					$aAlarm['reminder_time_select']='ondate';
 				}
 				if($valarmTrigger->getValueType() === 'DATE-TIME'){
-					$aAlarm['reminderdate'] = $valarmTrigger -> getDateTime() -> format('d-m-Y');
+					$aAlarm['reminderdate'] = $valarmTrigger -> getDateTime() -> format($sDateFormat);
 					$aAlarm['remindertime'] = $valarmTrigger -> getDateTime() -> format('H:i');
 					$aAlarm['reminder_time_input'] = '';
 					$aAlarm['reminder_time_select']='ondate';
@@ -2091,7 +2133,8 @@ class EventController extends Controller {
         if (!$data) {
             return false;
         }
-        
+        $sDateFormat = $this ->configInfo -> getUserValue($this -> userId,$this->appName, 'dateformat', 'd-m-Y');
+		
         $object =VObject::parse($data['calendardata']);
         $vevent = $object -> VEVENT;
         $object = Object::cleanByAccessClass($id, $object);
@@ -2106,9 +2149,9 @@ class EventController extends Controller {
         $dateStartType= (string)$vevent->DTSTART->getValueType();
                 
          if($dateStartType === 'DATE'){
-            $result['startdate'] = $dtstart -> getDateTime() -> format('d-m-Y');
+            $result['startdate'] = $dtstart -> getDateTime() -> format($sDateFormat);
             $result['starttime'] = '';
-            $result['enddate'] = $dtend -> getDateTime()-> modify('-1 day') -> format('d-m-Y');
+            $result['enddate'] = $dtend -> getDateTime()-> modify('-1 day') -> format($sDateFormat);
              $result['endtime'] = '';
             $result['choosenDate'] = $choosenDate + (3600 * 24);
             $result['allday'] = true;
@@ -2120,9 +2163,9 @@ class EventController extends Controller {
             $end_dt = new \DateTime($data['enddate'], new \DateTimeZone('UTC'));    
             $start_dt -> setTimezone(new \DateTimeZone($tz));
             $end_dt -> setTimezone(new \DateTimeZone($tz));
-            $result['startdate'] = $start_dt -> format('d-m-Y');
+            $result['startdate'] = $start_dt -> format($sDateFormat);
             $result['starttime'] = $start_dt -> format('H:i');
-            $result['enddate'] = $end_dt -> format('d-m-Y');
+            $result['enddate'] = $end_dt -> format($sDateFormat);
             $result['endtime']  = $end_dt -> format('H:i');    
             $result['allday'] = false;
             $result['choosenDate'] = $choosenDate;

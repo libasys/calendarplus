@@ -38,6 +38,8 @@ var CalendarPlus = {
 					CalendarPlus.calendarConfig['defaultView'] = jsondata.defaultView;
 					CalendarPlus.calendarConfig['agendatime'] = jsondata.agendatime;
 					CalendarPlus.calendarConfig['defaulttime'] = jsondata.defaulttime;
+					CalendarPlus.calendarConfig['dateformat'] = jsondata.dateformat;
+					CalendarPlus.calendarConfig['timeformat'] = jsondata.timeformat;
 					CalendarPlus.calendarConfig['firstDay'] = jsondata.firstDay;
 					CalendarPlus.calendarConfig['categories'] = jsondata.categories;
 					CalendarPlus.calendarConfig['tags'] = jsondata.tags;
@@ -55,6 +57,8 @@ var CalendarPlus = {
 					CalendarPlus.calendarConfig['leftnavAktiv'] = jsondata.leftnavAktiv;
 					CalendarPlus.calendarConfig['rightnavAktiv'] = jsondata.rightnavAktiv;
 					CalendarPlus.calendarConfig['taskAppActive'] = jsondata.taskAppActive;
+					
+					
 					
 					var headerNav =$('<div/>').addClass('button-group left-right-nav');
 					var isNaviLeftActive ='';
@@ -228,8 +232,10 @@ var CalendarPlus = {
 						v : view.name
 					});
 					CalendarPlus.calendarConfig['defaultView'] = view.name;
+					
 				}
 				$('.view button').removeClass('active');
+				
 				$('.view button[data-action=' + view.name + ']').addClass('active');
 				
 				if (view.name == 'list') {
@@ -428,18 +434,30 @@ var CalendarPlus = {
 				}
 				if (sTimeMode === 'ondate' && $('#reminderdate').val() !== '') {
 					//20140416T065000Z
-					var dateTuple = $('#reminderdate').val().split('-');
+					var dateTuple, day, month, year, minute, hour;
+					if ($('#reminderdate').val().indexOf('-') != -1) {
+						 dateTuple = $('#reminderdate').val().split('-');
+						day = dateTuple[0];
+						month = dateTuple[1];
+						year = dateTuple[2];
+					}else{
+						dateTuple = $('#reminderdate').val().split('/');
+						day = dateTuple[1];
+						month = dateTuple[0];
+						year = dateTuple[2];
+						
+					}
+					if($('#remindertime').val() == ''){
+						hour ='00';
+						minute ='00';
+					}else{
 					var timeTuple = $('#remindertime').val().split(':');
-
-					var day, month, year, minute, hour;
-					day = dateTuple[0];
-					month = dateTuple[1];
-					year = dateTuple[2];
-					hour = timeTuple[0];
-					minute = timeTuple[1];
+						hour = timeTuple[0];
+						minute = timeTuple[1];
+					}
 
 					var sDate = year + '' + month + '' + day + 'T' + hour + '' + minute + '00Z';
-
+					
 					sResult = 'TRIGGER;VALUE=DATE-TIME:' + sDate;
 				}
 				if (sResult !== '') {
@@ -502,8 +520,8 @@ var CalendarPlus = {
 					var sTemp = sReminder.split('DATE-TIME:');
 					var sDateTime = sTemp[1].split('T');
 					var sYear = sDateTime[0].substring(0, 4);
-					var sDay = sDateTime[0].substring(4, 6);
-					var sMonth = sDateTime[0].substring(6, 8);
+					var sMonth = sDateTime[0].substring(4, 6);
+					var sDay = sDateTime[0].substring(6, 8);
 				    var sHour='';
 				    var sMinute='';
 				    var sHM='';
@@ -511,9 +529,23 @@ var CalendarPlus = {
 				    if(sDateTime.length > 1){
 						 sHour = sDateTime[1].substring(0, 2);
 						 sMinute = sDateTime[1].substring(2, 4);
-						 sHM =  sHour + ':' + sMinute;
+						
+						 if(CalendarPlus.calendarConfig['timeformat'] === '24'){
+						 	 sHM =  sHour + ':' + sMinute;
+						 }else{
+						 	var sHM = $.fullCalendar.formatDate(new Date(sYear, sMonth, sDay, sHour, sMinute),'hh:mm tt');
+						 }
+						
+						
 					}
-					sReminderTxt = sReminderTxt + ' ' + sDay + '.' + sMonth + '.' + sYear + ' ' +sHM;
+					
+					
+					if(CalendarPlus.calendarConfig['dateformat'] == 'm/d/Y'){
+						sReminderTxt = sReminderTxt + ' ' + sMonth + '/' + sDay + '/' + sYear + ' ' +sHM;
+					}else{
+						sReminderTxt = sReminderTxt + ' ' + sDay + '.' + sMonth + '.' + sYear + ' ' +sHM;
+					}
+					
 
 				}
 
@@ -824,7 +856,7 @@ var CalendarPlus = {
 				$('.view button').each(function(i, el) {
 					if(!$(el).hasClass('nomode')){
 						$(el).on('click', function() {
-							$('#fullcalendar').show();
+							
 							if ($(this).data('view') === false) {
 								$('#fullcalendar').fullCalendar($(this).data('action'));
 							} else {
@@ -1139,48 +1171,49 @@ var CalendarPlus = {
 		},
 		setTimeline : function() {
 			
-			var curTime = new Date();
-			
-			var parentDiv = $(".fc-agenda-slots:visible").parent();
-			var timeline = parentDiv.children(".timeline");
-			var timelineBall = parentDiv.children(".timeline-ball");
-			var timelineText =parentDiv.children(".timeline-text");
-			var timeInternational =  $.fullCalendar.formatDate(curTime, CalendarPlus.calendarConfig['agendatime']);
-			
-			if (timeline.length === 0) {//if timeline isn't there, add it
-				timeline = $("<hr>").addClass("timeline");
-				parentDiv.prepend(timeline);
-				timelineBall = $('<div/>').addClass('timeline-ball toolTip').attr('title',timeInternational);
-			    parentDiv.prepend(timelineBall);
-			    //CalendarPlus.calendarConfig['agendatime']
-			    
-			    timelineText = $('<div/>').addClass('timeline-text').text(timeInternational);
-			    parentDiv.prepend(timelineText);
-			}else{
-				 timelineBall.attr('title',timeInternational);
-				 timelineText.text(timeInternational);
+			if(CalendarPlus.calendarConfig['defaultView'] !== 'list'){
+				var curTime = new Date();
+				
+				var parentDiv = $(".fc-agenda-slots:visible").parent();
+				var timeline = parentDiv.children(".timeline");
+				var timelineBall = parentDiv.children(".timeline-ball");
+				var timelineText =parentDiv.children(".timeline-text");
+				var timeInternational =  $.fullCalendar.formatDate(curTime, CalendarPlus.calendarConfig['agendatime']);
+				
+				if (timeline.length === 0) {//if timeline isn't there, add it
+					timeline = $("<hr>").addClass("timeline");
+					parentDiv.prepend(timeline);
+					timelineBall = $('<div/>').addClass('timeline-ball toolTip').attr('title',timeInternational);
+				    parentDiv.prepend(timelineBall);
+				    //CalendarPlus.calendarConfig['agendatime']
+				    
+				    timelineText = $('<div/>').addClass('timeline-text').text(timeInternational);
+				    parentDiv.prepend(timelineText);
+				}else{
+					 timelineBall.attr('title',timeInternational);
+					 timelineText.text(timeInternational);
+				}
+						
+				var curCalView = $('#fullcalendar').fullCalendar("getView");
+				if (curCalView.visStart < curTime && curCalView.visEnd > curTime) {
+					timeline.show();
+					timelineBall.show();
+					timelineText.show();
+				} else {
+					timeline.hide();
+					timelineBall.hide();
+					timelineText.hide();
+				}
+	
+				var curSeconds = (curTime.getHours() * 60 * 60) + (curTime.getMinutes() * 60) + curTime.getSeconds();
+				var percentOfDay = curSeconds / 86400;
+				//24 * 60 * 60 = 86400, # of seconds in a day
+				var topLoc = Math.floor(parentDiv.height() * percentOfDay);
+	
+				timeline.css({'top':topLoc + 'px','left':$(".fc-today").position().left+'px','width':$(".fc-today").width()});
+				timelineText.css({'top': (topLoc - 10) + 'px','left':$(".fc-today").position().left+'px'});
+				timelineBall.css({'top': (topLoc - 4) + 'px','left':($(".fc-today").position().left-4)+'px'});
 			}
-					
-			var curCalView = $('#fullcalendar').fullCalendar("getView");
-			if (curCalView.visStart < curTime && curCalView.visEnd > curTime) {
-				timeline.show();
-				timelineBall.show();
-				timelineText.show();
-			} else {
-				timeline.hide();
-				timelineBall.hide();
-				timelineText.hide();
-			}
-
-			var curSeconds = (curTime.getHours() * 60 * 60) + (curTime.getMinutes() * 60) + curTime.getSeconds();
-			var percentOfDay = curSeconds / 86400;
-			//24 * 60 * 60 = 86400, # of seconds in a day
-			var topLoc = Math.floor(parentDiv.height() * percentOfDay);
-
-			timeline.css({'top':topLoc + 'px','left':$(".fc-today").position().left+'px','width':$(".fc-today").width()});
-			timelineText.css({'top': (topLoc - 10) + 'px','left':$(".fc-today").position().left+'px'});
-			timelineBall.css({'top': (topLoc - 4) + 'px','left':($(".fc-today").position().left-4)+'px'});
-
 		},
 		initAddDayView : function() {
 			
@@ -1401,8 +1434,6 @@ var CalendarPlus = {
 					CalendarPlus.Util.checkShowEventHash();
 				}
 				$('#loading').hide();
-				
-				
 			}
 
 		},
@@ -1726,119 +1757,94 @@ var CalendarPlus = {
 
 			});
 			//INIT
+			
 			var FromTime = $('#fromtime').val().split(':');
-			$('#from').datetimepicker({
-				altField : '#fromtime',
-				dateFormat : 'dd-mm-yy',
-				timeOnlyTitle: t(CalendarPlus.appname,'Choose Time'),
-				timeText: t(CalendarPlus.appname,'Time'),
-				hourText: t(CalendarPlus.appname,'Hour'),
-				minuteText: t(CalendarPlus.appname,'Minute'),
-				secondText: t(CalendarPlus.appname,'Second'),
-				firstDay: CalendarPlus.calendarConfig['firstDay'],
-				stepMinute : 5,
-				minDate : null,
-				numberOfMonths : 1,
-				hour : FromTime[0],
-				minute : FromTime[1],
-				addSliderAccess : true,
-				sliderAccessArgs : {
-					touchonly : false
-				},
-				showButtonPanel : false,
-				onClose : function(dateText, inst) {
+			
+			$('#timeselector .time').timepicker({
+		        'showDuration': true,
+		        'timeFormat':'H:i',
+		        lang: {
+					am: t(CalendarPlus.appname, 'am'),
+					pm: t(CalendarPlus.appname, 'pm'),
+					AM:t(CalendarPlus.appname, 'AM'),
+					PM:t(CalendarPlus.appname, 'PM'),
+					decimal: '.',
+					mins:t(CalendarPlus.appname, 'mins'),
+					hr:t(CalendarPlus.appname, 'hr'),
+					hrs: t(CalendarPlus.appname, 'hrs')
+				}
+		    });
+		    
+			
+			
+			var dateFormatString = 'dd-mm-yy';
+			var dateFormatStringRead = 'dd.mm.yy';
+			if(CalendarPlus.calendarConfig['dateformat'] == 'm/d/Y'){
+				dateFormatString = 'mm/dd/yy';
+				dateFormatStringRead = 'mm/dd/yy';
+			}
+			
+			$('#timeselector .time').on('changeTime', function() {
+			  	var startDateTxt=$.datepicker.formatDate(dateFormatStringRead,$('#from').datepicker('getDate'));
+				var toDateTxt=$.datepicker.formatDate(dateFormatStringRead,$('#to').datepicker('getDate'));
+				CalendarPlus.UI.setDateTimeLabelonEvent(startDateTxt,toDateTxt);
+				
+			});
+			
+		    $('#timeselector .date').datepicker({
+		        minDate : null,
+		        dateFormat : dateFormatString,
+		        firstDay: CalendarPlus.calendarConfig['firstDay'],
+		        'autoclose': true,
+		        onClose : function(dateText, inst) {
 					if ($('#to').val() != '') {
-						var testStartDate = $('#from').datetimepicker('getDate');
-						var testEndDate = $('#to').datetimepicker('getDate');
+						var testStartDate = $('#from').datepicker('getDate');
+						var testEndDate = $('#to').datepicker('getDate');
 
 						if (testStartDate > testEndDate) {
-							$('#to').datetimepicker('setDate', $('#from').datetimepicker('getDate'));
+							$('#to').datepicker('setDate', $('#from').datepicker('getDate'));
 						}
 					} else {
 						$('#to').val(dateText);
 					}
 					CalendarPlus.Util.adjustTime();
-					var startDateTxt=$.datepicker.formatDate('dd.mm.yy',$('#from').datetimepicker('getDate'));
-					var toDateTxt=$.datepicker.formatDate('dd.mm.yy',$('#to').datetimepicker('getDate'));
+					var startDateTxt=$.datepicker.formatDate(dateFormatStringRead,$('#from').datepicker('getDate'));
+					var toDateTxt=$.datepicker.formatDate(dateFormatStringRead,$('#to').datepicker('getDate'));
 					CalendarPlus.UI.setDateTimeLabelonEvent(startDateTxt,toDateTxt);
-				},
-				onSelect : function(selectedDateTime) {
-					//$('#to').datetimepicker('option', 'minDateTime', $('#from').datetimepicker('getDate'));
-					
 				}
-			});
-			
-			
-			
-			var ToTime = $('#totime').val().split(':');
-			$('#to').datetimepicker({
-				altField : '#totime',
-				firstDay: CalendarPlus.calendarConfig['firstDay'],
-				dateFormat : 'dd-mm-yy',
-				stepMinute : 5,
-				numberOfMonths : 1,
-				hour : ToTime[0],
-				minute : ToTime[1],
-				minDate : null,
-				timeOnlyTitle: t(CalendarPlus.appname,'Choose Time'),
-				timeText: t(CalendarPlus.appname,'Time'),
-				hourText: t(CalendarPlus.appname,'Hour'),
-				minuteText: t(CalendarPlus.appname,'Minute'),
-				secondText: t(CalendarPlus.appname,'Second'),
-				addSliderAccess : true,
-				sliderAccessArgs : {
-					touchonly : false
-				},
-				showButtonPanel : false,
-				onClose : function(dateText, inst) {
-
-					if ($('#from').val() != '') {
-						var testStartDate = $('#from').datetimepicker('getDate');
-
-						var testEndDate = $('#to').datetimepicker('getDate');
-						if (testStartDate > testEndDate){
-							$('#from').datetimepicker('setDate', testEndDate);
-						}
-					} else {
-						$('#from').val(dateText);
-					}
-					
-					CalendarPlus.Util.adjustTime();
-					var startDateTxt=$.datepicker.formatDate('dd.mm.yy',$('#from').datetimepicker('getDate'));
-					var toDateTxt=$.datepicker.formatDate('dd.mm.yy',$('#to').datetimepicker('getDate'));
-					CalendarPlus.UI.setDateTimeLabelonEvent(startDateTxt,toDateTxt);
-					
-				},
-				onSelect : function(selectedDateTime) {
-					//alert($('#from').datetimepicker('getDate'));
-					//$('#from').datetimepicker('option', 'maxDate', $('#to').datetimepicker('getDate'));
-					
-				}
-			});
-			//INIT
-			
-			var startDateTxt=$.datepicker.formatDate('dd.mm.yy',$('#from').datetimepicker('getDate'));
-			var toDateTxt=$.datepicker.formatDate('dd.mm.yy',$('#to').datetimepicker('getDate'));
+		    });
+		
+		    // initialize datepair
+		    $('#timeselector').datepair();
+		    
+		    
+		    
+		    var startDateTxt=$.datepicker.formatDate(dateFormatStringRead,$('#from').datepicker('getDate'));
+			var toDateTxt=$.datepicker.formatDate(dateFormatStringRead,$('#to').datepicker('getDate'));
 			CalendarPlus.UI.setDateTimeLabelonEvent(startDateTxt,toDateTxt);
 			
+			$('#remindertime').timepicker({
+		        'showDuration': false,
+		        'timeFormat': 'H:i',
+		        lang: {
+					am: t(CalendarPlus.appname, 'am'),
+					pm: t(CalendarPlus.appname, 'pm'),
+					AM:t(CalendarPlus.appname, 'AM'),
+					PM:t(CalendarPlus.appname, 'PM'),
+					decimal: '.',
+					mins:t(CalendarPlus.appname, 'mins'),
+					hr:t(CalendarPlus.appname, 'hr'),
+					hrs: t(CalendarPlus.appname, 'hrs')
+				}
+		    });
+		     $('#reminderdate').datepicker({
+		        minDate : null,
+		        dateFormat : dateFormatString,
+		        'autoclose': true,
+		        firstDay: CalendarPlus.calendarConfig['firstDay']
+		     });
+				
 			
-			//Reminder
-			$('#reminderdate').datetimepicker({
-				altField : '#remindertime',
-				dateFormat : 'dd-mm-yy',
-				stepMinute : 5,
-				numberOfMonths : 1,
-				timeOnlyTitle: t(CalendarPlus.appname,'Choose Time'),
-				timeText: t(CalendarPlus.appname,'Time'),
-				hourText: t(CalendarPlus.appname,'Hour'),
-				minuteText: t(CalendarPlus.appname,'Minute'),
-				secondText: t(CalendarPlus.appname,'Second'),
-				addSliderAccess : true,
-				sliderAccessArgs : {
-					touchonly : false
-				},
-				showButtonPanel : false
-			});
 
 			CalendarPlus.UI.reminder('init');
 			
@@ -2031,6 +2037,13 @@ var CalendarPlus = {
 			
 			CalendarPlus.popOverElem = $(jsEvent.target); 	
 			
+			var sConstrain = 'horizontal';
+			//'fc-agenda'
+			
+			if(CalendarPlus.calendarConfig['defaultView'] == 'month' || CalendarPlus.calendarConfig['defaultView'] == 'year' || $(jsEvent.target).parent().parent().hasClass('fc-agenda')){
+					sConstrain = 'vertical';
+			}
+			
 			CalendarPlus.popOverElem.webuiPopover({
 				url:OC.generateUrl('apps/'+CalendarPlus.appname+'/getnewformevent'),
 				async:{
@@ -2050,6 +2063,7 @@ var CalendarPlus = {
 				closeable:false,
 				cache:false,
 				placement:'auto',
+				constrains:sConstrain,
 				type:'async',
 				width:400,
 				animation:'pop',
@@ -2077,7 +2091,7 @@ var CalendarPlus = {
 			CalendarPlus.Util.destroyExisitingPopover();
 			
 			if(id > 0){
-				CalendarPlus.popOverElem=$(jsEvent.target);
+				CalendarPlus.popOverElem=$(jsEvent.target).parent();
 				
 				var triggerClick = 'click';
 				if( CalendarPlus.searchEventId !== null){
@@ -2085,6 +2099,13 @@ var CalendarPlus = {
 					CalendarPlus.searchEventId = null;
 					window.location.href = '#';
 				}
+				
+				var sConstrain = 'horizontal';
+				
+				if(CalendarPlus.calendarConfig['defaultView'] == 'month' || CalendarPlus.calendarConfig['defaultView'] == 'year'){
+					sConstrain = 'vertical';
+				}
+				
 				CalendarPlus.popOverElem.webuiPopover({
 					url:OC.generateUrl('apps/'+CalendarPlus.appname+'/getshowevent'),
 					
@@ -2106,6 +2127,7 @@ var CalendarPlus = {
 				closeable:false,
 				cache:false,
 				placement:'auto',
+				constrains:sConstrain,
 				type:'async',
 				width:400,
 				animation:'pop',
@@ -2134,13 +2156,13 @@ var CalendarPlus = {
 			
 			CalendarPlus.Util.destroyExisitingPopover();
 			
-			if(view === 'list'){
-				CalendarPlus.popOverElem = $(jsEvent.target);
-			}else{
-				CalendarPlus.popOverElem = $(jsEvent.target);
-				
-			}
+			CalendarPlus.popOverElem = $(jsEvent.target);
 			
+			var sConstrain = 'horizontal';
+			if(CalendarPlus.calendarConfig['defaultView'] == 'list' || CalendarPlus.calendarConfig['defaultView'] == 'month' || CalendarPlus.calendarConfig['defaultView'] == 'year'){
+					sConstrain = 'vertical';
+			}
+				
 			CalendarPlus.popOverElem.webuiPopover({
 				url:OC.generateUrl('apps/'+CalendarPlus.appname+'/geteditformevent'),
 				async:{
@@ -2159,6 +2181,7 @@ var CalendarPlus = {
 				cache:false,
 				type:'async',
 				placement:'auto',
+				constrains:sConstrain,
 				width:460,
 				height:250,
 				trigger:'manual',
@@ -2327,18 +2350,20 @@ var CalendarPlus = {
 		validateEventForm : function(url,targetElem, calEvent) {
 			
 			var string = '';
-						var objTags = $('#tagmanager').tagit('tags');
-						$(objTags).each(function(i, el) {
-							if (string == '') {
-								string = el.value;
-							} else {
-								string += ',' + el.value;
-							}
-						});
-						$('#categories').val(string);
-						var viewObj = $('#fullcalendar').fullCalendar('getView');
-						$('#viewstart').val($.fullCalendar.parseDate(viewObj.start));
-						$('#viewend').val($.fullCalendar.parseDate(viewObj.end));
+			var objTags = $('#tagmanager').tagit('tags');
+			$(objTags).each(function(i, el) {
+				if (string == '') {
+					string = el.value;
+				} else {
+					string += ',' + el.value;
+				}
+			});
+			//var startDateTxt=$.datepicker.formatDate('dd-mm-yy',$('#from').datepicker('getDate'));
+			//alert(startDateTxt);
+			$('#categories').val(string);
+			var viewObj = $('#fullcalendar').fullCalendar('getView');
+			$('#viewstart').val($.fullCalendar.parseDate(viewObj.start));
+			$('#viewend').val($.fullCalendar.parseDate(viewObj.end));
 					
 			var post = $("#event_form").serialize();
 			$("#errorbox").css('display', 'none').empty();
@@ -2565,13 +2590,43 @@ var CalendarPlus = {
 				if ($('#allday_checkbox').is(':checked')) {
 					$('#ldatetime').text(t(CalendarPlus.appname,'On')+' '+sStart);
 				}else{
-					$('#ldatetime').text(t(CalendarPlus.appname,'On')+' '+sStart+' '+$('#fromtime').val()+' '+t(CalendarPlus.appname,'To')+' '+$('#totime').val());
+					 var sFromTime = '';
+					 var sToTime ='';
+					 if(CalendarPlus.calendarConfig['timeformat'] === '24'){
+					 	 sFromTime =  $('#fromtime').val();
+					 	 sToTime =  $('#totime').val();
+					 }else{
+					 	 if(CalendarPlus.calendarConfig['dateformat'] == 'm/d/Y'){
+					 	 	sFromTime = $.fullCalendar.formatDate(new Date(sStart+' '+$('#fromtime').val()),'hh:mm tt');
+					 	 	sToTime = $.fullCalendar.formatDate(new Date(sEnd+' '+$('#totime').val()),'hh:mm tt');
+					 	 }else{
+					 	 	sFromTime =  $('#fromtime').val();
+					 	 	sToTime =  $('#totime').val();
+					 	 }
+					 }
+					
+					$('#ldatetime').text(t(CalendarPlus.appname,'On')+' '+sStart+' '+sFromTime+' '+t(CalendarPlus.appname,'To')+' '+sToTime);
 				}
 			}else{
 				if ($('#allday_checkbox').is(':checked')) {
 					$('#ldatetime').text(t(CalendarPlus.appname,'From')+' '+sStart+' '+t(CalendarPlus.appname,'To')+' '+sEnd);
 				}else{
-					$('#ldatetime').text(t(CalendarPlus.appname,'From')+' '+sStart+' '+$('#fromtime').val()+' '+t(CalendarPlus.appname,'To')+' '+sEnd+' '+$('#totime').val());
+					var sFromTime = '';
+					 var sToTime ='';
+					 if(CalendarPlus.calendarConfig['timeformat'] === '24'){
+					 	 sFromTime =  $('#fromtime').val();
+					 	 sToTime =  $('#totime').val();
+					 }else{
+					 	  if(CalendarPlus.calendarConfig['dateformat'] == 'm/d/Y'){
+					 	 	sFromTime = $.fullCalendar.formatDate(new Date(sStart+' '+$('#fromtime').val()),'hh:mm tt');
+					 	 	sToTime = $.fullCalendar.formatDate(new Date(sEnd+' '+$('#totime').val()),'hh:mm tt');
+					 	 }else{
+					 	 	sFromTime =  $('#fromtime').val();
+					 	 	sToTime =  $('#totime').val();
+					 	 }
+					 }
+					 
+					$('#ldatetime').text(t(CalendarPlus.appname,'From')+' '+sStart+' '+sFromTime+' '+t(CalendarPlus.appname,'To')+' '+sEnd+' '+sToTime);
 				}
 			}
 		},
@@ -2706,10 +2761,15 @@ var CalendarPlus = {
 				CalendarPlus.Util.Selectable('#rBymonth li');
 				CalendarPlus.Util.Selectable('#rByweekdayYear li');
 				CalendarPlus.Util.Selectable('#rByweekdayWeek li');
-
+				
+				var dateFormatString = 'dd-mm-yy';
+				if(CalendarPlus.calendarConfig['dateformat'] == 'm/d/Y'){
+					dateFormatString = 'mm/dd/yy';
+				}
+				
 				$('input[name="bydate"]').datepicker({
 					minDate : null,
-					dateFormat : 'dd-mm-yy'
+					dateFormat :  dateFormatString,
 				});
 
 				CalendarPlus.UI.repeat('end');
@@ -3240,6 +3300,7 @@ var CalendarPlus = {
 	Settings : {
 		init:function(){
 		$('#timeformat').chosen();
+		$('#dateformat').chosen();
 		$('#firstday').chosen();
 		$('#timezone').chosen();
 					
@@ -3277,8 +3338,21 @@ var CalendarPlus = {
 				OC.msg.finishedSaving('.msgTf', jsondata);
 				CalendarPlus.calendarConfig['agendatime'] = jsondata.data.agendaTime;
 				CalendarPlus.calendarConfig['defaulttime'] = jsondata.data.defaultTime;
+				CalendarPlus.calendarConfig['timeformat'] = jsondata.data.timeformat;
 				$('#fullcalendar').fullCalendar('destroy');
 				CalendarPlus.init();
+				});
+			return false;
+		});
+		
+		$('#dateformat').change( function(){
+			var data = $('#dateformat').serialize();
+			$.post( OC.generateUrl('apps/'+CalendarPlus.appname+'/calendarsettingssetdateformat'), data, function(jsondata){
+				OC.msg.finishedSaving('.msgDf', jsondata);
+				CalendarPlus.calendarConfig['dateformat'] = jsondata.data.dateformat;
+				
+				//$('#fullcalendar').fullCalendar('destroy');
+				//CalendarPlus.init();
 				});
 			return false;
 		});

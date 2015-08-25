@@ -118,10 +118,18 @@ class ObjectParser  {
 			$errarr['title'] = true;
 			$errnum++;
 		}
-
-		$fromday = substr($request['from'], 0, 2);
-		$frommonth = substr($request['from'], 3, 2);
-		$fromyear = substr($request['from'], 6, 4);
+		
+		if(stristr($request['from'],'-')){
+			$fromday = substr($request['from'], 0, 2);
+			$frommonth = substr($request['from'], 3, 2);
+			$fromyear = substr($request['from'], 6, 4);
+			
+		}else{
+			$frommonth = substr($request['from'], 0, 2);
+			$fromday = substr($request['from'], 3, 2);
+			$fromyear = substr($request['from'], 6, 4);
+		}
+		
 		if(!checkdate($frommonth, $fromday, $fromyear)) {
 			$errarr['from'] = true;
 			$errnum++;
@@ -132,10 +140,15 @@ class ObjectParser  {
 			$errarr['fromtime'] = true;
 			$errnum++;
 		}
-
-		$today = substr($request['to'], 0, 2);
-		$tomonth = substr($request['to'], 3, 2);
-		$toyear = substr($request['to'], 6, 4);
+		if(stristr($request['from'],'-')){
+			$today = substr($request['to'], 0, 2);
+			$tomonth = substr($request['to'], 3, 2);
+			$toyear = substr($request['to'], 6, 4);
+		}else{
+			$tomonth = substr($request['to'], 0, 2);
+			$today = substr($request['to'], 3, 2);
+			$toyear = substr($request['to'], 6, 4);
+		}
 		
 		if(!checkdate($tomonth, $today, $toyear)) {
 			$errarr['to'] = true;
@@ -182,7 +195,16 @@ class ObjectParser  {
 				}
 
 				if($request['end'] === 'date') {
-					list($bydate_day, $bydate_month, $bydate_year) = explode('-', $request['bydate']);
+					if(stristr($request['bydate'],'-')){
+						$bydate_day = substr($request['bydate'], 0, 2);
+						$bydate_month = substr($request['bydate'], 3, 2);
+						$bydate_year = substr($request['bydate'], 6, 4);
+					}else{
+						$bydate_month = substr($request['bydate'], 0, 2);
+						$bydate_day = substr($request['bydate'], 3, 2);
+						$bydate_year = substr($request['bydate'], 6, 4);
+					}	
+					
 					if(!checkdate($bydate_month, $bydate_day, $bydate_year)) {
 						$errarr['bydate'] = true;
 						$errnum++;
@@ -497,7 +519,16 @@ class ObjectParser  {
 			}
 
 			if($end === 'date') {
-				list($bydate_day, $bydate_month, $bydate_year) = explode('-', $request['bydate']);
+				if(stristr($request['bydate'],'-')){
+					$bydate_day = substr($request['bydate'], 0, 2);
+					$bydate_month = substr($request['bydate'], 3, 2);
+					$bydate_year = substr($request['bydate'], 6, 4);
+				}else{
+					$bydate_month = substr($request['bydate'], 0, 2);
+					$bydate_day = substr($request['bydate'], 3, 2);
+					$bydate_year = substr($request['bydate'], 6, 4);
+				}	
+					
 				$rrule .= ';UNTIL=' . $bydate_year . $bydate_month . $bydate_day;
 			}
 			
@@ -512,9 +543,19 @@ class ObjectParser  {
 				if($end == 'count') {
 				$rrule .= ';COUNT=' . $byoccurrences;
 				}
+				
 				if($end == 'date') {
-					list($bydate_day, $bydate_month, $bydate_year) = explode('-', $request['bydate']);
-					$rrule .= ';UNTIL=' . $bydate_year . $bydate_month . $bydate_day;
+					if(stristr($request['bydate'],'-')){
+					$bydate_day = substr($request['bydate'], 0, 2);
+					$bydate_month = substr($request['bydate'], 3, 2);
+					$bydate_year = substr($request['bydate'], 6, 4);
+				}else{
+					$bydate_month = substr($request['bydate'], 0, 2);
+					$bydate_day = substr($request['bydate'], 3, 2);
+					$bydate_year = substr($request['bydate'], 6, 4);
+				}
+	
+				$rrule .= ';UNTIL=' . $bydate_year . $bydate_month . $bydate_day;
 				}
 				$vevent->setString('RRULE', $rrule);
 				$repeat = "true";

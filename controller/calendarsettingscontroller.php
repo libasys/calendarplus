@@ -88,6 +88,7 @@ class CalendarSettingsController extends Controller {
 			'mySharedCalendars' => Object::getCalendarSharees(),
 			'isShareApiActive' => \OC::$server->getAppConfig()->getValue('core', 'shareapi_enabled', 'yes'),
 			'timeformat' => $this -> configInfo -> getUserValue($this -> userId,$this->appName,'timeformat','24'),
+			'dateformat' => $this -> configInfo -> getUserValue($this -> userId,$this->appName,'dateformat','d-m-Y'),
 			'timezonedetection' => $this -> configInfo -> getUserValue($this -> userId,$this->appName,'timezonedetection'),
 			'firstday' => $this -> configInfo -> getUserValue($this -> userId,$this->appName,'firstday', 'mo'),
 			'allCalendarCached' => $allcached,
@@ -105,16 +106,20 @@ class CalendarSettingsController extends Controller {
     public function getUserSettingsCalendar() {
    
    		
-		$firstDayConfig =$this ->configInfo -> getUserValue($this -> userId,$this->appName, 'firstday', 'mo');
+		$firstDayConfig = $this ->configInfo -> getUserValue($this -> userId,$this->appName, 'firstday', 'mo');
 		$firstDay = $this -> prepareFirstDay($firstDayConfig);
    
 		$agendaTime ='hh:mm tt { - hh:mm tt}';
 		$defaultTime ='hh:mm tt';
-		if($this ->configInfo ->getUserValue($this -> userId, $this->appName, 'timeformat', '24') === '24'){
+		$timeFormat = $this ->configInfo -> getUserValue($this -> userId,$this->appName, 'timeformat', '24');
+		if($timeFormat === '24'){
 			$agendaTime ='HH:mm { - HH:mm}';
 			$defaultTime ='HH:mm { - HH:mm}';
 		}
-
+		
+		$dateFormat = $this ->configInfo -> getUserValue($this -> userId,$this->appName, 'dateformat', 'd-m-Y');
+		
+		
 		$checkCat=CalendarApp::loadTags();
 		$checkCatTagsList='';
 		$checkCatCategory='';
@@ -208,6 +213,8 @@ class CalendarSettingsController extends Controller {
 			'defaultView' => $this ->configInfo -> getUserValue($this -> userId,$this->appName, 'currentview', 'month'),
 			'agendatime' => $agendaTime,
 			'defaulttime' => $defaultTime,
+			'dateformat' => $dateFormat,
+			'timeformat' => $timeFormat,
 			'firstDay' => $firstDay,
 			'categories' => $checkCatCategory,
 			'tags' => $checkCatTagsList,
@@ -331,9 +338,11 @@ class CalendarSettingsController extends Controller {
 		
 		$agendaTime ='hh:mm tt { - hh:mm tt}';
 		$defaultTime ='hh:mm tt';
+		$timeFormat = 'ampm';
 		if($this ->configInfo ->getUserValue($this -> userId, $this->appName, 'timeformat', '24') === '24'){
 			$agendaTime ='HH:mm { - HH:mm}';
 			$defaultTime ='HH:mm';
+			$timeFormat = '24';
 		}
 		
 		$params = [
@@ -342,6 +351,7 @@ class CalendarSettingsController extends Controller {
 			'message' => (string)$this -> l10n -> t('Timeformat changed'),
 			'agendaTime' => $agendaTime,
 			'defaultTime' => $defaultTime,
+			'timeformat' => $timeFormat,
 		],
 		];
 		
@@ -351,6 +361,28 @@ class CalendarSettingsController extends Controller {
 		
 	}
 	
+	/**
+     * @NoAdminRequired
+     */
+    public function setDateFormat() {
+    	
+		$dateformat = (string) $this -> params('dateformat');
+		$this -> configInfo -> setUserValue($this -> userId,$this->appName,'dateformat',$dateformat);
+		
+		
+		$params = [
+		'status' => 'success',
+		'data' =>[
+			'message' => (string)$this -> l10n -> t('Dateformat changed'),
+			'dateformat' => $dateformat,
+		],
+		];
+		
+		$response = new JSONResponse($params);
+		
+		return $response;
+		
+	}
 	/**
      * @NoAdminRequired
      */

@@ -74,13 +74,13 @@
 					<span id="ldatetime" style="color:#555;font-weight:normal;"></span>
 					 
 					</h3>
-				<div>
-					<span class="labelLeft"><?php p($l->t("From"));?> </span><input type="text" style="width:85px;" value="<?php p($_['startdate']);?>" name="from" id="from">
+				<div id="timeselector">
+				<span class="labelLeft"><?php p($l->t("From"));?> </span><input type="text" style="width:85px;" value="<?php p($_['startdate']);?>" name="from" id="from" class="date start">
 				
-				<input type="text" style="width:50px;" value="<?php p($_['starttime']);?>" name="fromtime" id="fromtime">
+				<input type="text" style="width:50px;" value="<?php p($_['starttime']);?>" name="fromtime" id="fromtime" class="time start">
 				<br style="clear: both;" />
-				<span class="labelLeft"><?php p($l->t("To"));?></span> <input type="text" style="width:85px;" value="<?php p($_['enddate']);?>" name="to" id="to">
-				<input type="text" style="width:50px;" value="<?php p($_['endtime']);?>" name="totime" id="totime">
+				<span class="labelLeft"><?php p($l->t("To"));?></span> <input type="text" style="width:85px;" value="<?php p($_['enddate']);?>" name="to" id="to" class="date end">
+				<input type="text" style="width:50px;" value="<?php p($_['endtime']);?>" name="totime" id="totime" class="time end">
 			<br style="clear: both;" />
 			<span class="labelLeft"><?php p($l->t("All day"));?></span><input type="checkbox" <?php if($_['allday']) {print_unescaped('checked="checked"');} ?> id="allday_checkbox" name="allday" class="regular-checkbox"><label for="allday_checkbox"></label>
 				

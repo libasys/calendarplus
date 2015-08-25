@@ -84,7 +84,10 @@ class Calendar implements \OCP\Share_Backend_Collection {
 		foreach($this->calendarConnector->all($shareWith) as $user_calendar) {
 			$user_calendars[] = $user_calendar['displayname'];
 		}
-		$name = $calendar['userid']."'s ".$calendar['displayname'];
+		
+		$l10n =  \OC::$server->getL10N('calendarplus');
+		
+		$name = $calendar['displayname'].' '.(string)$l10n->t('shared by').' '.$calendar['userid'];
 		$suffix = '';
 		while (in_array($name.$suffix, $user_calendars)) {
 			$suffix++;

@@ -213,7 +213,7 @@
 				&nbsp;&nbsp;
 			</td>
 			<td>
-				<select style="display: none; width: 160px;" id="timezone" name="timezone">
+				<select style="display: none; width: 130px;" id="timezone" name="timezone">
 				<?php
 				$continent = '';
 				foreach($_['timezones'] as $timezone):
@@ -253,6 +253,32 @@
 		</tr>
 		<tr>
 			<td>
+		<label  class="heading" for="timeformat" ><?php p($l->t('Date format'));?></label>&nbsp;&nbsp;
+		</td>
+		<td>
+		<?php 
+				  
+			  $aDateFormat=[
+			   'd-m-Y' => date('d-m-Y') ,
+			   'm/d/Y' => date('m/d/Y')
+			  ];
+			?>
+			<select style="display: none; width: 130px;" id="dateformat" title="<?php p("Date format"); ?>" name="dateformat">
+				<?php
+				  foreach($aDateFormat as $key => $val){
+				  	$selected='';
+					  if($key == $_['dateformat']){
+					  	$selected ='selected="selected"';
+					  }
+					  print_unescaped('<option value="'.$key.'"  '.$selected.'>'.$val.'</option>');
+				  }
+				  ?>
+				
+			</select>
+			<br /><span class="msg msgDf"></span>
+		</td></tr>
+		<tr>
+			<td>
 		<label  class="heading" for="timeformat" ><?php p($l->t('Time format'));?></label>&nbsp;&nbsp;
 		</td>
 		<td>
@@ -263,7 +289,7 @@
 			   'ampm' => ['id' => 'ampm', 'title' => $l->t("12h")]
 			  ];
 			?>
-			<select style="display: none; width: 160px;" id="timeformat" title="<?php p("timeformat"); ?>" name="timeformat">
+			<select style="display: none; width: 130px;" id="timeformat" title="<?php p("timeformat"); ?>" name="timeformat">
 				<?php
 				  foreach($aTimeFormat as $key => $val){
 				  	$selected='';
@@ -277,8 +303,9 @@
 			</select>
 			<br /><span class="msg msgTf"></span>
 		</td></tr>
+		
 		<tr><td>
-			<label  class="heading" for="firstday" ><?php p($l->t('1. Day'));?></label>	
+			<label  class="heading" for="firstday" ><?php p($l->t('1. Day of Week'));?></label>	
 			</td>
 			<td>
 			<?php 
@@ -293,7 +320,7 @@
 				   
 				  ];
 				?>
-				<select style="display: none; width: 160px;" id="firstday" title="<?php p("First day"); ?>" name="firstday">
+				<select style="display: none; width: 130px;" id="firstday" title="<?php p("First day"); ?>" name="firstday">
 					<?php
 					  foreach($aFirstDay as $key => $val){
 					  	$selected='';

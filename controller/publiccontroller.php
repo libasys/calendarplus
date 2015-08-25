@@ -184,7 +184,7 @@ class PublicController extends Controller {
 					\OCP\Util::addScript($this->appName, '3rdparty/jstz-1.0.4.min');		
 					\OCP\Util::addScript($this->appName, '3rdparty/fullcalendar');
 					\OCP\Util::addScript($this->appName,'jquery.scrollTo.min');
-					\OCP\Util::addScript($this->appName,'timepicker');
+					//\OCP\Util::addScript($this->appName,'timepicker');
 					\OCP\Util::addScript($this->appName, "3rdparty/jquery.webui-popover");
 					\OCP\Util::addScript($this->appName, "3rdparty/chosen.jquery.min");
 					//\OCP\Util::addScript($this->appName,'jquery.nicescroll.min');
@@ -275,6 +275,21 @@ class PublicController extends Controller {
 		return $response;
 		
 	}
+
+
+	 /**
+     * @PublicPage
+	 * @NoCSRFRequired
+	  * @UseSession
+     */
+    public function getDateTimeFormat(){
+    	$pDateFormat= $this -> params('dateformat');
+		$pTimeFormat= $this -> params('timeformat');
+		
+		$this->session->set('public_dateformat', $pDateFormat);
+		$this->session->set('public_timeformat', $pTimeFormat);
+		
+    }
 
 	 /**
      * @PublicPage
@@ -367,13 +382,28 @@ class PublicController extends Controller {
 			
 			$defaultView ='month';
 			if($this->session->get('public_currentView')!=''){
-				$defaultView = (string)$this->session->get('public_currentView');
-			}
+					$defaultView = (string)$this->session->get('public_currentView');
+				}
+			
+			if($this->session->get('public_dateformat')!=''){
+		   	  	$sDateFormat = $this->session->get('public_dateformat');
+		   	 }else{
+		   	  	$sDateFormat ='d.m.Y';
+		   	  }
+			 
+			 if($this->session->get('public_timeformat')!=''){
+		   	  	$sTimeFormatRead = $this->session->get('public_timeformat');
+		   	 }else{
+		   	  	$sTimeFormatRead ='H:i';
+		   	 }
+		  
 			$params = [
 			'status' => 'success',
 			'defaultView' => $defaultView,
 			'agendatime' => 'HH:mm { - HH:mm}',
 			'defaulttime' => 'HH:mm',
+			'dateformat' => $sDateFormat,
+			'timeformat' => $sTimeFormatRead,
 			'firstDay' => '1',
 			'calendarId' => $calendar['id'],
 			'eventSources' => $eventSources,
