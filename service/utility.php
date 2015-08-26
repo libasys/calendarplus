@@ -155,9 +155,11 @@ class Utility  {
 	 */
 	public static function getReminderTimeOptions($l10n) {
 		return array(
+			'secondsbefore' => (string)$l10n->t('Seconds before'),
 			'minutesbefore' => (string)$l10n->t('Minutes before'),
 			'hoursbefore'  => (string)$l10n->t('Hours before'),
 			'daysbefore'  => (string)$l10n->t('Days before'),
+			'secondsafter' => (string)$l10n->t('Seconds after'),
 			'minutesafter' => (string)$l10n->t('Minutes after'),
 			'hoursafter'  => (string)$l10n->t('Hours after'),
 			'daysafter'  => (string)$l10n->t('Days after'),

@@ -167,28 +167,28 @@ class EventController extends Controller {
 							if((int)$eventInfo['repeating'] === 0) {
 											
 								$start_dt = new \DateTime($eventInfo['startdate'], new \DateTimeZone('UTC'));
-							    $startDate=$start_dt->format('Y/m/d');
+							    $startDate = $start_dt->format('Y/m/d');
 								$start_tmst = new \DateTime($startDate, new \DateTimeZone('UTC'));
 								$startTimeStamp=$start_tmst->format('U');
 								
 								$end_dt = new \DateTime($eventInfo['enddate'], new \DateTimeZone('UTC'));
 								$endTimeStamp=$end_dt->format('U');
 								
-								$aSort[$startTimeStamp]=$startDate;
+								$aSort[$startTimeStamp] = $startDate;
 								
 								if($endTimeStamp > ($startTimeStamp + (24*60*60))){
 										
 									$datetime1 = new \DateTime($eventInfo['startdate']);
 									$datetime2 = new \DateTime($eventInfo['enddate']);
 									$interval = $datetime1->diff($datetime2);
-									$count=(int) $interval->format('%a');
+									$count = (int) $interval->format('%a');
 									for($i=1; $i<$count; $i++){
 										$start_dtNew = new \DateTime($eventInfo['startdate'], new \DateTimeZone('UTC'));
 										$start_dtNew->modify('+'.$i.' day');
-									    $startDateNew=$start_dtNew->format('Y/m/d');
+									    $startDateNew = $start_dtNew->format('Y/m/d');
 										$start_tmstNew = new \DateTime($startDateNew, new \DateTimeZone('UTC'));
-								        $startTimeStampNew=$start_tmstNew->format('U');
-										$aSort[$startTimeStampNew]=$startDateNew;
+								        $startTimeStampNew = $start_tmstNew->format('U');
+										$aSort[$startTimeStampNew] = $startDateNew;
 										//OCP\Util::writeLog('calendar','STARTDATE'.$startDateNew.' -> '.$eventInfo['summary'], OCP\Util::DEBUG);
 										
 										$eventArray[$startDateNew][]= $this->generateEventOutput($eventInfo, $start, $end);
@@ -217,12 +217,14 @@ class EventController extends Controller {
 							    
 							}
 							
-							 if(is_array($eventArray)) $output= array_merge($output, $eventArray);
+							 if(is_array($eventArray)){
+							 	$output= array_merge($output, $eventArray);
+							 } 
 							 
 						 }
 						
 						}
-						ksort($aSort);
+						asort($aSort);
 					
 					$params=[
 						'data' => $output,
@@ -1682,6 +1684,8 @@ class EventController extends Controller {
 						$dynamicoutput['end'] = $end_dt -> format('Y-m-d');
 						$dynamicoutput['startlist'] = $start_dt -> format('Y/m/d');
 						$dynamicoutput['endlist'] = $end_dt -> format('Y/m/d');
+						$dynamicoutput['startsort'] = $start_dt -> format('U');
+						$dynamicoutput['endsort'] = $end_dt -> format('U');
 					} else {
 						$start_dt = new \DateTime($cachedevent['startdate'], new \DateTimeZone('UTC'));
 						$end_dt = new \DateTime($cachedevent['enddate'], new \DateTimeZone('UTC'));
@@ -1691,6 +1695,8 @@ class EventController extends Controller {
 						$dynamicoutput['end'] = $end_dt -> format('Y-m-d H:i:s');
 						$dynamicoutput['startlist'] = $start_dt -> format('Y/m/d H:i:s');
 						$dynamicoutput['endlist'] = $end_dt -> format('Y/m/d H:i:s');
+						$dynamicoutput['startsort'] = $start_dt -> format('U');
+						$dynamicoutput['endsort'] = $end_dt -> format('U');
 					}
 					$dynamicoutput['isrepeating'] = true;
 

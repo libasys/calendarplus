@@ -513,6 +513,9 @@ CalendarShare={
 					//before
 					var sTemp = sReminder.split('-PT');
 					var sTempTF = sTemp[1].substring((sTemp[1].length - 1));
+					if (sTempTF == 'S') {
+						sReminderTxt = t(myAppName, 'Seconds before');
+					}
 					if (sTempTF == 'M') {
 						sReminderTxt = t(myAppName, 'Minutes before');
 					}
@@ -527,9 +530,15 @@ CalendarShare={
 					}
 					var sTime = sTemp[1].substring(0, (sTemp[1].length - 1));
 					sReminderTxt = sTime + ' ' + sReminderTxt;
+					if(sTime == 0){
+						sReminderTxt = t(myAppName, 'Just in time');
+					}
 				} else if (sReminder.indexOf('+PT') != -1) {
 					var sTemp = sReminder.split('+PT');
 					var sTempTF = sTemp[1].substring((sTemp[1].length - 1));
+					if (sTempTF == 'S') {
+						sReminderTxt = t(myAppName, 'Seconds after');
+					}
 					if (sTempTF == 'M') {
 						sReminderTxt = t(myAppName, 'Minutes after');
 					}
@@ -544,35 +553,41 @@ CalendarShare={
 					}
 					var sTime = sTemp[1].substring(0, (sTemp[1].length - 1));
 					sReminderTxt = sTime + ' ' + sReminderTxt;
+					if(sTime == 0){
+						sReminderTxt = t(myAppName, 'Just in time');
+					}
 				} else {
 					//onDate
-					sReminderTxt = t(myAppName, 'on');
-					
-					var sTemp = sReminder.split('DATE-TIME:');
-					var sDateTime = sTemp[1].split('T');
-					var sYear = sDateTime[0].substring(0, 4);
-					var sMonth = sDateTime[0].substring(4, 6);
-					var sDay = sDateTime[0].substring(6, 8);
-				    var sHour='';
-				    var sMinute='';
-				    var sHM='';
-				    
-				    if(sDateTime.length > 1){
-						 sHour = sDateTime[1].substring(0, 2);
-						 sMinute = sDateTime[1].substring(2, 4);
-						 sHM =  sHour + ':' + sMinute;
-						 if(CalendarShare.calendarConfig['timeformat'] === 'H:i'){
-						 	 sHM =  sHour + ':' + sMinute;
-						 }else{
-						 	var sHM = $.fullCalendar.formatDate(new Date(sYear, sMonth, sDay, sHour, sMinute),'hh:mm tt');
-						 }
-					}
-					if(CalendarShare.calendarConfig['dateformat'] == 'm/d/Y'){
-						sReminderTxt = sReminderTxt + ' ' + sMonth + '/' + sDay + '/' + sYear + ' ' +sHM;
+					if (sReminder.indexOf('DATE-TIME') != -1) {
+						sReminderTxt = t(myAppName, 'on');
+						
+						var sTemp = sReminder.split('DATE-TIME:');
+						var sDateTime = sTemp[1].split('T');
+						var sYear = sDateTime[0].substring(0, 4);
+						var sMonth = sDateTime[0].substring(4, 6);
+						var sDay = sDateTime[0].substring(6, 8);
+					    var sHour='';
+					    var sMinute='';
+					    var sHM='';
+					    
+					    if(sDateTime.length > 1){
+							 sHour = sDateTime[1].substring(0, 2);
+							 sMinute = sDateTime[1].substring(2, 4);
+							 sHM =  sHour + ':' + sMinute;
+							 if(CalendarShare.calendarConfig['timeformat'] === 'H:i'){
+							 	 sHM =  sHour + ':' + sMinute;
+							 }else{
+							 	var sHM = $.fullCalendar.formatDate(new Date(sYear, sMonth, sDay, sHour, sMinute),'hh:mm tt');
+							 }
+						}
+						if(CalendarShare.calendarConfig['dateformat'] == 'm/d/Y'){
+							sReminderTxt = sReminderTxt + ' ' + sMonth + '/' + sDay + '/' + sYear + ' ' +sHM;
+						}else{
+							sReminderTxt = sReminderTxt + ' ' + sDay + '.' + sMonth + '.' + sYear + ' ' +sHM;
+						}
 					}else{
-						sReminderTxt = sReminderTxt + ' ' + sDay + '.' + sMonth + '.' + sYear + ' ' +sHM;
+						sReminderTxt = t(myAppName, 'Could not read alarm!');
 					}
-
 				}
 
 				return sReminderTxt;
@@ -613,6 +628,9 @@ CalendarShare={
 				
 			if(CalendarShare.calendarConfig['defaultView'] == 'month' || CalendarShare.calendarConfig['defaultView'] == 'year'){
 				sConstrain = 'vertical';
+			}
+			if(CalendarShare.calendarConfig['defaultView'] == 'agendaDay'){
+				sConstrain = null;
 			}
 			
 			CalendarShare.popOverElem.webuiPopover({

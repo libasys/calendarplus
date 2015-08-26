@@ -86,33 +86,7 @@
 	overflow:inherit;
 }
 
-.birthday-calendar{
-	background-color:#DF5A00;
-	color:white;
-	border-color:#AD0D00;
-	padding-left:5px;
-}
 
-.shared-events{
-	background-color:#ccc;
-	color:red;
-	border-color:red;
-	padding-left:5px;
-	
-}
-
-.fc-event-hori .fc-event-bg { /* makes the event lighter w/ a semi-transparent overlay  */
-	position: absolute;
-	z-index: 1;
-	top: 0;
-	left: 0;
-	width: 100%;
-	height: 100%;
-	background: #fff;
-	opacity:0.2;
-	filter: alpha(opacity=20);
-	}
-	
 
 /**END STYLE*/
 
@@ -410,47 +384,7 @@ margin-right:auto;
 -webkit-border-radius:8px;
 -moz-border-radius:8px;
 }
-.timeline {
-	position: absolute;
-	left: 68px;
-	border: none;
-	border-top: 1px solid #BB0505;
-	/*background:url(%appswebroot%/calendar/img/knob.png) no-repeat;*/
-	width: 100%;
-	margin: 0;
-	padding: 0;
-	z-index: 999;
-}
 
-.timeline-ball {
-	position: absolute;
-	display:block;
-	float:left;
-	width:8px;
-	height:8px;
-	border-radius:8px;
-	left: 63px;
-	border: none;
-	margin: 0;
-	padding: 0;
-	background-color:#BB0505;
-	z-index: 1000;
-}
-.timeline-text {
-	position: absolute;
-	display:block;
-	float:left;
-	padding-left:5px;
-	line-height:10px;
-	height:10px;
-	font-size:10px;
-	left: 0px;
-	text-align:left;
-	width:60px;
-	padding-right:5px;
-	color:#BB0505;
-	z-index: 1000;
-}
 
 #datecontrol_date_label {margin: 0; padding: 0; font-size: 12px;}
 #choosecalendar { font-size: 12px;}
@@ -474,18 +408,42 @@ margin-right:auto;
 	color:#7C7E7F;
 }
 
-.left-right-nav{
-	width:80px;
-	position:absolute;
-	top:2px;
-	left:50%;
-	margin-left:-40px;
+#header .left-right-nav{
+	position:relative;
+	float:left;
 	display:block;
 	height:40px;
-	
+	width:80px;
+	top:2px;
+	left:250px;
 	z-index:300;
 }
 
+#header .datenavigation{
+	position:relative;
+	float:none;
+	left:250px;
+	padding:0;
+	padding-top:6px;
+}
+#header .datenavigation .button-group > button {
+	margin-left:-4px;
+	padding:5px 7px;
+}
+
+#header .datenavigation .button-group > .button:first-child {
+	margin-left:2px;
+}
+
+#header .datenavigation #datelabel{
+	width:180px;
+	height:30px;
+	line-height:30px;
+	text-overflow:ellipsis;
+	white-space:nowrap;
+	overflow:hidden;
+	color:#000;
+}
 
 #fullcalendar{
 	position: relative;
@@ -725,7 +683,7 @@ button.category{margin:0 3px;}
 	
 .fc-view-list{
 	overflow:auto;
-	height:570px;
+	
 }	
 .fc-list-table
 {
@@ -887,7 +845,7 @@ margin-bottom:4px;
 #app-navigation .app-navigation-entry-edit input[type="text"] {
 	padding:0;
 	padding-left:5px;
-	width: 154px;
+	width: 144px;
 	height:30px;
 }
 
@@ -921,7 +879,7 @@ margin-bottom:4px;
 	font-weight:normal;
 	
 color:#999;
-font-size:12px;	
+font-size:13px;	
 }
 
 #app-navigation h3 .icon-add{
@@ -964,6 +922,9 @@ font-size:12px;
 	height:34px;
 	line-height:34px;
 	border:1px solid #ccc;
+	text-overflow:ellipsis;
+	white-space:nowrap;
+	overflow:hidden;
 	cursor:pointer;
 	border-radius:4px;
 	margin-right:3px;
@@ -1285,14 +1246,16 @@ cursor:pointer;
 	float:left;
 	font-size:14px;
 	padding-left:5px;
-	border-bottom:1px solid #EEEEEE;
+	
 	color:#313131;
 	
 }
-
+#app-navigation li.calListen:hover{
+	background-color:#ccc;
+}
 #app-navigation li.calListen span.descr{
 	
-	width:160px;
+	width:150px;
 	display:block;
 	float:left;
 	
@@ -1305,31 +1268,10 @@ cursor:pointer;
 }
 
 
-#categoryCalendarList li{
-	padding:0;
-	line-height:24px;
-	color:#313131;
-	width:100%;
-	background-color:#fff;
-}
-.catColPrev{
-	width:16px;
-	height:16px;
-	border-radius:8px;
-	margin-top:4px;
-	display:block;
-	text-align:center;
-	margin-right:5px;
-	margin-left:10px;
-	float:left;
-	color:#fff;
-	font-size:11px;
-	line-height:16px;
-}
-a.catColPrev{
-	margin:0;
-	margin-right:2px;
-}
+
+
+
+
 
 td.fc-sat,td.fc-sun{
 	background-color:#f4f4f4;
@@ -1403,7 +1345,7 @@ li.done{text-decoration:line-through;}
 #content .isHiddenTask,#content .isHiddenCal{
 	display:none;
 	width:0;
-	background:red;
+	
 }
  .photo {
 width: 300px;
@@ -1806,28 +1748,60 @@ label {
 	height: 24px;
 	left: 4px;
 	top: 4px;
-}	
+}
 
+	
+#app-navigation #categoryCalendarList{
+	padding-bottom:30px;
+}
+#categoryCalendarList li{
+	padding:0;
+	line-height:28px;
+	color:#313131;
+	width:100%;
+}
 
+.catColPrev{
+	width:16px;
+	height:16px;
+	border-radius:8px;
+	margin-top:6px;
+	display:block;
+	text-align:center;
+	margin-right:5px;
+	margin-left:10px;
+	float:left;
+	color:#fff;
+	font-size:11px;
+	line-height:16px;
+}
+a.catColPrev{
+	margin:0;
+	margin-right:2px;
+}
 
-.categorieslisting{
+#categoryCalendarList li.categorieslisting{
 	float:left;
 	width:98%;
 	font-size:14px;
 	line-height:28px;
 	height:28px;
-	border-bottom:1px solid #e7e7de;
+	
 	cursor:pointer;
-	z-index:300;
+	
+}
+#categoryCalendarList li.categorieslisting:hover{
+	background-color:#ccc;
 }
 
 .draggingContact{
 	background:#000;
 	color:white;
 	padding:5px 10px;
-	border-radius:8px;
+	border-radius:4px;
 	width:150px;
 	list-style: none;
+	z-index:1000;
 }
 .dropHover{
 	
@@ -1878,7 +1852,7 @@ label {
 
 
 #eventsList{
-	width:95%;
+	width:98%;
 	margin-left:5px;
 }
 #eventsList li{
@@ -1902,12 +1876,16 @@ label {
 	color:#313131;
 	cursor:pointer;
 }
+.eventsRow.highlight{
+	background-color:red;
+}
+
 .timeAgenda{
 	float:right;
 	text-align:right;
 	padding-right:5px;
 	display:block;
-	width:90px;
+	width:140px;
 }
 .listLocation{
 	float:left;
@@ -1920,7 +1898,8 @@ label {
 }
 
 .selectedDay{
-	color:red;
+	font-weight:bold;
+	color:#000;
 }
 #eventsList .colorCal-list{
 	width:10px;
@@ -2003,7 +1982,7 @@ label {
   font-weight:300;
   font-size:14px;
   line-height:22px;
-  padding:5px 9px;
+  padding:5px 8px;
   border:1px solid #CFCFCF;
   border-radius:0;
   box-shadow:none;
@@ -2048,3 +2027,123 @@ label {
     	background:red;
     }
 }
+
+/*
+ * COLOR of timeline
+ */
+ 
+.timeline {
+	position: absolute;
+	left: 68px;
+	border: none;
+	border-top: 1px solid #BB0505;
+	width: 100%;
+	margin: 0;
+	padding: 0;
+	z-index: 999;
+}
+
+.timeline-ball {
+	position: absolute;
+	display:block;
+	float:left;
+	width:8px;
+	height:8px;
+	border-radius:8px;
+	left: 63px;
+	border: none;
+	margin: 0;
+	padding: 0;
+	background-color:#BB0505;
+	z-index: 1000;
+}
+.timeline-text {
+	position: absolute;
+	display:block;
+	float:left;
+	padding-left:5px;
+	line-height:10px;
+	height:10px;
+	font-size:10px;
+	left: 0px;
+	text-align:left;
+	width:60px;
+	padding-right:5px;
+	color:#BB0505;
+	z-index: 1000;
+}
+
+/*COLOR CONFIG OF BIRTHDAY, EVENTS AND SHARED EVENTS*/
+/*
+.fc-event {
+	border: 1px solid #3a87ad;
+	background-color: #3a87ad;
+	color: #fff;              
+	font-size: .85em;
+	cursor: default;
+}*/
+
+.birthday-calendar{
+	background-color:#DF5A00;
+	color:#000;
+	border-color:#AD0D00;
+	padding-left:5px;
+}
+
+.shared-events{
+	background-color:#ccc;
+	color:red;
+	border-color:red;
+	padding-left:5px;
+	
+}
+
+.fc-event-vert {
+	border-width: 0;
+	border-left-width: 5px;
+	opacity:1;
+}
+.fc-event-vert.fc-event-start {
+	border-top-width: 0px;
+	border-radius:4px;
+	
+	}
+
+.fc-event-vert.fc-event-end {
+	border-bottom-width: 0px;
+}
+		
+.fc-event-vert .fc-event-bg { /* makes the event lighter w/ a semi-transparent overlay  */
+	position: absolute;
+	z-index: 1;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	background: #fff;
+	/*border-radius:3px;*/
+	opacity:0.45;
+	filter: alpha(opacity=45);
+}
+
+.fc-ltr .fc-event-hori.fc-event-start,
+.fc-rtl .fc-event-hori.fc-event-end {
+	border-width: 0;
+	border-radius:4px;
+	border-left-width: 5px;
+	opacity:1;
+}
+
+.fc-event-hori .fc-event-bg { /* makes the event lighter w/ a semi-transparent overlay  */
+	position: absolute;
+	z-index: 1;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	background: #fff;
+	/*border-radius:3px;*/
+	opacity:0.45;
+	filter: alpha(opacity=45);
+	}
+	

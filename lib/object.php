@@ -1210,9 +1210,11 @@ class Object{
 	 */
 	public static function getReminderTimeOptions($l10n) {
 		return array(
+			'secondsbefore' => (string)$l10n->t('Seconds before'),
 			'minutesbefore' => (string)$l10n->t('Minutes before'),
 			'hoursbefore'  => (string)$l10n->t('Hours before'),
 			'daysbefore'  => (string)$l10n->t('Days before'),
+			'secondsafter' => (string)$l10n->t('Seconds after'),
 			'minutesafter' => (string)$l10n->t('Minutes after'),
 			'hoursafter'  => (string)$l10n->t('Hours after'),
 			'daysafter'  => (string)$l10n->t('Days after'),
@@ -1855,6 +1857,7 @@ class Object{
 		if($allday) {
 			$return['start'] = $start_dt->format('Y-m-d');
 			$return['startlist'] = $start_dt->format('Y/m/d');
+			$return['startsort'] = $start_dt->format('U');
 			$end_dt->modify('-1 minute');
 			while($start_dt >= $end_dt) {
 				$end_dt->modify('+1 day');
@@ -1867,6 +1870,7 @@ class Object{
 			$return['start'] = $start_dt->format('Y-m-d H:i:s');
 			$return['end'] = $end_dt->format('Y-m-d H:i:s');
 			$return['startlist'] = $start_dt->format('Y/m/d H:i:s');
+			$return['startsort'] = $start_dt->format('U');
 			$return['endlist'] = $end_dt->format('Y/m/d H:i:s');
 		}
 		return $return;

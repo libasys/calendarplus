@@ -80,8 +80,8 @@ class PageController extends Controller {
 		}
 		
 		
-		\OCP\Util::addStyle($this->appName, '3rdparty/jquery.miniColors');
-		\OCP\Util::addscript($this->appName, '3rdparty/jquery.miniColors.min');
+		\OCP\Util::addStyle($this->appName, '3rdparty/colorPicker');
+		\OCP\Util::addscript($this->appName, '3rdparty/jquery.colorPicker');
 		\OCP\Util::addScript($this->appName, '3rdparty/fullcalendar');
 		\OCP\Util::addStyle($this->appName, '3rdparty/fullcalendar');
 		\OCP\Util::addStyle($this->appName,'3rdparty/jquery.timepicker');
@@ -118,12 +118,12 @@ class PageController extends Controller {
 		$leftNavAktiv = $this->configInfo->getUserValue($this->userId, $this->appName, 'calendarnav');
 		$rightNavAktiv = $this->configInfo->getUserValue($this->userId, $this->appName, 'tasknav');
 		
-		$pCalendar = '';
+		$pCalendar = $calendars;	
+		
 		$pHiddenCal = 'class="isHiddenCal"';
 		$pButtonCalAktive = '';
 		
 		if($leftNavAktiv === 'true') {
-			$pCalendar = $calendars;	
 			$pHiddenCal = '';
 			$pButtonCalAktive = 'button-info';
 		}

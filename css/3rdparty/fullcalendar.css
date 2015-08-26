@@ -289,7 +289,7 @@ html .fc,
 	color: #fff;               /* default TEXT color */
 	font-size: .85em;
 	cursor: default;
-	}
+}
 
 a.fc-event {
 	text-decoration: none;
@@ -575,7 +575,7 @@ table.fc-border-separate {
 	white-space: nowrap;
 	font-size: 10px;
 	}
-
+.fc-event-hori .fc-event-inner,
 .fc-event-vert .fc-event-inner {
 	position: relative;
 	z-index: 2;

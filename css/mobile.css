@@ -18,22 +18,31 @@
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
+@media only screen and (max-width: 420px) {
+	#header .left-right-nav,
+#header .datenavigation{
+	display:none;
+}
+}
 
 @media only screen and (max-width: 768px) {
 
 
 /* do not show Deleted Files on mobile, not optimized yet and button too long */
 
-.view.navigation-left {
+#app-navigation{
 	display:block;
-}
-.view.navigation-left .ioc-next{
-	
 }
 #rightCalendarNav{
 	display:none;
 }
 
+#header .datenavigation #datelabel{
+	display:none;
+}
+#content .isHiddenCal{
+	display:block;
+}
 /* proper notification area for multi line messages */
 #notification-container {
 	display: -webkit-box;

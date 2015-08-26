@@ -1998,8 +1998,9 @@ function MonthView(element, calendar) {
 		if (delta) {
 			addMonths(date, delta);
 			date.setDate(1);
+			
 		}
-
+		
 		var firstDay = opt('firstDay');
 
 		var start = cloneDate(date, true);
