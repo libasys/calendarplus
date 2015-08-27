@@ -351,6 +351,8 @@ class EventController extends Controller {
 		$vcalendar = VObject::parse($data['calendardata']);
 		$vevent = $vcalendar->VEVENT;
 		
+		$dtstart = $vevent->DTSTART;
+		$start_type = (string) $dtstart->getValueType();
 		
 		$vevent->setDateTime('LAST-MODIFIED', 'now');
 		$vevent->setDateTime('DTSTAMP', 'now');
@@ -358,16 +360,27 @@ class EventController extends Controller {
 		$paramsExt=array();
 		foreach($vevent->EXDATE as $key => $param){
 			$paramToCheck = new \DateTime($param);
-			$checkEx=$paramToCheck -> format('U');
+			$checkEx = $paramToCheck -> format('U');
 			
 			if($checkEx !== $choosenDate){
 				$paramsExt[]=$param;
 			}
 		} 
-		 $vevent->setString('EXDATE','');
+		
+		$vevent->setString('EXDATE','');
+		$sTimezone = CalendarApp::getTimezone();
 		
 		foreach($paramsExt as $param){
-			    $vevent->addProperty('EXDATE',(string)$param);
+			if ($start_type === 'DATE') {
+			    $dateTime = new \DateTime($param);
+			}else{
+				$dateTime = new \DateTime($param ,new \DateTimeZone($sTimezone));
+			}
+			   
+		    if ($dateTime instanceof \DateTime) {
+				$vevent->addProperty('EXDATE',$dateTime);
+			}
+			 
 		}
 		
 		$output='success';
