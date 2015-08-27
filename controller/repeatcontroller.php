@@ -29,6 +29,7 @@ use OCA\CalendarPlus\VObject;
 use OCA\CalendarPlus\Db\RepeatDAO;
 use \OCP\IRequest;
 
+
 class RepeatController extends Controller {
 
 	private $userId;
@@ -119,8 +120,13 @@ class RepeatController extends Controller {
 			if(!($vevent instanceof \Sabre\VObject\Component)) {
 				continue;
 			}
+			$startenddate = Object::generateStartEndDate(
+				$vevent->DTSTART,
+				Object::getDTEndFromVEvent($vevent),
+				!$vevent->DTSTART->hasTime(),
+				'UTC'
+			);
 			
-			$startenddate = Object::generateStartEndDate($vevent->DTSTART, Object::getDTEndFromVEvent($vevent), ($vevent->DTSTART->getValueType() == 'DATE')?true:false, 'UTC');
 			$this ->repeatDB->insertEvent($id,$calendarId,$startenddate['start'],$startenddate['end']);
 			
 		}

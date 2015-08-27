@@ -1868,6 +1868,7 @@ class Object{
 			while($start_dt >= $end_dt) {
 				$end_dt->modify('+1 day');
 			}
+		
 			$return['end'] = $end_dt->format('Y-m-d');
 			$return['endlist'] = $end_dt->format('Y/m/d');
 		}else{

@@ -216,6 +216,7 @@ class CalendarSettingsController extends Controller {
 			'dateformat' => $dateFormat,
 			'timeformat' => $timeFormat,
 			'firstDay' => $firstDay,
+			'firstDayString' => $firstDayConfig,
 			'categories' => $checkCatCategory,
 			'tags' => $checkCatTagsList,
 			'eventSources' => $eventSources,

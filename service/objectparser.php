@@ -411,7 +411,7 @@ class ObjectParser  {
 		$repeat = $request["repeat"];
 		//FIXME
 		
-		$firstDayOfWeek=';WKST='.(\OCP\Config::getUserValue($this->userId,'calendarplus', 'firstday', 'mo') == 'mo' ? 'MO' : 'SU');
+		$firstDayOfWeek=';WKST='.strtoupper(\OCP\Config::getUserValue($this->userId,'calendarplus', 'firstday', 'mo'));
 		
 		if($repeat != 'doesnotrepeat' && !array_key_exists('sRuleRequest', $request)) {
 			$rrule = '';
@@ -527,9 +527,12 @@ class ObjectParser  {
 					$bydate_month = substr($request['bydate'], 0, 2);
 					$bydate_day = substr($request['bydate'], 3, 2);
 					$bydate_year = substr($request['bydate'], 6, 4);
+				}
+				$timeAdjust = '';	
+				if(!$allday) {
+					$timeAdjust = 'T215900Z';
 				}	
-					
-				$rrule .= ';UNTIL=' . $bydate_year . $bydate_month . $bydate_day;
+				$rrule .= ';UNTIL=' . $bydate_year . $bydate_month . $bydate_day.$timeAdjust;
 			}
 			
 			$vevent->setString('RRULE', $rrule);
@@ -555,7 +558,7 @@ class ObjectParser  {
 					$bydate_year = substr($request['bydate'], 6, 4);
 				}
 	
-				$rrule .= ';UNTIL=' . $bydate_year . $bydate_month . $bydate_day;
+				$rrule .= ';UNTIL=' . $bydate_year . $bydate_month . $bydate_day.'T235000Z';
 				}
 				$vevent->setString('RRULE', $rrule);
 				$repeat = "true";

@@ -41,6 +41,7 @@ var CalendarPlus = {
 					CalendarPlus.calendarConfig['dateformat'] = jsondata.dateformat;
 					CalendarPlus.calendarConfig['timeformat'] = jsondata.timeformat;
 					CalendarPlus.calendarConfig['firstDay'] = jsondata.firstDay;
+					CalendarPlus.calendarConfig['firstDayString'] = jsondata.firstDayString;
 					CalendarPlus.calendarConfig['categories'] = jsondata.categories;
 					CalendarPlus.calendarConfig['tags'] = jsondata.tags;
 					
@@ -127,6 +128,7 @@ var CalendarPlus = {
 					CalendarPlus.calendarConfig['dateformat'] = jsondata.dateformat;
 					CalendarPlus.calendarConfig['timeformat'] = jsondata.timeformat;
 					CalendarPlus.calendarConfig['firstDay'] = jsondata.firstDay;
+					CalendarPlus.calendarConfig['firstDayString'] = jsondata.firstDayString;
 					CalendarPlus.calendarConfig['categories'] = jsondata.categories;
 					CalendarPlus.calendarConfig['tags'] = jsondata.tags;
 					
@@ -2023,6 +2025,13 @@ var CalendarPlus = {
 					$('#rEndRepeat').show();
 					$('#rEndRepeatOutput').show();
 				} else {
+					//FIXME WKST
+					/*
+					var firstDayOFWeek = '';
+					if($(this).data('id') == 'DAILY' ||  $(this).data('id') == 'WEEKLY'){
+						var firstDay = CalendarPlus.calendarConfig['firstDayString'];
+						 firstDayOFWeek = 'WKST='+firstDay.toUpperCase()+';';
+					}*/
 					$('#sRuleRequest').val('FREQ=' + $(this).data('id') + ';INTERVAL=1');
 					$("#rruleoutput").text('');
 					$('#rEndRepeat').show();
@@ -3124,24 +3133,7 @@ var CalendarPlus = {
 				
 				$(object).closest('tr').after(tr).hide();
 			},
-			edit : function(object, calendarid) {
-				var tr = $(document.createElement('tr')).load(OC.generateUrl('apps/'+CalendarPlus.appname+'/geteditformcalendar'), {
-					calendarid : calendarid
-				}, function() {
-					//CalendarPlus.UI.Calendar.colorPicker(this)
-					$('input.minicolor').miniColors({
-						letterCase : 'uppercase',
-					});
-					$('#editCalendar-submit').on('click', function () {
-							CalendarPlus.UI.Calendar.submit($(this), $(this).data('id'));
-						});
-						
-					$('#editCalendar-cancel').on('click', function () {
-						CalendarPlus.UI.Calendar.cancel($(this), $(this).data('id'));
-					});
-				});
-				$(object).closest('tr').after(tr).hide();
-			},
+			
 			deleteCalendar : function(calid) {
 				
 				var check = confirm(t(CalendarPlus.appname,'Do you really want to delete this calendar?'));
