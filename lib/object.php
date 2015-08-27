@@ -394,9 +394,11 @@ class Object{
 		$stmt = \OCP\DB::prepare( 'SELECT share_with, share_type FROM `*PREFIX*share` WHERE `item_type`= ? AND `item_source` = ? ' );
 		$result = $stmt->execute(array(App::SHARECALENDAR,App::SHARECALENDARPREFIX.$calid));
         while( $row = $result->fetchRow()) {
-			if($row['share_type'] === 1 && \OC::$server->getGroupManager()->groupExists($row['share_with'])){
+			
+			if((int)$row['share_type'] === 1 && \OC::$server->getGroupManager()->groupExists($row['share_with'])){
+					
 				$group = \OC::$server->getGroupManager()->get($row['share_with']);	
-				if ($row['share_with'] == \OCP\User::getUser() || $group->inGroup(\OCP\User::getUser())) {
+				if ($row['share_with'] == \OCP\User::getUser() || $group->inGroup(\OC::$server->getUserSession()->getUser())) {
 					 $bCheckCalUser=true;
 				}
 			}else{
@@ -410,16 +412,15 @@ class Object{
     }
 	
 	public static function checkShareEventMode($eventid){
-    	  //$usersInGroup = \OC_Group::usersInGroup($row['share_with']);  inGroup( $uid, $gid )
     
 	    $bCheckCalUser=false;
 		$stmt = \OCP\DB::prepare( 'SELECT share_with,share_type FROM `*PREFIX*share` WHERE `item_type`= ? AND `item_source` = ?' );
 		$result = $stmt->execute(array(App::SHAREEVENT,App::SHAREEVENTPREFIX.$eventid));
        
 		while( $row = $result->fetchRow()) {
-			if($row['share_type'] === 1 && \OC::$server->getGroupManager()->groupExists($row['share_with'])){
+			if((int)$row['share_type'] === 1 && \OC::$server->getGroupManager()->groupExists($row['share_with'])){
 				$group = \OC::$server->getGroupManager()->get($row['share_with']);	
-				if ($row['share_with'] == \OCP\User::getUser() || $group->inGroup(\OCP\User::getUser())) {
+				if ($row['share_with'] == \OCP\User::getUser() || $group->inGroup(\OC::$server->getUserSession()->getUser())) {
 					 $bCheckCalUser=true;
 				}
 			}else{
@@ -452,14 +453,19 @@ class Object{
 		
 		if ($calendar['userid'] != \OCP\User::getUser()) {
 				
-			$shareMode=self::checkShareMode($calid);
+			$shareMode = self::checkShareMode($calid);
+					
+	
 			if($shareMode){
 				$sharedCalendar = \OCP\Share::getItemSharedWithBySource(App::SHARECALENDAR, App::SHARECALENDARPREFIX.$calid); //calid, not objectid !!!! 1111 one one one eleven
+			
 			}else{
 				$sharedCalendar = \OCP\Share::getItemSharedWithBySource(App::SHAREEVENT,App::SHAREEVENTPREFIX. $id); 
 			}
 			
 			$sharedAccessClassPermissions = Object::getAccessClassPermissions($oldvobject);
+			
+			\OCP\Util::writeLog('calendarplus', 'shareperm'.$sharedCalendar['permissions'], \OCP\Util::DEBUG);
 			
 			if (!$sharedCalendar || !($sharedCalendar['permissions'] & \OCP\PERMISSION_UPDATE) || !($sharedAccessClassPermissions & \OCP\PERMISSION_UPDATE)) {
 				

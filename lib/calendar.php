@@ -456,7 +456,7 @@ class Calendar{
 		$group = \OC::$server->getGroupManager()->get('admin');
 		$user = \OCP\User::getUser();
 		
-		if($calendar['userid'] !== $user && !$group->inGroup($user)) {
+		if($calendar['userid'] !== $user && !$group->inGroup(\OC::$server->getUserSession()->getUser())) {
 		
 			$sharedCalendar = \OCP\Share::getItemSharedWithBySource(App::SHARECALENDAR,App::SHARECALENDARPREFIX. $id1);
 			if (!$sharedCalendar || !($sharedCalendar['permissions'] & \OCP\PERMISSION_UPDATE)) {
