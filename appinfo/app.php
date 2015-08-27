@@ -59,8 +59,8 @@ if (\OCP\User::isLoggedIn() && !\OCP\App::isEnabled('calendar')) {
 		$url = $request->server['REQUEST_URI'];
 		if (preg_match('%index.php/apps/files(/.*)?%', $url)	|| preg_match('%index.php/s/(/.*)?%', $url)) {
 			\OCP\Util::addScript($appName,'loaderimport');
-			\OCP\Util::addStyle($appName, '3rdparty/jquery.miniColors');
-			\OCP\Util::addscript($appName, '3rdparty/jquery.miniColors.min');
+			\OCP\Util::addStyle($appName, '3rdparty/colorPicker');
+			\OCP\Util::addscript($appName, '3rdparty/jquery.colorPicker');
 		}
 	}
 }

@@ -83,15 +83,8 @@ CalendarPlus.Import =  {
 			$('#calendar_import_newcalendar').keyup(function(){
 				CalendarPlus.Import.Dialog.mergewarning($.trim($('#calendar_import_newcalendar').val()));
 			});
-			$('#calendar_import_newcalendar_color').miniColors({
-				letterCase: 'uppercase'
-			});
-			$('.calendar-colorpicker-color').click(function(){
-				var str = $(this).attr('rel');
-				str = str.substr(1);
-				$('#calendar_import_newcalendar_color').attr('value', str);
-				$(".color-picker").miniColors('value', '#' + str);
-			});
+			$('#calendar_import_newcalendar_color').colorPicker();
+			
 			//init progressbar
 			$('#calendar_import_progressbar').progressbar({value: CalendarPlus.Import.Store.percentage});
 			CalendarPlus.Import.Store.progresskey = $('#calendar_import_progresskey').val();
