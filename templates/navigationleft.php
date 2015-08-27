@@ -190,7 +190,7 @@
 
 
 <h3 data-id="lCategory" style=" cursor:pointer; line-height:24px;">
-	<label id="showCategory" class="toolTip" title="Add per Drag & drop categories to your event">
+	<label id="showCategory" class="toolTip" title="<?php p($l->t('Add per Drag & drop categories to your event')); ?>">
 		<i style="font-size:22px;" class="ioc ioc-angle-down ioc-rotate-270"></i>&nbsp;
 		<i class="ioc ioc-tags"></i>&nbsp;<?php p($l->t('Tags')); ?>
 		</label>

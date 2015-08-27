@@ -25,7 +25,7 @@
 				data-item-type="<?php p($_['sharetypeevent']) ?>" 
 			    data-item="<?php p($_['sharetypeeventprefix'].$_['eventid']) ?>" 
 			    data-link="true"
-			    data-title="<?php p($_['title']) ?>"
+			    data-title="<?php p($l->t($_['title'])) ?>"
 				data-possible-permissions="<?php p( $_['permissions']) ?>"
 				title="<?php p($l->t('Share Event')) ?>"
 				>
