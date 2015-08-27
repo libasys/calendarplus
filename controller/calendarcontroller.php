@@ -335,7 +335,14 @@ class CalendarController extends Controller {
 		$calId = (int)$this -> params('calendarid');
 		$del = CalendarCalendar::deleteCalendar($calId);
 		if ($del === true) {
-			$params = ['status' => 'success', ];
+			$calendars = CalendarCalendar::allCalendars($this->userId, false, false, false);
+			$bNewId = null;
+			//\OCP\Util::writeLog($this->appName, 'DEL COUNT-> '.count($calendars).$calendars[0]['id'], \OCP\Util::DEBUG);
+			if((\OCP\USER::isLoggedIn() && count($calendars) === 0) || (count($calendars) === 1 && $calendars[0]['id'] === 'birthday_'.$this->userId)) {
+				$bNewId = CalendarCalendar::addDefaultCalendars($this->userId);
+			}	
+				
+			$params = ['status' => 'success','newid' => $bNewId ];
 
 		} else {
 			$params = ['status' => 'error', ];

@@ -39,15 +39,16 @@ class Calendar{
 	 * @param boolean $bSubscribe  return calendars with this $issubscribe state, default(=true) is don't care
 	 * @return array
 	 */
-	public static function allCalendars($uid, $active=false, $bSubscribe = true) {
+	public static function allCalendars($uid, $active=false, $bSubscribe = true ,$bShared = true) {
 			
 		$dbObject = \OC::$server->getDb();	
 		$calendarDB = new CalendarDAO($dbObject,$uid);	
 		
 		$calendars = $calendarDB->all($active, $bSubscribe);
 		
-		$calendars = array_merge($calendars, \OCP\Share::getItemsSharedWith(App::SHARECALENDAR, ShareCalendar::FORMAT_CALENDAR));
-       
+		if($bShared === true){
+			$calendars = array_merge($calendars, \OCP\Share::getItemsSharedWith(App::SHARECALENDAR, ShareCalendar::FORMAT_CALENDAR));
+		}
 	    \OCP\Util::emitHook('OCA\CalendarPlus', 'getCalendars', array('calendar' => &$calendars));
 		
 		return $calendars;
@@ -197,10 +198,13 @@ class Calendar{
 		}
 		
 		$id = self::addCalendar($userid,$userid);
-		\OCP\Config::setUserValue($userid, App::$appname, 'choosencalendar', $id);
-		\OCP\Config::setUserValue($userid, App::$appname, 'calendarnav', 'true');
-
-		return true;
+		if($id !== null){
+			\OCP\Config::setUserValue($userid, App::$appname, 'choosencalendar', $id);
+			\OCP\Config::setUserValue($userid, App::$appname, 'calendarnav', 'true');
+			return $id;
+		}else{
+			return null;
+		}
 	}
 	/**
 	 * @brief Creates default calendars
@@ -420,11 +424,6 @@ class Calendar{
 			$repeatController = $c->query('RepeatController');
 			$repeatController->cleanCalendar($id);
 			
-			$calendars = self::allCalendars(\OCP\USER::getUser(), false, false);
-			
-			if((\OCP\USER::isLoggedIn() && count($calendars) === 0) || (count($calendars) === 1 && $calendars[0]['id'] === 'birthday_'.$user)) {
-				self::addDefaultCalendars($user);
-			}
  		
 	 		$link = \OC::$server->getURLGenerator()->linkToRoute(App::$appname.'.page.index');
 			

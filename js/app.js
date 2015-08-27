@@ -115,6 +115,37 @@ var CalendarPlus = {
 		}
 	//	$('#controls').hide();
 	},
+	initUserSettings:function(){
+		
+		$.getJSON(OC.generateUrl('apps/'+CalendarPlus.appname+'/calendarsettingsgetusersettingscalendar'), function(jsondata){
+				if(jsondata.status == 'success'){
+					
+					CalendarPlus.calendarConfig=[];
+					CalendarPlus.calendarConfig['defaultView'] = jsondata.defaultView;
+					CalendarPlus.calendarConfig['agendatime'] = jsondata.agendatime;
+					CalendarPlus.calendarConfig['defaulttime'] = jsondata.defaulttime;
+					CalendarPlus.calendarConfig['dateformat'] = jsondata.dateformat;
+					CalendarPlus.calendarConfig['timeformat'] = jsondata.timeformat;
+					CalendarPlus.calendarConfig['firstDay'] = jsondata.firstDay;
+					CalendarPlus.calendarConfig['categories'] = jsondata.categories;
+					CalendarPlus.calendarConfig['tags'] = jsondata.tags;
+					
+					CalendarPlus.calendarConfig['eventSources'] = jsondata.eventSources;
+					CalendarPlus.calendarConfig['calendarcolors'] = jsondata.calendarcolors;
+					
+					CalendarPlus.calendarConfig['mycalendars'] = jsondata.mycalendars;
+					CalendarPlus.calendarConfig['myRefreshChecker'] = jsondata.myRefreshChecker;
+					CalendarPlus.calendarConfig['choosenCalendar'] = jsondata.choosenCalendar;
+					CalendarPlus.calendarConfig['userconfig'] = jsondata.userConfig;
+					CalendarPlus.calendarConfig['sharetypeevent'] = jsondata.sharetypeevent;
+					CalendarPlus.calendarConfig['sharetypecalendar'] = jsondata.sharetypecalendar;
+					
+					CalendarPlus.calendarConfig['leftnavAktiv'] = jsondata.leftnavAktiv;
+					CalendarPlus.calendarConfig['rightnavAktiv'] = jsondata.rightnavAktiv;
+					CalendarPlus.calendarConfig['taskAppActive'] = jsondata.taskAppActive;
+				}
+		});
+	},
     initCalendar:function(){
     	
     	var bWeekends = true;
@@ -3131,6 +3162,10 @@ var CalendarPlus = {
 							});*/
 							$('li.calListen[data-id="'+calid+'"]').remove();
 							$('#fullcalendar').fullCalendar('refetchEvents');
+							if(data.newid !== null){
+								CalendarPlus.Util.rebuildCalView();
+								CalendarPlus.initUserSettings();
+							}
 							//CalendarPlus.Util.rebuildCalView();
 						}
 					});
