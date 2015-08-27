@@ -531,6 +531,13 @@ var CalendarPlus = {
 					if(sTime == 0){
 						sReminderTxt = t(CalendarPlus.appname, 'Just in time');
 					}
+				}else if (sReminder.indexOf('PT') != -1) {
+					var sTemp = sReminder.split('PT');
+					var sTempTF = sTemp[1].substring((sTemp[1].length - 1));
+					var sTime = sTemp[1].substring(0, (sTemp[1].length - 1));
+					if(sTime == 0){
+						sReminderTxt = t(CalendarPlus.appname, 'Just in time');
+					}
 				} else {
 					//onDate
 					if (sReminder.indexOf('DATE-TIME') != -1) {
