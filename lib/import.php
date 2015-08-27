@@ -377,8 +377,8 @@ class Import{
 		
 		$stmt = \OCP\DB::prepare('SELECT COUNT(*) AS `COUNTING` FROM `'.App::CldObjectTable.'` `CO`
 								 INNER JOIN `'.App::CldCalendarTable.'` ON `CO`.`calendarid`=`'.App::CldCalendarTable.'`.`id`
-								 WHERE `CO`.`objecttype`=? AND `CO`.`startdate`=? AND `CO`.`enddate`=? AND `CO`.`repeating`=? AND `CO`.`summary`=? AND `CO`.`calendardata`=? AND `'.App::CldCalendarTable.'`.`userid` = ?');
-		$result = $stmt->execute(array($newobject['objecttype'],$newobject['startdate'],$endDate,$newobject['repeating'],$newobject['summary'],$newobject['calendardata'], $this->userid));
+								 WHERE `CO`.`objecttype`=? AND `CO`.`startdate`=? AND `CO`.`enddate`=? AND `CO`.`repeating`=? AND `CO`.`summary`=? AND `CO`.`calendardata`=? AND `'.App::CldCalendarTable.'`.`userid` = ? AND `CO`.`calendarid`=?');
+		$result = $stmt->execute(array($newobject['objecttype'],$newobject['startdate'],$endDate,$newobject['repeating'],$newobject['summary'],$newobject['calendardata'], $this->userid, $newobject['calendarid']));
 		$result = $result->fetchRow();
 		
 		
