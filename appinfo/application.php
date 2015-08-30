@@ -41,6 +41,7 @@ use \OCA\CalendarPlus\Db\EventDAO;
 use \OCA\CalendarPlus\Db\CalendarDAO;
 use \OCA\CalendarPlus\Db\RepeatDAO;
 use \OCA\CalendarPlus\Service\ObjectParser;
+use OCA\CalendarPlus\Service\ContactsIntegration;
 
 class Application extends App {
 	
@@ -82,7 +83,8 @@ class Application extends App {
 			$c->query('Settings'),
 			$c->query('RepeatController'),
 			$c->query('Session'),
-			$c->query('AppConfig')
+			$c->query('AppConfig'),
+			$c->query('ContactsIntegration')
 			);
 		});
 		
@@ -174,6 +176,14 @@ class Application extends App {
 			);
         });
 		
+		
+		/**
+		 * Services
+		 */
+		$container->registerService('ContactsIntegration', function ($c) {
+			/** @var IAppContainer $c */
+			return new ContactsIntegration($c->getServer()->getContactsManager());
+		});
 		
           /**
 		 * Core

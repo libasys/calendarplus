@@ -50,7 +50,12 @@ class EventController extends Controller {
 	private $appConfig;
 	private $shareConnector;
 	
-	public function __construct($appName, IRequest $request, $userId, $l10n, IConfig $settings, $repeatController, $session, $appConfig) {
+	/**
+	 * @var ContactsIntegration
+	 */
+	private $contactsIntegration;
+	
+	public function __construct($appName, IRequest $request, $userId, $l10n, IConfig $settings, $repeatController, $session, $appConfig, $contactsIntegration) {
 		parent::__construct($appName, $request);
 		$this -> userId = $userId;
 		$this->l10n = $l10n;
@@ -60,6 +65,7 @@ class EventController extends Controller {
 		$this->session = $session;
 		$this->appConfig = $appConfig;
 		$this->shareConnector = new ShareConnector();
+		$this->contactsIntegration = $contactsIntegration;
 	}
 	
 	/**
@@ -1780,6 +1786,16 @@ class EventController extends Controller {
 				
 			}
 	}
+	
+	/**
+	 * @NoAdminRequired
+	 * @param string $term
+	 * @return array
+	 */
+	public function autoComplete($term) {
+		return $this->contactsIntegration->getMatchingLocaction( $term );
+	}
+	
     /**
 	 * @NoAdminRequired
 	 */

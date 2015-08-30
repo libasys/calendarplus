@@ -52,6 +52,7 @@ $application->registerRoutes($this, ['routes' => [
 		['name' => 'event#getQuickInfoEvent', 'url' => '/getquickinfoevent', 'verb' => 'GET'],
 		['name' => 'event#editEvent', 'url' => '/editevent', 'verb' => 'POST'],
 		['name' => 'event#getNewFormEvent', 'url' => '/getnewformevent', 'verb' => 'GET'],
+		['name' => 'event#autoComplete', 'url' => '/autocompletelocation', 'verb' => 'GET'],
 		['name' => 'event#newEvent', 'url' => '/newevent', 'verb' => 'POST'],
 		['name' => 'event#sendEmailEventIcs', 'url' => '/sendemaileventics', 'verb' => 'POST'],
 		['name' => 'calendarSettings#index', 'url' => '/calendarsettingsindex', 'verb' => 'GET'],
