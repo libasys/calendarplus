@@ -171,7 +171,7 @@
         show: function() {
 
             var
-                $target = this.getTarget().removeClass().addClass(pluginClass).addClass(this._customTargetClass);
+                $target = this.getTarget().removeAttr('class').addClass(pluginClass).addClass(this._customTargetClass);
             if (!this.options.multi) {
                 this.hideAll();
                 
@@ -206,12 +206,28 @@
             }
             this._opened = true;
         },
+        reCalcPos:function(){
+        	var elementPos = this.getElementPosition(),
+        	$target = this.getTarget().removeAttr('class').addClass(pluginClass),
+        	targetWidth = $target[0].offsetWidth,
+            targetHeight = $target[0].offsetHeight,
+            placement = this.getPlacement(elementPos);
+            var postionInfo = this.getTargetPositin(elementPos, placement, targetWidth, targetHeight);
+           
+          
+           if (postionInfo.arrowOffset) {
+                var $arrow = this.$target.find('.arrow');
+                $arrow.removeAttr('style');
+                $arrow.css(postionInfo.arrowOffset);
+            }
+             this.$target.css(postionInfo.position).addClass(placement).addClass('in');
+        },
         displayContent: function() {
             var
             //element postion
                 elementPos = this.getElementPosition(),
                 //target postion
-                $target = this.getTarget().removeClass().addClass(pluginClass).addClass(this._customTargetClass),
+                $target = this.getTarget().removeAttr('class').addClass(pluginClass).addClass(this._customTargetClass),
                 //target content
                 $targetContent = this.getContentElement(),
                 //target Width
@@ -425,6 +441,9 @@
             if (this.options.dismissible) {
                 $('body').off('keyup.webui-popover').on('keyup.webui-popover', $.proxy(this.escapeHandler, this));
                 $('body').off('click.webui-popover').on('click.webui-popover', $.proxy(this.bodyClickHandler, this));
+                 $('#app-content, #fullcalendar .fc-scroller,#DayListMore,#fullcalendar .fc-view-list').scroll(function() {
+		            	this.reCalcPos();
+		            }.bind(this));
             }
         },
 
