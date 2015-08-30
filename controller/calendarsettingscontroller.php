@@ -159,16 +159,23 @@ class CalendarSettingsController extends Controller {
 			$textColor = '';
 			if(isset($calendar['calendarcolor'])){
 				$bgColor = $calendar['calendarcolor'];
-				$textColor = CalendarCalendar::generateTextColor($bgColor);
+				/*DEFAULT*/
+				$textColorDefault = CalendarCalendar::generateTextColor($bgColor);
+				$textColor = $bgColor;
 			}
 			
 			if(isset($calendar['textColor'])){
-				$textColor = $calendar['textColor'];
+				/*DEFAULT*/	
+				
+				$textColorDefault = $calendar['textColor'];
+				$textColor = $bgColor;
 			}
+			
 			
 			$calendarInfo[$calendar['id']]=[
 					'bgcolor' => $bgColor,
-					'color' => $textColor,
+					'color' => $textColorDefault,
+					'colorDefault' => $textColorDefault,
 					'name' => $calendar['displayname'],
 					'externuri' => $calendar['externuri'],
 					'uri' => $calendar['uri'],

@@ -641,11 +641,11 @@ class ObjectParser  {
 		if($vevent->EXDATE){
 			$calcStartOld=$oldStartTime->getDateTime()->format('U');	
 			$calcStartNew= $start->format('U');
-			$timeDiff=$calcStartNew-$calcStartOld;
-			if($timeDiff!=0){
+			$timeDiff = $calcStartNew-$calcStartOld;
+			if($timeDiff != 0){
 					$delta = new \DateInterval('P0D');	
 					
-					$dMinutes=(int)($timeDiff/60);
+					$dMinutes = (int)($timeDiff/60);
 					//$dTage=(int) ($dMinutes/(3600*24));
 					//$delta->d = $dTage;
 					$delta->i = $dMinutes;

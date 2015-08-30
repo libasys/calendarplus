@@ -557,7 +557,7 @@ class Calendar{
 			'url' => \OC::$server->getURLGenerator()->linkToRoute(App::$appname.'.event.getEvents').'?calendar_id='.$calendar['id'],
 			'backgroundColor' => $bgColor,
 			'borderColor' => $borderColor,
-			'textColor' => $textColor,
+			'textColor' => $textColor, //default $textColor
 			'ctag'=>$calendar['ctag'],
 			'id'=>$calendar['id'],
 			'issubscribe'=>$calendar['issubscribe'],
