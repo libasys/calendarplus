@@ -425,7 +425,9 @@ margin-right:auto;
 	left:250px;
 	padding:0;
 	padding-top:6px;
+	width:370px;
 }
+
 #header .datenavigation .button-group > button {
 	margin-left:-4px;
 	padding:5px 7px;
@@ -908,7 +910,7 @@ font-size:13px;
 	
 }
 
-.datenavigation{
+ .datenavigation{
 	float:left;
 	position:relative;
 	width:97%;
@@ -918,6 +920,7 @@ font-size:13px;
 	padding-top:10px;
 	padding-left:10px;
 }
+
 #datelabel{
 	float:left;
 	position:relative;

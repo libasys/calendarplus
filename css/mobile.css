@@ -29,6 +29,10 @@
 
 
 /* do not show Deleted Files on mobile, not optimized yet and button too long */
+#header .datenavigation{
+	width:160px;
+	
+}
 
 #app-navigation{
 	display:block;
