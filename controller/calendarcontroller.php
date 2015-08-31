@@ -525,17 +525,17 @@ class CalendarController extends Controller {
 	 * @NoAdminRequired
 	 */
 	public function rebuildLeftNavigation() {
-		$leftNavAktiv = $this -> configInfo -> getUserValue($this -> userId, $this -> appName, 'calendarnav');
+		$leftNavAktiv = $this->configInfo->getUserValue($this -> userId, $this -> appName, 'calendarnav');
 
 		//make it as template
 		//if ($leftNavAktiv === 'true') {
 			$calendars = CalendarCalendar::allCalendars($this -> userId, false);
 			$bShareApi = \OC::$server -> getAppConfig() -> getValue('core', 'shareapi_enabled', 'yes');
-			$activeCal = (int)$this -> configInfo -> getUserValue($this -> userId, $this -> appName, 'choosencalendar');
+			$activeCal = (int)$this ->configInfo->getUserValue($this -> userId, $this -> appName, 'choosencalendar');
 			$bActiveCalFound = false;
 			$aCalendars = array();
 			foreach ($calendars as $calInfo) {
-				if($activeCal === $calInfo['id']){
+				if($activeCal === (int)$calInfo['id']){
 					$bActiveCalFound = true;
 				}
 				$calInfo['bShare'] = false;

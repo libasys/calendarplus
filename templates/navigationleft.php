@@ -30,7 +30,7 @@
 		  $isActiveUserCal='';
 		  $addCheckClass='';
 		 
-		 if($_['activeCal'] === $calInfo['id']){
+		 if($_['activeCal'] == $calInfo['id']){
 		 	$isActiveUserCal='isActiveCal';
 			 $addCheckClass='isActiveUserCal';
 		 }
