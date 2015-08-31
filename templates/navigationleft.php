@@ -21,8 +21,8 @@
 	   <button class="button mode" data-action="list" data-view="true" data-weekends="true"><i class="ioc ioc-th-list" title="<?php p($l->t('List'));?>"></i></button>
 
 </div>
-<h3><i class="ioc ioc-calendar"></i>&nbsp;<?php p($l->t('Calendar')); ?><i id="addCal" title="<?php p($l->t('New Calendar')) ?>" class="toolTip icon-add"></i></h3>
-						
+<h3><i class="ioc ioc-calendar"></i>&nbsp;<?php p($l->t('Calendar')); ?><i id="importCal" title="<?php p($l->t('Import calendar per Drag & Drop')); ?>" class="toolTip icon-upload"></i><i id="addCal" title="<?php p($l->t('New Calendar')) ?>" class="toolTip icon-add"></i></h3>
+<div id="drop-area"><?php p($l->t('Import calendar per Drag & Drop')); ?></div>						
 <ul id="calendarList">
 	<?php 
 	foreach($_['calendars']['cal'] as $calInfo){

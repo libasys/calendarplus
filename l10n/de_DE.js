@@ -7,6 +7,7 @@ OC.L10N.register(
 "No events found." : "Keine Termine gefunden.",
 "Wrong calendar" : "Falscher Kalender",
 "Birthday of " : "Geburtstag von ",
+"Import calendar per Drag & Drop" : "Kalender per Drag & Drop importieren",
 "You do not have the permissions to edit this event." : "Sie besitzen nicht die Berechtigung, diese Veranstaltung zu bearbeiten.",
 "The file contained either no events or all events are already saved in your calendar." : "Entweder enthielt die Datei keine Termine oder alle Termine waren bereits im Kalender gespeichert.",
 "events has been saved in the new calendar" : "Der Termin wurde im neuen Kalender gespeichert.",

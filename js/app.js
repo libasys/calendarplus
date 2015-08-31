@@ -991,6 +991,7 @@ var CalendarPlus = {
 						});
 				}
 				
+				CalendarPlus.UI.Drop.init();
 				
 			});
 		},
@@ -1040,6 +1041,10 @@ var CalendarPlus = {
 						$('li.calListen[data-id="'+calId+'"]').show();
 					});
 				}
+			});
+			
+			$('#importCal').on('click',function(){
+				$('#drop-area').slideToggle(500);
 			});
 			
 			$('#addCal').on('click',function(){
@@ -3344,23 +3349,36 @@ var CalendarPlus = {
 
 					return false;
 				}
-
-				droparea = document.getElementById('fullcalendar');
+				
+				
+				
+				
+				droparea = document.getElementById('drop-area');
 				droparea.ondragover = function() {
+					$('#drop-area').text('').addClass('loading');
+					
 					return false;
 				};
 				droparea.ondragend = function() {
+					$('#drop-area').text(t(CalendarPlus.appname,'Import calendar per Drag & Drop')).removeClass('loading').slideUp(1500);
+					return false;
+				};
+				droparea.ondragleave = function() {
+					$('#drop-area').text(t(CalendarPlus.appname,'Import calendar per Drag & Drop')).removeClass('loading');
 					return false;
 				};
 				droparea.ondrop = function(e) {
 					e.preventDefault();
 					e.stopPropagation();
+					
 					CalendarPlus.UI.Drop.drop(e);
+					
 				};
 			
 
 			},
 			drop : function(e) {
+				
 				if (e.dataTransfer != undefined) {
 					var files = e.dataTransfer.files;
 
@@ -3375,7 +3393,7 @@ var CalendarPlus = {
 						reader.onload = function(event) {
 							CalendarPlus.Import.Store.isDragged = true;
 							CalendarPlus.Import.Dialog.open(event.target.result);
-
+							$('#drop-area').text(t(CalendarPlus.appname,'Import calendar per Drag & Drop')).removeClass('loading').slideUp(1500);
 							//Calendar_Import.Dialog.open(event.target.result);
 							//$('#fullcalendar').fullCalendar('refetchEvents');
 						};
@@ -3889,7 +3907,7 @@ $(document).ready(function() {
 	});
 	
 	//CalendarPlus.UI.Share.init();
-	CalendarPlus.UI.Drop.init();
+	
 
 	
 $(document).on('click', '#tasknavActive ', function(event) {
