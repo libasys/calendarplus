@@ -889,7 +889,7 @@ color:#999;
 font-size:13px;	
 }
 
-#app-navigation h3 .icon-add{
+#app-navigation h3 #addCal{
 	width:30px;
 	height:30px;
 	float:right;
@@ -899,7 +899,17 @@ font-size:13px;
 	display:block;
 	cursor:pointer;
 }
-#app-navigation h3 .icon-add:hover{
+
+#app-navigation #addGroup{
+	width:30px;
+	height:30px;
+	float:right;
+	opacity:0.4;
+	right:0;
+	margin-right:15px;
+}
+#app-navigation h3 #addCal:hover,
+#app-navigation h3 #addGroup:hover{
 	opacity:1;
 }
 #app-navigation h3{
