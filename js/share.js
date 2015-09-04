@@ -607,6 +607,20 @@ CalendarShare={
 			
 		},
 	 timerCheck:null,
+	 destroyExisitingPopover : function() {
+			if($('.webui-popover').length>0){
+				if(CalendarShare.popOverElem !== null){
+					CalendarShare.popOverElem.webuiPopover('destroy');
+					CalendarShare.popOverElem = null;
+					$('#event').remove();
+					$('.webui-popover').each(function(i,el){
+						var id = $(el).attr('id');
+						$('[data-target="'+id+'"]').removeAttr('data-target');
+						$(el).remove();
+					});
+				}
+			}
+		},
    	  showEvent:function(calEvent, jsEvent, view){
 			
 			var id = calEvent.id;
@@ -615,13 +629,7 @@ CalendarShare={
 			   choosenDate = Math.round(calEvent.start.getTime()/1000);
 			}
 			
-			if($('.webui-popover').length>0){
-				if(CalendarShare.popOverElem !== null){
-					CalendarShare.popOverElem.webuiPopover('destroy');
-					CalendarShare.popOverElem = null;
-					$('#event').remove();
-				}
-			}
+			CalendarShare.UI.destroyExisitingPopover();
 			
 			CalendarShare.popOverElem=$(jsEvent.target);
 			var sConstrain = 'horizontal';
@@ -712,6 +720,8 @@ CalendarShare={
 					}
 					}
 				});
+				
+				 that.reCalcPos();
 			
 		},
 		viewRender:function(view,element){
@@ -743,6 +753,12 @@ CalendarShare={
 				}
 				if (event.privat == 'confidential') {
 					EventInner.prepend(CalendarShare.Util.addIconsCal('confidential','eye','12'));
+				}
+				
+				if (event.bday) {
+					
+					EventInner.prepend(CalendarShare.Util.addIconsCal(t(myAppName, 'Birthday of ')+event.title, 'birthday', '14'));
+					
 				}
 
 		  

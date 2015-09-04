@@ -37,13 +37,17 @@ class PageController extends Controller {
 	private $userId;
 	private $l10n;
 	private $configInfo;
+	private $calendarController;
+	
 	
 
-	public function __construct($appName, IRequest $request,  $userId, IL10N $l10n, IConfig $settings) {
+	public function __construct($appName, IRequest $request,  $userId, IL10N $l10n, IConfig $settings, $calendarController) {
 		parent::__construct($appName, $request);
 		$this -> userId = $userId;
 		$this->l10n = $l10n;
 		$this->configInfo = $settings;
+		$this->calendarController = $calendarController;
+		
 	}
 	
 	/**
@@ -52,10 +56,14 @@ class PageController extends Controller {
 	 */
 	public function index() {
 			
+		if(\OC::$server->getAppManager()->isEnabledForUser('contactsplus')) {
+			$calId = $this->calendarController->checkBirthdayCalendarByUri('birthday_'.$this->userId);
+		}
+			
 		$calendars = CalendarCalendar::allCalendars($this -> userId, false, false, false);
 		
-		if( count($calendars) == 0 || (count($calendars) == 1 && $calendars[0]['id']=='birthday_'.$this -> userId)) {
-			CalendarCalendar::addDefaultCalendars($this -> userId);
+		if( count($calendars) == 0) {
+			 CalendarCalendar::addDefaultCalendars($this -> userId);
 			$calendars = CalendarCalendar::allCalendars($this -> userId, true);
 		}	
 			
@@ -133,6 +141,8 @@ class PageController extends Controller {
 		$pTaskOutput = '';
 		$pRightnavAktiv = $rightNavAktiv;
 		$pIsHidden =  'class="isHiddenTask"';
+		
+		
 						
 		if($rightNavAktiv === 'true' && \OC::$server->getAppManager()->isEnabledForUser('tasksplus')) {
 			$allowedCals=[];

@@ -1123,13 +1123,13 @@ var CalendarPlus = {
 				}
 
 			});
+			
 			$('.refreshSubscription').on('click', function(event) {
 				CalId = $(this).closest('.calListen').attr('data-id');
-
-				if (CalId != 'birthday_' + oc_current_user) {
-					CalendarPlus.UI.Calendar.refreshCalendar(CalId);
-				}
+				CalendarPlus.UI.Calendar.refreshCalendar(CalId);
+				
 			});
+			
 			$('.toolTip').tipsy({
 				html : true,
 				gravity:'nw'

@@ -80,21 +80,25 @@ class EventController extends Controller {
 		$this->session->close();
 		
 		$getId = $this -> params('calendar_id');
-			
-			if (strval(intval($getId)) === strval($getId)) { // integer for sure.
-				$id = intval($getId);
-			
-				$calendarrow = CalendarApp::getCalendar($id, true, false); // Let's at least security check otherwise we might as well use OCA\Calendar\Calendar::find())
-				if($calendarrow !== false) {
-					$calendar_id = $id;
-					
-				}else{
-					if($this->shareConnector->getItemSharedWithBySourceCalendar($id) === false){
-						exit;
-					}
+		$calendarrow = array();
+		$bBirthday = false;	
+		
+		if (strval(intval($getId)) === strval($getId)) { // integer for sure.
+			$id = intval($getId);
+		
+			$calendarrow = CalendarApp::getCalendar($id, true, false); // Let's at least security check otherwise we might as well use OCA\Calendar\Calendar::find())
+			if($calendarrow !== false) {
+				$calendar_id = $id;
+				if($calendarrow['uri'] === 'birthday_'.$calendarrow['userid']){
+						$bBirthday = true;	
+				}
+			}else{
+				if($this->shareConnector->getItemSharedWithBySourceCalendar($id) === false){
+					exit;
 				}
 			}
-			$calendar_id = (is_null($calendar_id)?strip_tags($getId):$calendar_id);
+		}
+		$calendar_id = (is_null($calendar_id)?strip_tags($getId):$calendar_id);
 		
 		$start = new \DateTime('@' . $pStart);
 		$end = new \DateTime('@' . $pEnd);
@@ -105,12 +109,16 @@ class EventController extends Controller {
 		$output = array();
 		
 		foreach($events as $event) {
-		     
-				$eventArray = $this->generateEventOutput($event, $start, $end);
-			
-				if(is_array($eventArray)){
-					$output = array_merge($output, $eventArray);
-				}
+		     $event['bday'] = 0;
+			 if($bBirthday === true){
+		     	$event['bday'] = 1;
+		     }
+			 
+			$eventArray = $this->generateEventOutput($event, $start, $end);
+		
+			if(is_array($eventArray)){
+				$output = array_merge($output, $eventArray);
+			}
 			
 		}
 		
@@ -1296,6 +1304,8 @@ class EventController extends Controller {
             $calendar_options =CalendarCalendar::allCalendars($this -> userId);
         }
         
+		
+		
         $checkCatCache = '';
         if (\OCP\User::isLoggedIn()) {
             $category_options = CalendarApp::loadTags();
@@ -1388,7 +1398,13 @@ class EventController extends Controller {
             if ($repeat['repeat'] !== 'doesnotrepeat') {
                 $pRepeatInfo = $repeatInfo;
             }
-            
+			
+            $aCalendar = CalendarApp::getCalendar($data['calendarid'], false, false);
+            $isBirthday = false;
+			if($aCalendar['uri'] === 'birthday_'.$aCalendar['userid']){
+				$isBirthday = true;
+			}
+			
             $params= [
                 'bShareOnlyEvent' => $bShareOnlyEvent,
                 'eventid' => $id,
@@ -1396,6 +1412,7 @@ class EventController extends Controller {
                 'permissions' => $permissions,
                 'lastmodified' => $lastmodified,
                 'exDate' => $aOExdate,
+                'isBirthday' => $isBirthday,
                 'calendar_options' => $calendar_options,
                 'access_class_options' => $access_class_options,
                 'sReminderTrigger' => $sAlarm,
@@ -1409,7 +1426,7 @@ class EventController extends Controller {
                 'location' => $location,
                 'categoriesCol' => $pCategoriesCol,
                 'categories' => $pCategories,
-                'aCalendar' => CalendarApp::getCalendar($data['calendarid'], false, false),
+                'aCalendar' =>$aCalendar,
                 'allday' => $allday,
                 'startdate' => $startdate,
                 'starttime' => $starttime,

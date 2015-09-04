@@ -110,7 +110,7 @@ class CalendarDAO  {
 		$stmt = $this->db->prepareQuery( 'SELECT * FROM `'.$this->calendarTable.'` WHERE `id` = ?' );
 		$result = $stmt->execute(array($id));
 		
-		if($result !== false && $result !== null){
+		if($result !== null && $result !== ''){
 			return $result->fetchRow();
 		}else{
 			return null;
@@ -118,7 +118,27 @@ class CalendarDAO  {
 		
 		
 	}
-
+	/**
+	 * @NoAdminRequired
+	 * 
+	 * @brief Gets the data of one calendar
+	 * @param string $uri
+	 * @return associative array
+	 */
+	public function findByUri($uri){
+			
+		$stmt = $this->db->prepareQuery( 'SELECT * FROM `'.$this->calendarTable.'` WHERE `userid` = ? AND `uri` = ?' );
+		$result = $stmt->execute(array($this->userId, $uri));
+		$rowCount = $result->rowCount();
+		if($rowCount > 0){
+			return  $result->fetchRow();
+		}else{
+			return null;
+		}
+	}
+	
+	
+	
 	 /**
 	 * @brief Add data of one calendar
 	 * @param string $name

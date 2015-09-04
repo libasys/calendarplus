@@ -16,6 +16,10 @@
 			print_unescaped('<input type="hidden" name="sReminderRequest" class="sReminderRequest" value="'.$reminderInfo.'" />');
 		}
 	}
+	$birthdayIcon = '';
+	if($_['isBirthday'] === true){
+		$birthdayIcon = '<i class="ioc ioc-birthday" style="font-size:24px;"></i> ';
+	}
 	?>
 			
 			<div style="position:absolute;right:5px;margin-top:0px;float:right;display:block;">
@@ -61,7 +65,7 @@
 	<table width="100%">
 		<tr>
 			<td>
-				<div style="white-space:normal;display:inline-block;font-size:16px;color:#0098E4;width:80%; font-weight:bold;line-height:22px;"><?php p(isset($_['title']) ? $_['title'] : '') ?></div>
+				<div style="white-space:normal;display:inline-block;font-size:16px;color:#0098E4;width:80%; font-weight:bold;line-height:22px;"><?php print_unescaped($birthdayIcon); p(isset($_['title']) ?$_['title'] : '') ?></div>
 			</td>
 		</tr>
 		<?php if($_['location']!=''){ ?>

@@ -11,6 +11,7 @@
  *
  */
 
+ 
 namespace OCA\CalendarPlus\Service {
 
 	class ContactsIntegration
@@ -23,6 +24,9 @@ namespace OCA\CalendarPlus\Service {
 		public function __construct($contactsManager) {
 			$this->contactsManager = $contactsManager;
 		}
+		
+		
+		
 		/**
 		 * Extracts all matching contacts with email address and name
 		 *

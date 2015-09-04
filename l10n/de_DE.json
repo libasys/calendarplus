@@ -1,6 +1,8 @@
 { "translations": {
     "Calendar" : "Kalender",
     "Calendar+" : "Kalender+",
+    "Birthdays" : "Geburtstage",
+    "Happy Birthday! Born on: " : "Alles Gute zum Geburtstag! Geboren am: ",
     "Not all calendars are completely cached" : "Noch sind nicht alle Kalender zwischengespeichert.",
     "Everything seems to be completely cached" : "Es sieht so aus, als wäre alles vollständig zwischengespeichert.",
     "No calendars found." : "Keine Kalender gefunden.",

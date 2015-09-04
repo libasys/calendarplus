@@ -44,16 +44,137 @@ class CalendarController extends Controller {
 	private $configInfo;
 	private $calendarDB;
 	private $shareConnector;
+	private $contactsManager;
 
-	public function __construct($appName, IRequest $request, $userId, $l10n, IConfig $settings, $calendarDB) {
+	public function __construct($appName, IRequest $request, $userId, $l10n, IConfig $settings, $calendarDB, $contactsManager) {
 		parent::__construct($appName, $request);
 		$this -> userId = $userId;
 		$this -> l10n = $l10n;
 		$this -> configInfo = $settings;
 		$this -> calendarDB = $calendarDB;
 		$this -> shareConnector = new ShareConnector();
+		$this->contactsManager = $contactsManager;
 	}
 
+	/**
+	 * @brief Gets the data of one calendar
+	 * @param string $uri
+	 * @return associative array
+	 */
+	public function checkBirthdayCalendarByUri($uri) {
+		$calendarInfo = $this->calendarDB->findByUri($uri);
+		
+		if($calendarInfo !== null){
+			return $calendarInfo['id'];
+		}else{
+			$newCalId = $this->add($this->userId,$uri,'VEVENT,VTODO,VJOURNAL',null,0,'#C2F9FC',1,'',0);
+			CalendarCalendar::editCalendar($newCalId, (string) $this->l10n->t('Birthdays'));
+			
+			return $newCalId;
+		}
+		
+	}
+	/**
+		 * Extracts all matching contacts with email address and name
+		 *
+		 * @param string $term
+		 * @return array
+		 */
+		public function addBirthdays($userid,$calId) {
+			if (!$this->contactsManager->isEnabled()) {
+				return array();
+			}
+			
+			$addrBooks = $this->contactsManager->getAddressBooks();
+			
+			$aContacts = array();
+			foreach($addrBooks as $key => $addrBook){
+				if(is_integer($key))	{
+					$bContacts= \OCA\ContactsPlus\VCard::all($key);
+					
+					$aContacts = array_merge($aContacts,$bContacts);
+				}
+			}
+			$sDateFormat = $this ->configInfo -> getUserValue($this -> userId,$this->appName, 'dateformat', 'd-m-Y');
+			if($sDateFormat === 'd-m-Y'){
+				$sDateFormat ='d.m.Y';
+			}
+			
+			$aResult = array();
+			foreach($aContacts as $contact){
+				$vcard =  \Sabre\VObject\Reader::read($contact['carddata']);
+				if (isset($vcard->BDAY)) {
+					
+					$Birthday = new \DateTime((string)$vcard->BDAY);	
+					$checkForm = $Birthday->format('d-m-Y');
+					$temp=explode('-',$checkForm);	
+					$getAge = $this->getAge($temp[2],$temp[1],$temp[0]);
+					$title = $contact['fullname'];
+					
+					$birthdayOutput = $Birthday->format($sDateFormat);
+					
+					$aktYear=$Birthday->format('d-m');
+					$aktYear=$aktYear.date('-Y');
+					$start = new \DateTime($aktYear);
+					$end = new \DateTime($aktYear.' +1 day');
+					
+					$vcalendar = new VObject('VCALENDAR');
+					$vcalendar->add('PRODID', 'ownCloud Calendar');
+					$vcalendar->add('VERSION', '2.0');
+			
+					$vevent = new VObject('VEVENT');
+					$vcalendar->add($vevent);
+					$vevent->setDateTime('CREATED', 'now');
+					$vevent->add('DTSTART');
+					$vevent->DTSTART->setDateTime(
+						$start
+					);
+					$vevent->add('DTEND');
+					$vevent->DTEND->setDateTime(
+								$end
+							);
+					$vevent->DTSTART['VALUE'] = 'date';
+					$vevent->DTEND['VALUE'] = 'date';		
+					$vevent->{'RRULE'} = 'FREQ=YEARLY;INTERVAL=1';
+					$vevent->{'TRANSP'} = 'TRANSPARENT';
+	                $vevent->{'SUMMARY'} = (string)$title. ' ('.$getAge.')';
+					$description = (string)$this->l10n->t("Happy Birthday! Born on: ").$birthdayOutput;
+					$vevent->setString('DESCRIPTION', $description);
+					
+	         		$vevent->{'UID'} = substr(md5(rand().time()), 0, 10);
+					
+					$insertid = Object::add($calId, $vcalendar->serialize());
+					if($this->isDuplicate($insertid)) {
+						Object::delete($insertid);
+					}
+				}
+			}
+			
+		}
+		
+		
+		private function isDuplicate($insertid) {
+			
+			$newobject = Object::find($insertid);
+			$endDate = $newobject['enddate'];
+			if(!$newobject['enddate']) {
+				$endDate = null;
+			}
+			
+			
+			$stmt = \OCP\DB::prepare('SELECT * FROM `'.CalendarApp::CldObjectTable.'` `CO`
+									 LEFT JOIN `'.CalendarApp::CldCalendarTable.'` ON `CO`.`calendarid`=`'.CalendarApp::CldCalendarTable.'`.`id`
+									 WHERE `CO`.`objecttype`=? AND `CO`.`startdate`=? AND `CO`.`enddate`=? AND `CO`.`repeating`=? AND `CO`.`summary`=?  AND `'.CalendarApp::CldCalendarTable.'`.`userid` = ? AND `CO`.`calendarid`=?');
+			$result = $stmt->execute(array($newobject['objecttype'],$newobject['startdate'],$endDate,$newobject['repeating'],$newobject['summary'], $this->userId, $newobject['calendarid']));
+			$rowCount = $result->rowCount();
+			
+			
+			if($rowCount > 1) {
+				return true;
+			}
+			return false;
+	}
+		
 	/**
 	 * @brief Gets the data of one calendar
 	 * @param integer $id
@@ -423,32 +544,37 @@ class CalendarController extends Controller {
 			$response = new JSONResponse($params);
 			return $response;
 		}
-
-		$getProtocol = explode('://', $calendar['externuri']);
-		$protocol = $getProtocol[0];
-
-		$opts = array($protocol => array('method' => 'POST', 'header' => "Content-Type: text/calendar\r\n", 'timeout' => 60));
-
-		$last_modified = $this -> stream_last_modified(trim($calendar['externuri']));
-		if (!is_null($last_modified)) {
-			$context = stream_context_create($opts);
-			$file = file_get_contents($calendar['externuri'], false, $context);
-			$file = \Sabre\VObject\StringUtil::convertToUTF8($file);
-
-			$import = new Import($file);
-			$import -> setUserID($this -> userId);
-			$import -> setTimeZone(CalendarApp::$tz);
-			$import -> setOverwrite(true);
-			$import -> setCalendarID($calendarid);
-			try {
-				$import -> import();
-			} catch (Exception $e) {
-				$params = ['status' => 'error', 'message' => $this -> l10n -> t('Import failed')];
-				$response = new JSONResponse($params);
-				return $response;
-
+		if($calendar['uri'] !== 'birthday_'.$calendar['userid']){
+				
+			$getProtocol = explode('://', $calendar['externuri']);
+			$protocol = $getProtocol[0];
+	
+			$opts = array($protocol => array('method' => 'POST', 'header' => "Content-Type: text/calendar\r\n", 'timeout' => 60));
+	
+			$last_modified = $this -> stream_last_modified(trim($calendar['externuri']));
+			if (!is_null($last_modified)) {
+				$context = stream_context_create($opts);
+				$file = file_get_contents($calendar['externuri'], false, $context);
+				$file = \Sabre\VObject\StringUtil::convertToUTF8($file);
+	
+				$import = new Import($file);
+				$import -> setUserID($this -> userId);
+				$import -> setTimeZone(CalendarApp::$tz);
+				$import -> setOverwrite(true);
+				$import -> setCalendarID($calendarid);
+				try {
+					$import -> import();
+				} catch (Exception $e) {
+					$params = ['status' => 'error', 'message' => $this -> l10n -> t('Import failed')];
+					$response = new JSONResponse($params);
+					return $response;
+	
+				}
 			}
+		}else{
+			$this->addBirthdays($this->userId,(int)$calendarid);
 		}
+		
 		$params = ['status' => 'success', 'refresh' => $calendarid, ];
 		$response = new JSONResponse($params);
 		return $response;
@@ -674,16 +800,20 @@ class CalendarController extends Controller {
 		//these may break sync clients
 		$name = str_replace($strip, '', $name);
 		$name = strtolower($name);
-
-		$newname = $name;
-		$i = 1;
-		while (in_array($newname, $existing)) {
-			$newname = $name . $i;
-			$i = $i + 1;
+		
+		foreach($existing as $existCalUri){
+			if($existCalUri === $name){
+				$name = $name.'1';
+			}
 		}
-		return $newname;
+		
+		return $name;
 	}
-
+	
+	private function getAge ($y, $m, $d) {
+    	return date('Y') - $y - (date('n') < (ltrim($m,'0') + (date('j') < ltrim($d,'0'))));
+   }
+	
 	private function stream_last_modified($url) {
 
 		if (!($fp = @fopen($url, 'r'))) {

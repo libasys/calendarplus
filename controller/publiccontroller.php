@@ -250,7 +250,7 @@ class PublicController extends Controller {
 				
 				if (isset($rootLinkItem['uid_owner'])) {
 					\OCP\JSON::checkUserExists($rootLinkItem['uid_owner']);	
-					$calendar_id =$this->shareConnector->validateItemSource($linkItem['item_source'], $this->shareConnector->getConstSharePrefixCalendar());
+					$calendar_id = $this->shareConnector->validateItemSource($linkItem['item_source'], $this->shareConnector->getConstSharePrefixCalendar());
 					
 				}
 			}
@@ -258,13 +258,20 @@ class PublicController extends Controller {
 		}
 		$start = new \DateTime('@' . $pStart);
 		$end = new \DateTime('@' . $pEnd);
-		
+		$aCalendar = CalendarApp::getCalendar($calendar_id, false, false);
+        $isBirthday = false;
+		if($aCalendar['uri'] === 'birthday_'.$aCalendar['userid']){
+			$isBirthday = true;
+		}
 		$events = CalendarApp::getrequestedEvents($calendar_id, $start, $end);
 		
 		$output = array();
 		
 		foreach($events as $event) {
-		     
+		     	$event['bday'] = 0;	
+		     	if($isBirthday === true){
+		     		$event['bday'] =1;
+		     	}
 				$eventArray=	$this->eventController->generateEventOutput($event, $start, $end);
 				if(is_array($eventArray)) $output = array_merge($output, $eventArray);
 			

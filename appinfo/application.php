@@ -57,7 +57,8 @@ class Application extends App {
 			$c->query('Request'),
 			$c->query('UserId'),
 			$c->query('L10N'),
-			$c->query('Settings')
+			$c->query('Settings'),
+			$c->query('CalendarController')
 			);
 		});
 		
@@ -95,7 +96,8 @@ class Application extends App {
 			$c->query('UserId'),
 			$c->query('L10N'),
 			$c->query('Settings'),
-			$c->query('CalendarDAO')
+			$c->query('CalendarDAO'),
+			 $c->query('ServerContainer')->getContactsManager()
 			);
 		});
 		
