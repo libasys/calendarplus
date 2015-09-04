@@ -57,7 +57,12 @@ class PageController extends Controller {
 	public function index() {
 			
 		if(\OC::$server->getAppManager()->isEnabledForUser('contactsplus')) {
-			$calId = $this->calendarController->checkBirthdayCalendarByUri('birthday_'.$this->userId);
+			
+			$appinfo =\OCP\App::getAppVersion('contactsplus');
+			if (version_compare($appinfo, '1.0.6', '>=')) {
+				$calId = $this->calendarController->checkBirthdayCalendarByUri('birthday_'.$this->userId);
+			}
+			
 		}
 			
 		$calendars = CalendarCalendar::allCalendars($this -> userId, false, false, false);
