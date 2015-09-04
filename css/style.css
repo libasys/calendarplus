@@ -857,7 +857,7 @@ margin-bottom:4px;
 }
 
 #app-navigation .app-navigation-entry-edit button,
-	#app-navigation .app-navigation-entry-edit input[type="submit"] {
+#app-navigation .app-navigation-entry-edit input[type="submit"] {
 		width: 36px;
 		height: 32px;
 		float: left;
