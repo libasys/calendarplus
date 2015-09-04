@@ -7,7 +7,7 @@ Sebastian Döll
 
 Version Info:
 ============
-1.0.8
+1.0.9
 
 Setup Info:
 ===========
@@ -43,6 +43,7 @@ New Features:
 - Customizing public sharings via link on share.config.js
 - Exdate for repeating events (means you can delete a single event of a series)
 - Calendar subscription
+- Birthday import from contacts+/ snyc per caldav
 - Reminder support
 - Repeat GUI changed
 - New/ Edit event GUI changed
