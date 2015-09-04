@@ -94,7 +94,7 @@
 	?>
 <!--our clone for editing or creating -->	
 <li class="app-navigation-entry-edit" id="calendar-clone" data-calendar="">
-	<input id="bgcolor" name="bgcolor" type="text" value="#333399" />
+	<input id="bgcolor" name="bgcolor" type="hidden" value="#333399" />
 	<input type="text" name="displayname" value="" placeholder="<?php p($l->t('Displayname')) ?>" />
 	<input type="text"  name="externuri" readonly="readonly"  placeholder="<?php p($l->t('Link to a subscribed Calendar')) ?>" value="" />
 	<input type="text" name="caldavuri" readonly="readonly" value="" />
@@ -142,15 +142,15 @@
 			//Action Menu Subscriptions			
 			$refreshAction =	'';		
 			if($calInfo['bRefresh'] === true){
-		   		$refreshAction='<li><i title="refresh subscribed calendar"  class="toolTip refreshSubscription ioc ioc-refresh"></i></li>';
+		   		$refreshAction='<li><i title="'.$l->t('refresh subscribed calendar').'"  class="toolTip refreshSubscription ioc ioc-refresh"></i></li>';
 			}
 
 			$actionCalender = '';
 			$downloadLink ='<a class="icon-download" href="'.$calInfo['download'].'" title="'.$l->t('Download').'"></a>';
 			
-			$actionAdditionalCalendar = '<li><i class="ioc ioc-globe"></i></li><li>'.$downloadLink.'</li>';
+			$actionAdditionalCalendar = '<li><i class="ioc ioc-globe" title="'.$l->t('Show caldav url').'"></i></li><li>'.$downloadLink.'</li>';
 			if($calInfo['bAction'] === true){
-				$actionCalender = '<li class="icon-rename"></li><li class="icon-delete"></li>';
+				$actionCalender = '<li class="icon-rename" title="'.$l->t('Edit').'"></li><li class="icon-delete" title="'.$l->t('Delete').'"></li>';
 			}
 			
 			if($calInfo['birthday'] === true){

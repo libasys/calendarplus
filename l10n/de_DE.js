@@ -262,6 +262,7 @@ OC.L10N.register(
 "Ready" : "Schließen",
 "Delete Serie" : "Serie löschen",
 "Delete Event" : "Event löschen",
+"Delete Calendar" : "Kalender löschen",
 "Every" : "jeden",
 "Exception":"Ausnahmen",
 "Reminder":"Erinnerung",
