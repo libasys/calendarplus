@@ -3142,32 +3142,32 @@ var CalendarPlus = {
 			
 			deleteCalendar : function(calid) {
 				
-				var check = confirm(t(CalendarPlus.appname,'Do you really want to delete this calendar?'));
-
-				if (check == false) {
-					return false;
-				} else {
-					$.post(OC.generateUrl('apps/'+CalendarPlus.appname+'/deletecalendar'), {
-						calendarid : calid
-					}, function(data) {
-						if (data.status == 'success') {
-							
-							var url =OC.generateUrl('apps/'+CalendarPlus.appname+'/getevents')+'?calendar_id='+calid;
-							$('#fullcalendar').fullCalendar('removeEventSource', url);
-							/*
-							$('#calendarList tr[data-id="' + calid + '"]').fadeOut(400, function() {
-								$('#calendarList tr[data-id="' + calid + '"]').remove();
-							});*/
-							$('li.calListen[data-id="'+calid+'"]').remove();
-							$('#fullcalendar').fullCalendar('refetchEvents');
-							if(data.newid !== null){
-								CalendarPlus.Util.rebuildCalView();
-								CalendarPlus.initUserSettings();
+				var handleDelete=function(YesNo){
+			 
+				 	if(YesNo){
+						
+						$.post(OC.generateUrl('apps/'+CalendarPlus.appname+'/deletecalendar'), {
+							calendarid : calid
+						}, function(data) {
+							if (data.status == 'success') {
+								
+								var url =OC.generateUrl('apps/'+CalendarPlus.appname+'/getevents')+'?calendar_id='+calid;
+								$('#fullcalendar').fullCalendar('removeEventSource', url);
+								$('li.calListen[data-id="'+calid+'"]').remove();
+								$('#fullcalendar').fullCalendar('refetchEvents');
+								if(data.newid !== null){
+									CalendarPlus.Util.rebuildCalView();
+									CalendarPlus.initUserSettings();
+								}
+								
 							}
-							//CalendarPlus.Util.rebuildCalView();
-						}
-					});
-				}
+						});
+					}
+				};
+			 
+			  OC.dialogs.confirm(t(CalendarPlus.appname,'Do you really want to delete this calendar?'),t(CalendarPlus.appname,'Delete Calendar'),handleDelete);
+		
+				
 			},
 			save: function(calendarid){
 				
