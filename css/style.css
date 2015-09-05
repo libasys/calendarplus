@@ -1838,8 +1838,8 @@ a.catColPrev{
 	float:left;
 	width:98%;
 	font-size:14px;
-	line-height:28px;
-	height:28px;
+	line-height:30px;
+
 	
 	cursor:pointer;
 	
@@ -1847,13 +1847,43 @@ a.catColPrev{
 #categoryCalendarList li.categorieslisting:hover{
 	background-color:#ccc;
 }
+#categoryCalendarList li.categorieslisting .groupname{
+	display:block;
+	float:left;
+	cursor:pointer;
+	position:relative;
+	white-space: nowrap;
+   text-overflow: ellipsis; 
+   overflow:hidden;
+	width:130px;
+}
+
+ul#categoryCalendarList li.categorieslisting .ioc-delete,
+ul#categoryCalendarList li.categorieslisting .ioc-rename{
+	width:22px;
+	cursor:pointer;
+	opacity:0;
+	float:left;
+	position:relative;
+} 
+ul#categoryCalendarList li:hover .ioc-delete,
+ul#categoryCalendarList li:hover .ioc-rename{
+	opacity:0.6;
+}
+
+ul#categoryCalendarList li.ioc-delete:hover ,
+ul#categoryCalendarList li .ioc-rename:hover {
+	opacity:1;
+}
+ul#categoryCalendarList li .ioc-delete:hover{
+	color:red;
+}
 
 .draggingContact{
-	background:#000;
+	background:rgba(0,0,0,0.7);
 	color:white;
-	padding:5px 10px;
+	padding:4px 8px;
 	border-radius:4px;
-	width:150px;
 	list-style: none;
 	z-index:1000;
 }

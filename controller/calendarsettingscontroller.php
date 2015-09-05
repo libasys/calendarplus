@@ -129,7 +129,7 @@ class CalendarSettingsController extends Controller {
 		}
 		
 		foreach($checkCat['tagslist'] as $tag){
-				$checkCatTagsList[$tag['name']]=array('name'=>$tag['name'],'color'=>$tag['color'],'bgcolor'=>$tag['bgcolor']);
+				$checkCatTagsList[$tag['name']]=array('id'=>$tag['id'],'name'=>$tag['name'],'color'=>$tag['color'],'bgcolor'=>$tag['bgcolor']);
 		}
 		$eventSources = [];
 		$calendars = CalendarCalendar::allCalendars($this -> userId);

@@ -77,6 +77,7 @@ $application->registerRoutes($this, ['routes' => [
 		['name' => 'calendar#touchCalendar', 'url' => '/touchcalendar', 'verb' => 'POST'],
 		['name' => 'calendar#rebuildLeftNavigation', 'url' => '/rebuildleftnavigationcalendar', 'verb' => 'POST'],
 		['name' => 'calendar#refreshSubscribedCalendar', 'url' => '/refreshsubscribedcalendar', 'verb' => 'POST'],
+		['name' => 'calendar#updateTag', 'url' => '/updatetag', 'verb' => 'GET'],
 		['name' => 'tasks#rebuildTaskViewRight', 'url' => '/rebuildtaskviewrightcalendar', 'verb' => 'POST'],
 		['name' => 'tasks#setCompletedTask', 'url' => '/setcompletedtaskcalendar', 'verb' => 'POST'],
 		['name' => 'import#getImportDialogTpl', 'url' => '/getimportdialogtplcalendar', 'verb' => 'POST'],

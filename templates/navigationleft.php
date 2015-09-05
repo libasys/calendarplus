@@ -93,7 +93,7 @@
 	
 	?>
 <!--our clone for editing or creating -->	
-<li class="app-navigation-entry-edit" id="calendar-clone" data-calendar="">
+<li class="app-navigation-entry-edit calclone" id="calendar-clone" data-calendar="">
 	<input id="bgcolor" name="bgcolor" type="hidden" value="#333399" />
 	<input type="text" name="displayname" value="" placeholder="<?php p($l->t('Displayname')) ?>" />
 	<input type="text"  name="externuri" readonly="readonly"  placeholder="<?php p($l->t('Link to a subscribed Calendar')) ?>" value="" />
@@ -192,7 +192,7 @@
 <h3 data-id="lCategory" style=" cursor:pointer; line-height:24px;">
 	<label id="showCategory" class="toolTip" title="<?php p($l->t('Add per Drag & drop categories to your event')); ?>">
 		<i style="font-size:22px;" class="ioc ioc-angle-down ioc-rotate-270"></i>&nbsp;
-		<i class="ioc ioc-tags"></i>&nbsp;<?php p($l->t('Tags')); ?>
+		<i class="ioc ioc-tags"></i>&nbsp;<?php p($l->t('Category')); ?>
 		</label>
 		<i id="addGroup" title="<?php p($l->t('New Tag')) ?>" class="toolTip icon-add"></i>
 </h3>

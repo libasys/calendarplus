@@ -307,18 +307,22 @@ class App {
 
     public static function loadTags(){
 		$existCats=self::getCategoryOptions();
+		
 		$tag=array();
-		for($i=0; $i<count($existCats); $i++){
-			$backgroundColor=	self::genColorCodeFromText(trim($existCats[$i]),80);
-			$tag[$i]=array(
-			'name'=>$existCats[$i],
-			'bgcolor' =>$backgroundColor,
-			'color' => self::generateTextColor($backgroundColor),
+		$cats=array();
+		foreach($existCats as $groupInfo){
+			$backgroundColor=	self::genColorCodeFromText(trim($groupInfo['name']));
+			$tag[]=array(
+				'id'=>$groupInfo['id'],
+				'name'=>$groupInfo['name'],
+				'bgcolor' =>$backgroundColor,
+				'color' => self::generateTextColor($backgroundColor),
 			);
+			$cats[] = $groupInfo['name'];
 		}
 					
 		$tagsReturn['tagslist']=$tag;
-		$tagsReturn['categories']=$existCats;
+		$tagsReturn['categories']=$cats;
 		
 						  
 		return $tagsReturn;
@@ -330,7 +334,8 @@ class App {
 	public static function getCategoryOptions() {
 
 		$getNames = function($tag) {
-			return $tag['name'];
+				
+			return $tag;
 		};
 		$categories = self::getVCategories() -> getTags();
 		$categories = array_map($getNames, $categories);

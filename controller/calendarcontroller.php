@@ -788,6 +788,28 @@ class CalendarController extends Controller {
 		return $response;
 
 	}
+	
+	 /**
+     * @NoAdminRequired
+	   * 
+	   * @param $grpid tag id
+	   * @param $newname new name for tag
+     */
+	public function updateTag($grpid,$newname){
+			
+		if(\OC::$server->getTagManager()-> load('event')->rename($grpid,$newname)){
+			$params = [
+			'status' => 'success',
+			];
+		}else{
+			$params = [
+				'status' => 'error',
+			];
+		}
+		
+		$response = new JSONResponse($params);
+		return $response;
+	}
 
 	/**
 	 * @brief Creates a URI for Calendar
