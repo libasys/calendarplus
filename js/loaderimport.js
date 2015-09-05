@@ -110,6 +110,7 @@ CalendarPlus.Import =  {
  					
  					CalendarPlus.Import.Store.percentage = parseInt(data.percent);
 					$('#calendar_import_progressbar').progressbar('option', 'value', parseInt(data.percent));
+					$('#calendar_import_process_message').text(data.currentmsg);
 					if(data.percent < 100 ){
 						window.setTimeout('CalendarPlus.Import.Dialog.update()', 100);
 					}else{
@@ -151,7 +152,9 @@ CalendarPlus.Import =  {
 				if(data.status == 'success'){
 					$('#calendar_import_progressbar').progressbar('option', 'value', 100);
 					CalendarPlus.Import.Store.percentage = 100;
+					$('#calendar_import_progressbar').hide();
 					$('#calendar_import_done').css('display', 'block');
+					$('#calendar_import_process_message').text('').hide();
 					$('#calendar_import_status').html(data.message);
 					
 					if(CalendarPlus.Import.Store.isDragged === true){

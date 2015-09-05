@@ -88,6 +88,10 @@ class Import{
 	private $userid;
 	
 	private $cache;
+	
+	private $numofcomponents;
+	
+	private $currentSummary = '';
 
 	/*
 	 * public methods
@@ -131,7 +135,7 @@ class Import{
 		if(!$this->isValid()) {
 			return false;
 		}
-		$numofcomponents = count($this->calobject->getComponents());
+		$this->numofcomponents = count($this->calobject->getComponents());
 		if($this->overwrite) {
 			foreach(Object::all($this->id) as $obj) {
 				Object::delete($obj['id']);
@@ -159,6 +163,9 @@ class Import{
 				$object->CLASS = 'PUBLIC';
 			}
 			
+			if(!is_null($object->SUMMARY)){
+				$this->currentSummary = 'Event '. $object->SUMMARY;
+			}
 			
 			$vcalendar = $this->createVCalendar($object->serialize(),$bAddtz);
 			$insertid = Object::add($this->id, $vcalendar);
@@ -168,7 +175,7 @@ class Import{
 			}else{
 				$this->count++;
 			}
-			$this->updateProgress(intval(($this->abscount / $numofcomponents)*100));
+			$this->updateProgress(intval(($this->abscount / $this->numofcomponents)*100));
 		}
 		$this->cache->remove($this->progresskey);
 		return true;
@@ -226,6 +233,14 @@ class Import{
 	 */
 	public function enableProgressCache() {
 		$this->cacheprogress = true;
+		$currentIntArray=[
+			'percent' => 0,
+			'all' => 0,
+			'current' => 0,
+			'currentSummary' => ''
+		];
+		$currentIntArray = json_encode($currentIntArray);	
+		\OC::$server->getCache()->set($this->progresskey,$currentIntArray, 300);
 		return true;
 	}
 
@@ -396,7 +411,15 @@ class Import{
 	private function updateProgress($percentage) {
 		$this->progress = $percentage;
 		if($this->cacheprogress) {
-			$this->cache->set($this->progresskey, $this->progress, 300);
+			$currentIntArray=[
+			'percent' => $this->progress,
+			'all' => $this->numofcomponents,
+			'current' => $this->abscount,
+			'currentSummary' => $this->currentSummary
+		];
+		
+			$currentIntArray = json_encode($currentIntArray);		
+			$this->cache->set($this->progresskey, $currentIntArray, 300);
 		}
 		return true;
 	}

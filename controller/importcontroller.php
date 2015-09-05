@@ -118,9 +118,21 @@ class ImportController extends Controller {
 		
 		if (isset($pProgresskey) && isset($pGetprogress)) {
 				
+				$aCurrent = \OC::$server->getCache()->get($pProgresskey);
+				$aCurrent = json_decode($aCurrent);
+				
+				$numVO = $aCurrent->{'all'};
+				$currentVOCount = $aCurrent->{'current'};
+				$currentSummary = $aCurrent->{'currentSummary'};
+				$percent = (int)$aCurrent->{'percent'};
+				
+				if($percent ==''){
+					$percent = 0;
+				}
 				$params = [
 					'status' => 'success',
-					'percent' => \OC::$server->getCache()->get($pProgresskey),
+					'percent' =>$percent ,
+					'currentmsg' => $currentSummary.' '.$percent.'% ('.$currentVOCount.'/'.$numVO.')'
 				];
 				$response = new JSONResponse($params);
 				return $response;	
