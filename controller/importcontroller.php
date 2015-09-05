@@ -121,10 +121,10 @@ class ImportController extends Controller {
 				$aCurrent = \OC::$server->getCache()->get($pProgresskey);
 				$aCurrent = json_decode($aCurrent);
 				
-				$numVO = $aCurrent->{'all'};
-				$currentVOCount = $aCurrent->{'current'};
-				$currentSummary = $aCurrent->{'currentSummary'};
-				$percent = (int)$aCurrent->{'percent'};
+				$numVO = (isset($aCurrent->{'all'})?$aCurrent->{'all'}:0);
+				$currentVOCount = (isset($aCurrent->{'current'})?$aCurrent->{'current'}:0);
+				$currentSummary = (isset($aCurrent->{'currentSummary'})?$aCurrent->{'currentSummary'}:'');
+				$percent = (isset($aCurrent->{'percent'})?$aCurrent->{'percent'}:'');
 				
 				if($percent ==''){
 					$percent = 0;
