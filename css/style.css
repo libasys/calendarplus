@@ -855,12 +855,15 @@ margin-bottom:4px;
 	width: 144px;
 	height:30px;
 }
-
+#app-navigation .app-navigation-entry-edit input[name="caldavuri"]{
+	width: 174px;
+}
 #app-navigation .app-navigation-entry-edit button,
 #app-navigation .app-navigation-entry-edit input[type="submit"] {
 		width: 36px;
 		height: 32px;
 		float: left;
+		
 	}
 
 
@@ -899,14 +902,15 @@ font-size:13px;
 	display:block;
 	cursor:pointer;
 }
-
+#app-navigation #addSub,
 #app-navigation #addGroup{
 	width:30px;
 	height:30px;
 	float:right;
 	opacity:0.4;
 	right:0;
-	margin-right:15px;
+	margin-right:10px;
+	cursor:pointer;
 }
 #app-navigation h3 #addCal:hover,
 #app-navigation h3 #addGroup:hover{
@@ -2096,7 +2100,47 @@ ul#categoryCalendarList li .ioc-delete:hover{
 	margin-left:-1px;
 }
 
+/*import Dialog*/
+.importdiv .file-ok{
+	background-color:#008000;
+}
+.importdiv .url-ok{
+	background-color:#D4D4D4;
+}
+.import-select-cal,
+#calendar_import_checkbox,
+#calendar_import_process,
+#calendar_import_newcalform,
+.importdiv{
+	position:relative;
+	float:left;
+	display:block;
+	width:90%;
+	padding-left:5%;
+	margin-left:auto;
+	margin-right:auto;
+}
+#calendar_import_newcalform input[type="text"],
+.importdiv input[type="text"] {
+	padding:0;
+	padding-left:5px;
+	width: 88%;
+	height:30px;
+	float: left;
+}
 
+.importdiv button,
+.importdiv input[type="submit"] {
+		width: 36px;
+		height: 32px;
+		float: left;
+	}
+#calendar_import_newcalform div.colorPicker-picker{
+	width: 36px;
+	height: 28px;
+	float: left;
+	margin-top:-3px;
+}
 @media print {
     header{
     	display:none;

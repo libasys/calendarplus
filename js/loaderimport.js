@@ -34,15 +34,23 @@ CalendarPlus.Import =  {
 		calcolor: '',
 		progresskey: '',
 		percentage: 0,
-		isDragged : false
+		isDragged : false,
+		isSub:false,
+		subUri:''
 	},
 	Dialog:{
 		open: function(filename){
 			OC.addStyle('calendarplus', 'import');
+			
 			CalendarPlus.Import.Store.file = filename;
 			CalendarPlus.Import.Store.path = $('#dir').val();
 			$('body').append('<div id="calendar_import"></div>');
-			$('#calendar_import').load(OC.generateUrl('apps/'+CalendarPlus.appname+'/getimportdialogtplcalendar'), {filename:CalendarPlus.Import.Store.file, path:CalendarPlus.Import.Store.path, isDragged:CalendarPlus.Import.Store.isDragged},function(){
+			$('#calendar_import').load(OC.generateUrl('apps/'+CalendarPlus.appname+'/getimportdialogtplcalendar'), {
+				filename:CalendarPlus.Import.Store.file, 
+				path:CalendarPlus.Import.Store.path, 
+				isDragged:CalendarPlus.Import.Store.isDragged,
+				isSub:CalendarPlus.Import.Store.isSub
+				},function(){
 					CalendarPlus.Import.Dialog.init();
 			});
 		},
@@ -53,6 +61,7 @@ CalendarPlus.Import =  {
 		},
 		init: function(){
 			//init dialog
+			
 			$('#calendar_import_dialog').dialog({
 				width : 500,
 				resizable: false,
@@ -67,6 +76,23 @@ CalendarPlus.Import =  {
 			$('#calendar_import_submit').click(function(){
 				CalendarPlus.Import.Core.process();
 			});
+			
+			if(CalendarPlus.Import.Store.isSub === true){
+				$('.importdiv').show();
+				$('#calendar_import_form').hide();
+				$('#calendar_import_checkbox').hide();
+				$('#checkurl').on('click',function(){
+				  if(!$(this).hasClass('file-ok')){
+					  if($('#calendar_import_url').val()!=''){
+					  	CalendarPlus.Import.Core.checkUrl($('#calendar_import_url').val());
+					  }
+				  }
+				});
+				
+			}else{
+				$('.importdiv').hide();
+			}
+			
 			$('#calendar_import_mergewarning').click(function(){
 				$('#calendar_import_newcalendar').attr('value', $('#calendar_import_availablename').val());
 				CalendarPlus.Import.Dialog.mergewarning($('#calendar_import_newcalendar').val());
@@ -88,6 +114,7 @@ CalendarPlus.Import =  {
 			//init progressbar
 			$('#calendar_import_progressbar').progressbar({value: CalendarPlus.Import.Store.percentage});
 			CalendarPlus.Import.Store.progresskey = $('#calendar_import_progresskey').val();
+			
 		},
 		mergewarning: function(newcalname){
 			$.post(OC.generateUrl('apps/'+CalendarPlus.appname+'/checkcalendarexistsimport'), {calname: newcalname}, function(data){
@@ -133,6 +160,33 @@ CalendarPlus.Import =  {
 		}
 	},
 	Core:{
+		checkUrl:function(url){
+			$.post(OC.generateUrl('apps/'+CalendarPlus.appname+'/checkimporturl'),
+			{
+				importurl:url
+			},function(data){
+				if(data.status === 'success'){
+					CalendarPlus.Import.Store.file = data.file;
+					CalendarPlus.Import.Store.subUri = data.externUriFile;
+					$('#calendar_import_calendar').val('newcal');
+					$('#calendar_import_form').show();
+					$('#importmsg').text('');
+					$('#calendar_import_url').val(data.externUriFile).attr('readonly','readonly').addClass('url-ok');
+					$('#checkurl').addClass('file-ok');
+					$('#calendar_import_form_message').hide();
+					$('#calendar_import_calendar').hide();
+					$('#calendar_import_newcalform').show();
+					CalendarPlus.Import.Dialog.mergewarning(data.guessedcalendarname);
+					$('#calendar_import_newcalendar').val(data.guessedcalendarname);
+					$('#calendar_import_newcalendar_color').val(data.guessedcalendarcolor);
+					
+				}
+				if(data.status === 'error'){
+					
+					$('#importmsg').text(data.message);
+				}
+			});
+		},
 		process: function(){
 			var validation = CalendarPlus.Import.Core.prepare();
 			if(validation){
@@ -148,20 +202,34 @@ CalendarPlus.Import =  {
 		send: function(){
 			
 			$.post(OC.generateUrl('apps/'+CalendarPlus.appname+'/importeventscalendar'),
-			{progresskey: CalendarPlus.Import.Store.progresskey, method: String (CalendarPlus.Import.Store.method), overwrite: String (CalendarPlus.Import.Store.overwrite), calname: String (CalendarPlus.Import.Store.calname), path: String (CalendarPlus.Import.Store.path), file: String (CalendarPlus.Import.Store.file), id: String (CalendarPlus.Import.Store.id), calcolor: String (CalendarPlus.Import.Store.calcolor),isDragged:String (CalendarPlus.Import.Store.isDragged)}, function(data){
+			{
+				progresskey: CalendarPlus.Import.Store.progresskey, 
+				method: String (CalendarPlus.Import.Store.method), 
+				overwrite: String (CalendarPlus.Import.Store.overwrite), 
+				calname: String (CalendarPlus.Import.Store.calname), 
+				path: String (CalendarPlus.Import.Store.path), 
+				file: String (CalendarPlus.Import.Store.file), 
+				id: String (CalendarPlus.Import.Store.id), 
+				calcolor: String (CalendarPlus.Import.Store.calcolor),
+				isDragged:String (CalendarPlus.Import.Store.isDragged),
+				isSub:String (CalendarPlus.Import.Store.isSub),
+				subUri:String (CalendarPlus.Import.Store.subUri)
+			}, function(data){
 				if(data.status == 'success'){
 					$('#calendar_import_progressbar').progressbar('option', 'value', 100);
 					CalendarPlus.Import.Store.percentage = 100;
+					$('.importdiv').hide();
 					$('#calendar_import_progressbar').hide();
 					$('#calendar_import_done').css('display', 'block');
 					$('#calendar_import_process_message').text('').hide();
 					$('#calendar_import_status').html(data.message);
 					
-					if(CalendarPlus.Import.Store.isDragged === true){
+					if(CalendarPlus.Import.Store.isDragged === true || CalendarPlus.Import.Store.isSub === true){
 						
 						if(data.eventSource !== ''){
 							$('#fullcalendar').fullCalendar('addEventSource', data.eventSource);
 							CalendarPlus.Util.rebuildCalView();
+							CalendarPlus.initUserSettings(0);
 						}else{
 							$('#fullcalendar').fullCalendar('refetchEvents');
 						}
@@ -203,6 +271,10 @@ CalendarPlus.Import =  {
 		CalendarPlus.Import.Store.calname = '';
 		CalendarPlus.Import.Store.progresskey = '';
 		CalendarPlus.Import.Store.percentage = 0;
+		CalendarPlus.Import.Store.isSub = false;
+		CalendarPlus.Import.Store.isDragged = false;
+		CalendarPlus.Import.Store.subUri = '';
+		
 	}
 };
 

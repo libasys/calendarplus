@@ -58,11 +58,14 @@ class ImportController extends Controller {
 		$pPath = $this -> params('path');	
 		$pFile = $this -> params('filename');
 		$pIsDragged = $this->params('isDragged');
+		$pIsSub = $this->params('isSub');
+		
 		
 		$params=[
 			'path' => $pPath,
 			'filename' => $pFile,
-			'isDragged' => $pIsDragged
+			'isDragged' => $pIsDragged,
+			'isSub' => $pIsSub
 		];
 		
 		$response = new TemplateResponse($this->appName, 'part.import',$params, '');  
@@ -112,6 +115,9 @@ class ImportController extends Controller {
 		$pId = $this -> params('id');
 		$pOverwrite = $this -> params('overwrite');
 		$pIsDragged = $this->params('isDragged');
+		$pIsSub = $this->params('isSub');
+		$pSubUri = $this->params('subUri');
+		$pSubUri = (isset($pSubUri)?$pSubUri:'');
 		
 		\OC::$server->getSession()->close();
 		
@@ -143,7 +149,10 @@ class ImportController extends Controller {
 			$file = explode(',', $pFile);
 			$file = end($file);
 			$file = base64_decode($file);
-		}else{
+		}elseif($pIsSub === 'true'){
+			$file = $pFile;
+		}
+		else{
 			$file = \OC\Files\Filesystem::file_get_contents($pPath . '/' . $pFile);
 		}
 		
@@ -184,7 +193,12 @@ class ImportController extends Controller {
 				$newcal = true;
 			}
 			if($newcal) {
-				$id = CalendarCalendar::addCalendar($this -> userId, strip_tags($pCalname),'VEVENT,VTODO,VJOURNAL',null,0,strip_tags($pCalcolor));
+				$isSubscribed = 0;	
+				if($pIsSub === 'true'){
+					$isSubscribed = 1;
+				}
+					
+				$id = CalendarCalendar::addCalendar($this -> userId, strip_tags($pCalname),'VEVENT,VTODO,VJOURNAL',null,0,strip_tags($pCalcolor),$isSubscribed,$pSubUri);
 				CalendarCalendar::setCalendarActive($id, 1);
 				
 			}

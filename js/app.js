@@ -1035,10 +1035,9 @@ var CalendarPlus = {
 					$('li.calListen[data-id="'+calId+'"]').after(myClone);
 					myClone.attr('data-calendar',calId).show();
 					$('li.calListen[data-id="'+calId+'"]').hide();
-					myClone.find('input[name="externuri"]').hide();
 					myClone.find('input[name="displayname"]').hide();
 					var calDavUrl = OC.linkToRemote(CalendarPlus.appname)+'/calendars/' +  oc_current_user + '/' + CalendarPlus.calendarConfig['calendarcolors'][calId].uri;
-					myClone.find('input[name="caldavuri"]').css('width','174px').val(calDavUrl).show();
+					myClone.find('input[name="caldavuri"]').val(calDavUrl).show();
 					
 					myClone.find('button.icon-checkmark').on('click',function(){
 						myClone.remove();
@@ -1051,6 +1050,11 @@ var CalendarPlus = {
 				$('#drop-area').slideToggle(500);
 			});
 			
+			$('#addSub').on('click',function(){
+				CalendarPlus.Import.Store.isSub = true;
+				CalendarPlus.Import.Dialog.open('');
+			});
+			
 			$('#addCal').on('click',function(){
 				
 				if($('.calclone').length === 1){
@@ -1061,8 +1065,7 @@ var CalendarPlus = {
 					$('#calendarList').prepend(myClone);
 					myClone.attr('data-calendar',calId).show();
 					myClone.find('input[name="caldavuri"]').hide();
-					myClone.find('input[name="displayname"]').css({'width':'184px','border-radius':'4px'}).focus();
-					myClone.find('input[name="externuri"]').removeAttr('readonly').css('width','174px').show();
+					myClone.find('input[name="displayname"]').focus();
 					myClone.find('input#bgcolor').colorPicker();
 					
 					myClone.on('keyup',function(evt){
@@ -1094,12 +1097,7 @@ var CalendarPlus = {
 					myClone.find('input#bgcolor').val(CalendarPlus.calendarConfig['calendarcolors'][calId].bgcolor);
 					myClone.find('input#bgcolor').colorPicker();
 					myClone.find('input[name="displayname"]').val(CalendarPlus.calendarConfig['calendarcolors'][calId].name).focus();
-					if(CalendarPlus.calendarConfig['calendarcolors'][calId].externuri === ''){
-						myClone.find('input[name="externuri"]').hide();
-					}else{
-						myClone.find('input[name="displayname"]').css({'width':'184px','border-radius':'4px'});
-						myClone.find('input[name="externuri"]').css('width','174px').val(CalendarPlus.calendarConfig['calendarcolors'][calId].externuri).show();
-					}
+					
 					myClone.on('keyup',function(evt){
 						if (evt.keyCode===27){
 							myClone.remove();
@@ -1126,6 +1124,7 @@ var CalendarPlus = {
 			
 			$('.refreshSubscription').on('click', function(event) {
 				CalId = $(this).closest('.calListen').attr('data-id');
+			
 				CalendarPlus.UI.Calendar.refreshCalendar(CalId);
 				
 			});
@@ -3269,16 +3268,10 @@ var CalendarPlus = {
 				var saveForm = $('.calclone[data-calendar="'+calendarid+'"]');
 				var displayname = saveForm.find('input[name="displayname"]').val();
 				var calendarcolor = saveForm.find('input[name="bgcolor"]').val();
-				var externuri = saveForm.find('input[name="externuri"]').val();
 				
 				var url;
 				if (calendarid == 'new') {
-					if (externuri !== '') {
-						//Lang
-					 saveForm.find('input[name="externuri"]').after('<div id="messageTxtImportCal">Importiere ... Bitte warten!</div>');
-					}
 					url = OC.generateUrl('apps/'+CalendarPlus.appname+'/newcalendar');
-				
 				} else {
 					url = OC.generateUrl('apps/'+CalendarPlus.appname+'/editcalendar');
 				}
@@ -3287,21 +3280,9 @@ var CalendarPlus = {
 					id : calendarid,
 					name : displayname,
 					active : 1,
-					color : calendarcolor,
-					externuri : externuri
+					color : calendarcolor
 				}, function(data) {
 					if (data.status == 'success') {
-						
-						if (data.countEvents !== false) {
-							//Lang
-							$("#messageTxtImportCal").text('Importierte Events: ' + data.countEvents);
-							$("#messageTxtImportCal").animate({
-								color : 'green',
-							}, 3000, function() {
-								$(this).remove();
-								
-							});
-						}
 						
 						CalendarPlus.calendarConfig['calendarcolors'][data.calid] = {};
 						var bChange = false;
@@ -3315,7 +3296,6 @@ var CalendarPlus = {
 							bChange = true;
 						}
 						
-						CalendarPlus.calendarConfig['calendarcolors'][data.calid]['externuri'] = externuri;
 						CalendarPlus.calendarConfig['calendarcolors'][data.calid]['color'] = data.eventSource.textColor;
 						
 						if(bChange === true){
@@ -3333,10 +3313,10 @@ var CalendarPlus = {
 						if(calendarid === 'new'){
 							CalendarPlus.Util.rebuildCalView();
 						}
+						CalendarPlus.initUserSettings(0);
 					}
 					if(data.status === 'error'){
 						CalendarPlus.Util.showGlobalMessage(data.message);
-						
 					}
 				});
 				

@@ -96,12 +96,11 @@
 <li class="app-navigation-entry-edit calclone" id="calendar-clone" data-calendar="">
 	<input id="bgcolor" name="bgcolor" type="hidden" value="#333399" />
 	<input type="text" name="displayname" value="" placeholder="<?php p($l->t('Displayname')) ?>" />
-	<input type="text"  name="externuri" readonly="readonly"  placeholder="<?php p($l->t('Link to a subscribed Calendar')) ?>" value="" />
 	<input type="text" name="caldavuri" readonly="readonly" value="" />
 	<button class="icon-checkmark"></button>
 </li>	
 </ul>	
-<h3><i class="ioc ioc-rss-alt"></i>&nbsp;<?php p($l->t('Subscription')); ?></h3>
+<h3><i class="ioc ioc-rss-alt"></i>&nbsp;<?php p($l->t('Subscription')); ?><i id="addSub" title="<?php p($l->t('New Subscription')) ?>" class="toolTip icon-add"></i></h3>
 <ul id="abo">
 	<?php 
 	foreach($_['calendars']['abo'] as $calInfo){

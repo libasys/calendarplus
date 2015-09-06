@@ -254,11 +254,11 @@ class CalendarController extends Controller {
 	 * @param string $name
 	 *@param integer $active
 	 *	@param string $color
-	 * @param string $externuri
+	 * 
 	 * @return insertid
 	 */
 
-	public function newCalendar($id, $name, $active, $color, $externuri) {
+	public function newCalendar($id, $name, $active, $color) {
 
 		//$calendarName = (string) $this -> params('name');
 		//$externUriFile = (string) $this -> params('externuri');
@@ -280,46 +280,20 @@ class CalendarController extends Controller {
 			}
 		}
 
-		$bError = false;
+		$calendarid = $this -> add($this -> userId, $name, 'VEVENT,VTODO,VJOURNAL', null, 0, $color);
+		CalendarCalendar::setCalendarActive($calendarid, 1);
+		$calendar = $this -> find($calendarid);
+		//FIXME
+		$isShareApiActive = \OC::$server -> getAppConfig() -> getValue('core', 'shareapi_enabled', 'yes');
 
-		$count = false;
-
-		if (trim($externuri) !== '') {
-			$aResult = $this -> addEventsFromSubscribedCalendar($externuri, $name, $color);
-			if ($aResult['isError'] === true) {
-				$bError = true;
-			}
-			if ($aResult['countEvents'] > 0) {
-				$count = $aResult['countEvents'];
-			}
-			$calendarid = $aResult['calendarid'];
-		} else {
-
-			$calendarid = $this -> add($this -> userId, $name, 'VEVENT,VTODO,VJOURNAL', null, 0, $color);
-
-			CalendarCalendar::setCalendarActive($calendarid, 1);
-		}
-
-		if (!$bError) {
-			$calendar = $this -> find($calendarid);
-			//FIXME
-			$isShareApiActive = \OC::$server -> getAppConfig() -> getValue('core', 'shareapi_enabled', 'yes');
-
-			$params = [
+		$params = [
 			'status' => 'success', 
 			'eventSource' => CalendarCalendar::getEventSourceInfo($calendar), 
-			'calid' => $calendar['id'], 
-			'countEvents' => $count
-			];
+			'calid' => $calendar['id']
+		];
 
-			$response = new JSONResponse($params);
-			return $response;
-
-		} else {
-			$params = ['status' => 'error', 'message' => (string)$this -> l10n -> t('Import failed')];
-			$response = new JSONResponse($params);
-			return $response;
-		}
+		$response = new JSONResponse($params);
+		return $response;
 
 	}
 
@@ -433,14 +407,10 @@ class CalendarController extends Controller {
 			}
 		}
 
-		$paramsList = ['calendar' => $calendar, 'shared' => $shared, 'appname' => $this -> appName, 'isShareApi' => $isShareApiActive, ];
-		$calendarRow = new TemplateResponse($this -> appName, 'part.choosecalendar.rowfields', $paramsList, '');
-
 		$params = [
-		'status' => 'success', 
-		'eventSource' => CalendarCalendar::getEventSourceInfo($calendar), 
-		'calid' => $calendarid, 'countEvents' => false, 
-		'page' => $calendarRow -> render(), 
+			'status' => 'success', 
+			'eventSource' => CalendarCalendar::getEventSourceInfo($calendar), 
+			'calid' => $calendarid 
 		];
 
 		$response = new JSONResponse($params);
@@ -545,14 +515,14 @@ class CalendarController extends Controller {
 			return $response;
 		}
 		if($calendar['uri'] !== 'birthday_'.$calendar['userid']){
-				
+			
 			$getProtocol = explode('://', $calendar['externuri']);
 			$protocol = $getProtocol[0];
 	
 			$opts = array($protocol => array('method' => 'POST', 'header' => "Content-Type: text/calendar\r\n", 'timeout' => 60));
 	
-			$last_modified = $this -> stream_last_modified(trim($calendar['externuri']));
-			if (!is_null($last_modified)) {
+			$aMeta = $this -> stream_last_modified(trim($calendar['externuri']));
+			if ($aMeta['fileaccess'] === true) {
 				$context = stream_context_create($opts);
 				$file = file_get_contents($calendar['externuri'], false, $context);
 				$file = \Sabre\VObject\StringUtil::convertToUTF8($file);
@@ -581,72 +551,87 @@ class CalendarController extends Controller {
 
 	}
 
-	private function addEventsFromSubscribedCalendar($externUriFile, $calName, $calColor) {
-		$externUriFile = trim($externUriFile);
+	/**
+	 * @NoAdminRequired
+	 * @param string $importurl
+	 */
+	public function checkImportUrl($importurl){
+		$externUriFile = trim(urldecode($importurl));
+		
 		$newUrl = '';
 		$bExistUri = false;
 		$getProtocol = explode('://', $externUriFile);
-
 		if (strtolower($getProtocol[0]) === 'webcal') {
 			$newUrl = 'https://' . $getProtocol[1];
-			$last_modified = $this -> stream_last_modified($newUrl);
-			if (is_null($last_modified)) {
+			$aMetaHttps = $this -> stream_last_modified($newUrl);
+			if ($aMetaHttps['fileaccess'] !== true) {
 				$newUrl = 'http://' . $getProtocol[1];
-				$last_modified = $this -> stream_last_modified($newUrl);
-				if (is_null($last_modified)) {$bExistUri = false;
-				} else {$bExistUri = true;
+				$aMetaHttp = $this -> stream_last_modified($newUrl);
+				
+				if ($aMetaHttp['fileaccess'] !== true) {
+					$bExistUri = false;
+				} else {
+					$bExistUri = true;
 				}
 			} else {
 				$bExistUri = true;
 			}
 		} else {
 			$protocol = $getProtocol[0];
+			if (preg_match('%index.php/apps/calendarplus/s/(/.*)?%', $externUriFile)) {
+				$temp= explode('/s/',$externUriFile);
+				$externUriFile =$temp[0].'/exporteventscalendar?t='.$temp[1];
+			}
+		
 			$newUrl = $externUriFile;
-			$last_modified = $this -> stream_last_modified($newUrl);
-			if (!is_null($last_modified)) {
+			$aMeta = $this -> stream_last_modified($newUrl);
+			
+			if ($aMeta['fileaccess'] === true) {
 				$bExistUri = true;
 			}
 
 		}
-
 		$opts = array($protocol => array('method' => 'POST', 'header' => "Content-Type: text/calendar\r\n", 'timeout' => 60));
 		$bError = false;
 		if ($bExistUri === true) {
 			$context = stream_context_create($opts);
-
+			
+				
 			try {
 				$file = file_get_contents($newUrl, false, $context);
+				$import = new \OCA\CalendarPlus\Import($file);
+				$import->setUserID($this->userId);
+				$guessedcalendarname = \OCP\Util::sanitizeHTML($import->guessCalendarName());
+				$testColor = $import->guessCalendarColor();
+				$guessedcalendarcolor = ($testColor !== null?$testColor:'006DCC');
+				$params = [
+				'status' => 'success', 
+				'file' => $file,
+				'externUriFile' => $externUriFile,
+				'guessedcalendarname' => $guessedcalendarname,
+				'guessedcalendarcolor' => $guessedcalendarcolor
+				];
+				
+				$response = new JSONResponse($params);
+				return $response;
+				
 			} catch (Exception $e) {
-				$params = ['status' => 'error', 'message' => $this -> l10n -> t('Import failed')];
+				$params = ['status' => 'error',
+				 'message' => (string)$this -> l10n -> t('Subscribed url is not valid')];
 				$response = new JSONResponse($params);
 				return $response;
 			}
-			//\OCP\Util::writeLog('calendar', 'FILE IMPORT-> '.$file, \OCP\Util::DEBUG);
-			$file = \Sabre\VObject\StringUtil::convertToUTF8($file);
-			$import = new Import($file);
-
-			$import -> setUserID($this -> userId);
-			$import -> setTimeZone(CalendarApp::$tz);
-			$calendarid = CalendarCalendar::addCalendar($this -> userId, $calName, 'VEVENT,VTODO,VJOURNAL', null, 0, strip_tags($calColor), 1, $newUrl, $last_modified);
-			CalendarCalendar::setCalendarActive($calendarid, 1);
-			$import -> setCalendarID($calendarid);
-
-			try {
-				$import -> import();
-			} catch (Exception $e) {
-				$params = ['status' => 'error', 'message' => $this -> l10n -> t('Import failed')];
-				$response = new JSONResponse($params);
-				return $response;
-			}
-			$count = $import -> getCount();
-		} else {
-			$bError = true;
-
+		}else{
+			$params = ['status' => 'error',
+			 'message' => (string)$this -> l10n -> t('Subscribed url is not valid')];
+			$response = new JSONResponse($params);
+			return $response;
 		}
-
-		return ['isError' => $bError, 'countEvents' => $count, 'calendarid' => $calendarid];
+		
+		
 	}
-
+	
+	
 	/**
 	 * @NoAdminRequired
 	 */
@@ -837,21 +822,36 @@ class CalendarController extends Controller {
    }
 	
 	private function stream_last_modified($url) {
-
+		
 		if (!($fp = @fopen($url, 'r'))) {
 			return NULL;
 		}
 		$meta = stream_get_meta_data($fp);
+		$bAccess = false;
+		$modtime = '';
 		for ($j = 0; isset($meta['wrapper_data'][$j]); $j++) {
-
+			if (strstr(strtolower($meta['wrapper_data'][$j]), 'content-type')) {
+				$checkContentType = substr($meta['wrapper_data'][$j], 13);	
+				list($contentType,$charset) = explode(';',$checkContentType);
+				if(trim(strtolower($contentType)) === 'text/calendar'){
+					$bAccess = true;
+					
+				}	
+			}
+			//\OCP\Util::writeLog('calendarplus','CONTENTTYPE: '.$meta['wrapper_data'][$j], \OCP\Util::DEBUG);	
 			if (strstr(strtolower($meta['wrapper_data'][$j]), 'last-modified')) {
 				$modtime = substr($meta['wrapper_data'][$j], 15);
-				break;
 			}
 		}
 		fclose($fp);
-
-		return isset($modtime) ? strtotime($modtime) : time();
+			
+			$returnArray=[
+				'lastmodified' => isset($modtime) ? strtotime($modtime) : time(),
+				'fileaccess' => $bAccess,
+			];
+			
+			return $returnArray;
+		
 	}
 
 }
