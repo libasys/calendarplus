@@ -429,7 +429,7 @@ class CalendarController extends Controller {
 			$calendars = CalendarCalendar::allCalendars($this->userId, false, false, false);
 			$bNewId = null;
 			//\OCP\Util::writeLog($this->appName, 'DEL COUNT-> '.count($calendars).$calendars[0]['id'], \OCP\Util::DEBUG);
-			if((\OCP\USER::isLoggedIn() && count($calendars) === 0) || (count($calendars) === 1 && $calendars[0]['id'] === 'birthday_'.$this->userId)) {
+			if((\OCP\USER::isLoggedIn() && count($calendars) === 0)) {
 				$bNewId = CalendarCalendar::addDefaultCalendars($this->userId);
 			}	
 				
@@ -465,20 +465,8 @@ class CalendarController extends Controller {
 	 */
 	public function setActiveCalendar($calendarid, $active) {
 
-		//$calendarid = $this -> params('calendarid');
-		//$pActive = intval($this -> params('active'));
-
-		$calendar = false;
-		if ($calendarid !== 'birthday_' . $this -> userId) {
-			$calendar = CalendarApp::getCalendar((int)$calendarid, true, true);
-		}
-
-		if (!$calendar && $calendarid !== 'birthday_' . $this -> userId) {
-			$params = ['status' => 'error', 'message' => 'permission denied'];
-			$response = new JSONResponse($params);
-			return $response;
-		}
-
+		
+		$calendar = CalendarApp::getCalendar((int)$calendarid, true, true);
 		CalendarCalendar::setCalendarActive($calendarid, (int)$active);
 
 		$isAktiv = $active;
@@ -486,14 +474,8 @@ class CalendarController extends Controller {
 		if ($this->configInfo->getUserValue($this->userId, $this->appName, 'calendar_' . $calendarid) !== '') {
 			$isAktiv = $this->configInfo->getUserValue($this -> userId, $this->appName, 'calendar_' . $calendarid);
 		}
-
-		$eventSource = '';
-		if ($calendarid !== 'birthday_' . $this->userId) {
-			$eventSource = CalendarCalendar::getEventSourceInfo($calendar);
-		} else {
-				
-			\OCP\Util::emitHook('OCA\CalendarPlus', 'getSources', array('all' => false, 'sources' => &$eventSource));
-		}
+	
+		$eventSource = CalendarCalendar::getEventSourceInfo($calendar);
 
 		$params = ['status' => 'success', 'active' => $isAktiv, 'eventSource' => $eventSource, ];
 
@@ -514,7 +496,7 @@ class CalendarController extends Controller {
 			$response = new JSONResponse($params);
 			return $response;
 		}
-		if($calendar['uri'] !== 'birthday_'.$calendar['userid']){
+		if($calendar['uri'] !== 'bdaycpltocal_'.$calendar['userid']){
 			
 			$getProtocol = explode('://', $calendar['externuri']);
 			$protocol = $getProtocol[0];
@@ -684,7 +666,7 @@ class CalendarController extends Controller {
 
 				} else {
 					$calInfo['birthday'] = false;
-					if ($calInfo['id'] === 'birthday_' . $this -> userId) {
+					if ($calInfo['id'] === 'bdaycpltocal_' . $this -> userId) {
 						$calInfo['birthday'] = true;
 					}
 

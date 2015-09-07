@@ -334,34 +334,24 @@ class Calendar{
 		
 		$userid = \OCP\User::getUser();
 			
-		if($id !== 'birthday_'. $userid){	
-			$calendar = self::find($id);
-			if ($calendar['userid'] !== $userid) {
-				$sharedCalendar = \OCP\Share::getItemSharedWithBySource(App::SHARECALENDAR, App::SHARECALENDARPREFIX.$id);
-				
-				if($sharedCalendar){
-					\OCP\Config::setUserValue($userid,App::$appname, 'calendar_'.$id, $active);
-				}
-				/*
-				if (!$sharedCalendar || !($sharedCalendar['permissions'] & \OCP\PERMISSION_UPDATE)) {
-					throw new \Exception(
-						App::$l10n->t(
-							'You do not have the permissions to update this calendar.'
-						)
-					);
-				}*/
-			}else{
-				
-				$dbObject = \OC::$server->getDb();	
-				$calendarDB = new CalendarDAO($dbObject, $userid);	
-				
-				$bUpdateCalendar = $calendarDB->activate($active, $id);	
-				
-				return $bUpdateCalendar;
+	
+		$calendar = self::find($id);
+		if ($calendar['userid'] !== $userid) {
+			$sharedCalendar = \OCP\Share::getItemSharedWithBySource(App::SHARECALENDAR, App::SHARECALENDARPREFIX.$id);
+			
+			if($sharedCalendar){
+				\OCP\Config::setUserValue($userid,App::$appname, 'calendar_'.$id, $active);
 			}
-	} else{
-		\OCP\Config::setUserValue($userid, App::$appname, 'calendar_'.$id, $active);
-	}
+		}else{
+			
+			$dbObject = \OC::$server->getDb();	
+			$calendarDB = new CalendarDAO($dbObject, $userid);	
+			
+			$bUpdateCalendar = $calendarDB->activate($active, $id);	
+			
+			return $bUpdateCalendar;
+		}
+	
 		return true;
 	}
 

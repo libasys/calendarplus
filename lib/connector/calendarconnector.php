@@ -515,7 +515,7 @@ class CalendarConnector {
 
 			$calendars = $this -> all(false, false);
 
-			if ((\OCP\USER::isLoggedIn() && count($calendars) === 0) || (count($calendars) === 1 && $calendars[0]['id'] === 'birthday_' . $this -> userId)) {
+			if ((\OCP\USER::isLoggedIn() && count($calendars) === 0)) {
 				//self::addDefaultCalendars($user);
 			}
 			if($bLogActivity === true){

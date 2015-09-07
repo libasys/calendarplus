@@ -60,7 +60,7 @@ class PageController extends Controller {
 			
 			$appinfo =\OCP\App::getAppVersion('contactsplus');
 			if (version_compare($appinfo, '1.0.6', '>=')) {
-				$calId = $this->calendarController->checkBirthdayCalendarByUri('birthday_'.$this->userId);
+				$calId = $this->calendarController->checkBirthdayCalendarByUri('bdaycpltocal_'.$this->userId);
 			}
 			
 		}

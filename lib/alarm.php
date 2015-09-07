@@ -145,10 +145,8 @@ class Alarm {
 		//\OCP\Util::writeLog('calendarplus','COUNT ALARM:'.count($ids) ,\OCP\Util::DEBUG);
 		$aExec = array('1', 'VJOURNAL');
 		foreach ($this->aCalendars as $calInfo) {
-			if($calInfo['id'] !== 'birthday_'.\OCP\USER::getUser()){	
-				$ids[] = $calInfo['id'];	
-				array_push($aExec,$calInfo['id']);
-			}
+			$ids[] = $calInfo['id'];	
+			array_push($aExec,$calInfo['id']);
 		}
 		
 		$id_sql = '';

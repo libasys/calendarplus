@@ -89,7 +89,7 @@ class EventController extends Controller {
 			$calendarrow = CalendarApp::getCalendar($id, true, false); // Let's at least security check otherwise we might as well use OCA\Calendar\Calendar::find())
 			if($calendarrow !== false) {
 				$calendar_id = $id;
-				if($calendarrow['uri'] === 'birthday_'.$calendarrow['userid']){
+				if($calendarrow['uri'] === 'bdaycpltocal_'.$calendarrow['userid']){
 						$bBirthday = true;	
 				}
 			}else{
@@ -156,16 +156,18 @@ class EventController extends Controller {
 			 $calendars[]=['id' => 'shared_events', 'active' => 1];
 			 
 			 $events='';
-			 
+			 $aCalBirthdays =[];
 			foreach($calendars as $calInfo){
 				$isAktiv=(int)$calInfo['active'];
 				if($this -> configInfo -> getUserValue($this -> userId, $this->appName, 'calendar_'.$calInfo['id']) !== ''){
 					$isAktiv= (int) $this -> configInfo -> getUserValue($this -> userId, $this->appName, 'calendar_'.$calInfo['id']);
 				}
-				if($calInfo['id'] !== 'birthday_'.$this -> userId && $isAktiv === 1){
-					\OCP\Util::writeLog($this->appName,'DAYVIEW => '.$calInfo['id'], \OCP\Util::DEBUG);	
-					$events[] = CalendarApp::getrequestedEvents($calInfo['id'], $start, $end);
+				$aCalBirthdays[$calInfo['id']] = 0;
+				if($calInfo['uri'] === 'bdaycpltocal_'.$calInfo['userid']){
+						$aCalBirthdays[$calInfo['id']] = 1;
 				}
+				$events[] = CalendarApp::getrequestedEvents($calInfo['id'], $start, $end);
+			
 				
 			}
 			$output = array();
@@ -177,6 +179,11 @@ class EventController extends Controller {
 				foreach($events as $event){
 							
 						foreach($event as $eventInfo){
+								
+							$eventInfo['bday'] = 0;
+							if($aCalBirthdays[$eventInfo['calendarid']]){
+								$eventInfo['bday'] = 1;
+							}
 								
 							if((int)$eventInfo['repeating'] === 0) {
 											
@@ -1401,7 +1408,7 @@ class EventController extends Controller {
 			
             $aCalendar = CalendarApp::getCalendar($data['calendarid'], false, false);
             $isBirthday = false;
-			if($aCalendar['uri'] === 'birthday_'.$aCalendar['userid']){
+			if($aCalendar['uri'] === 'bdaycpltocal_'.$aCalendar['userid']){
 				$isBirthday = true;
 			}
 			

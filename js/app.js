@@ -1398,6 +1398,8 @@ var CalendarPlus = {
 													color = CalendarPlus.calendarConfig['calendarcolors'][el[0].calendarid]['color'];
 												}
 												var CalDiv = '<span class="colorCal-list" style="margin-top:6px;background-color:' + bgColor + ';">' + '&nbsp;' + '</span>';
+												
+												
 												var time = '<span class="timeAgenda">'+t(CalendarPlus.appname,"All day")+'</span>';
 											
 												if (!el[0].allDay) {
@@ -1425,11 +1427,16 @@ var CalendarPlus = {
 												if (el[0].isalarm) {
 													alarmIcon = CalendarPlus.Util.addIconsCal(t(CalendarPlus.appname, 'Reminder'), 'clock', '14');
 												}
+												var bdayIcon = '';
+												if(el[0].bday){
+													bdayIcon ='<i class="ioc ioc-birthday"></i>';
+												}
+												
 												var location = '';
 												if (el[0].location) {
 													location = '<span class="listLocation">' + el[0].location + '</span>';
 												}
-												htmlList += '<li class="eventsRow" data-id="' + el[0].id + '" data-date="' + dateToLoad + '">' + time + ' ' + CalDiv + repeatIcon + sharedIcon + privatIcon + alarmIcon + ' ' + el[0].title + location + '</li>';
+												htmlList += '<li class="eventsRow" data-id="' + el[0].id + '" data-date="' + dateToLoad + '">' + time + ' ' + CalDiv + repeatIcon + sharedIcon + privatIcon + alarmIcon + ' '+bdayIcon+' ' + el[0].title + location + '</li>';
 										}
 										});
 									}

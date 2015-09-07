@@ -50,7 +50,7 @@ $calendar_options = OCA\CalendarPlus\Calendar::allCalendars(OCP\USER::getUser())
 		<?php
 		
 		for($i = 0;$i<count($calendar_options);$i++) {
-			if(!$calendar_options[$i]['issubscribe'] && $calendar_options[$i]['id'] != 'birthday_'.OCP\USER::getUser()){	
+			if(!$calendar_options[$i]['issubscribe']){	
 				$calendarChoose[]= array(
 						'id' => $calendar_options[$i]['id'],
 						'displayname' => $calendar_options[$i]['displayname']

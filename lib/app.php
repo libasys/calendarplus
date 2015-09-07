@@ -352,7 +352,7 @@ class App {
 			if (count($calendars) > 0) {
 				$events = array();
 				foreach ($calendars as $calendar) {
-					if ($calendar['userid'] === \OCP\User::getUser() && $calendar['id'] !== 'birthday_'.\OCP\User::getUser()) {
+					if ($calendar['userid'] === \OCP\User::getUser()) {
 						$calendar_events = Object::all($calendar['id']);
 						$events = $events + $calendar_events;
 					}

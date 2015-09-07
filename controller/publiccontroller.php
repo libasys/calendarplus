@@ -260,7 +260,7 @@ class PublicController extends Controller {
 		$end = new \DateTime('@' . $pEnd);
 		$aCalendar = CalendarApp::getCalendar($calendar_id, false, false);
         $isBirthday = false;
-		if($aCalendar['uri'] === 'birthday_'.$aCalendar['userid']){
+		if($aCalendar['uri'] === 'bdaycpltocal_'.$aCalendar['userid']){
 			$isBirthday = true;
 		}
 		$events = CalendarApp::getrequestedEvents($calendar_id, $start, $end);
