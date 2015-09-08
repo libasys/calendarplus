@@ -127,11 +127,11 @@ class CalendarDAO  {
 	 */
 	public function findByUri($uri){
 			
-		$stmt = $this->db->prepareQuery( 'SELECT COUNT(*) AS COUNTCAL FROM `'.$this->calendarTable.'` WHERE `userid` = ? AND `uri` = ?' );
+		$stmt = $this->db->prepareQuery( 'SELECT COUNT(`id`) AS `COUNTCAL` FROM `'.$this->calendarTable.'` WHERE `userid` = ? AND `uri` = ?' );
 		$result = $stmt->execute(array($this->userId, $uri));
 		$rowCount = $result->fetchRow();
 	
-		if($rowCount['COUNTCAL'] > 0){
+		if(isset($rowCount['COUNTCAL']) && $rowCount['COUNTCAL'] > 0){
 			return  $result->fetchRow();
 		}else{
 			return null;
