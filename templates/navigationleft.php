@@ -86,7 +86,7 @@
 					  </span>';
 						  	
 		$displayName='<span class="descr toolTip"  title="'.$calInfo['displayname'].'">'.$calInfo['displayname'].'</span>';
-		$addKursiv = ($checked === '') ? 'kursiv' : '';
+		$addKursiv = ($checked === '') ? ' kursiv' : '';
 		 			
 		print_unescaped('<li data-id="'.$calInfo['id'].'" class="calListen '.$isActiveUserCal.$addKursiv.'"><div class="colCal toolTip iCalendar '.$addCheckClass.'" title="'.$this->l10n->t('choose calendar as default').'" style="cursor:pointer;background:'.$calInfo['calendarcolor'].'">&nbsp;</div> '.$displayName.$shareLink.$addMenu.'</li>');
 	}

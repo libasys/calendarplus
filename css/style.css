@@ -27,18 +27,24 @@
 	overflow: auto;
 	height:100%;
 	text-overflow: ellipsis;
-	width:300px;
+	width:380px;
 	right:0;
+	margin:0;
+	padding:0;
 	padding-top: 20px;
 	box-sizing: border-box;
 	z-index: 300;
 	/* account for margin-bottom in files list */
 	margin-top: 0px;
 	
-	
-	
 }
-
+.app-calendarplus #searchresults #search-close{
+	font-size:24px;
+	position:absolute;
+	right:20px;
+	top:20px;
+	cursor:pointer;
+}
 
 /*CALENDAR ADD CLASS */
 
@@ -341,8 +347,8 @@ span.colorCal,.task .calCol,.task .priority{
 	padding:0;
 	margin:0;
 	font-size:7pt;
-	border-radius:6px;
-	-webkit-border-radius:6px;
+	border-radius:4px;
+	-webkit-border-radius:4px;
 	line-height:12px;
 	float:left;
 	margin-right:5px;
@@ -503,11 +509,11 @@ margin-right:auto;
 
 
 #rightCalendarNav{
-	width:220px;
-	overflow:auto;
+	width:230px;
+
 	padding:0;
 	margin:0;
-	right:10px;
+	right:0px;
 	top:40px;
 	
 	position:fixed;
@@ -852,11 +858,11 @@ margin-bottom:4px;
 #app-navigation .app-navigation-entry-edit input[type="text"] {
 	padding:0;
 	padding-left:5px;
-	width: 144px;
+	width: 134px;
 	height:30px;
 }
 #app-navigation .app-navigation-entry-edit input[name="caldavuri"]{
-	width: 174px;
+	width: 160px;
 }
 #app-navigation .app-navigation-entry-edit button,
 #app-navigation .app-navigation-entry-edit input[type="submit"] {
@@ -1350,9 +1356,8 @@ td.activeDay{
 ul#taskList{
 	margin:0;
 	padding:0;
-	margin-left:10px;
-	width:205px;
-	
+	width:100%;
+	overflow:auto;
 }
 
 .headTasks{
@@ -1373,6 +1378,7 @@ li.taskListRow{
 	padding-left:2px;
 	float:left;
 	line-height:20px;
+	width:98%;
 	color:#313131;
 	font-size:12px;
 }	
@@ -1380,7 +1386,7 @@ li.taskListRow .addImages{
 	float:left;
 	position:relative;
 	display:block;
-	width:40px;
+	min-width:40px;
 	padding:0;
 	margin:0;
 }
@@ -1398,6 +1404,21 @@ li.taskListRow .description{
 	white-space:normal;
 }
 
+.task .priority,.ioc.priority{
+	color:#000;
+	float:left;
+	
+}
+.task .priority-n,.ioc.priority-n{}
+.task .priority-1,.ioc.priority-1{color:#B81900;}
+.task .priority-2,.ioc.priority-2{color:#B81900;}
+.task .priority-3,.ioc.priority-3{color:#B81900;}
+.task .priority-4,.ioc.priority-4{color:#B81900;}
+.task .priority-5,.ioc.priority-5{color:#D8C101;}
+.task .priority-6,.ioc.priority-6{color:#008000;}
+.task .priority-7,.ioc.priority-7{color:#008000;}
+.task .priority-8,.ioc.priority-8{color:#008000;}
+.task .priority-9,.ioc.priority-9{color:#008000;}
 li.done{text-decoration:line-through;}
 
 #content .isHiddenTask,#content .isHiddenCal{
@@ -1473,10 +1494,22 @@ button.ui-multiselect{
 #event .button,#event .button:active,#event .button.active{
 	padding:0;
 	padding:5px 5px;
-	background:#fff;
+	
 }
 #event .button:hover{
 	background:#f4f4f4;
+}
+
+.button.primary-button{
+	background-color: #35537a;
+	color: #ddd;
+}
+
+
+#event .button.primary-button:hover,
+.button.primary-button:hover{
+	color:#fff;
+	background-color: #35537a;
 }
 
 /**Customized Dialog Buttons**/
@@ -1493,12 +1526,17 @@ button.ui-multiselect{
 }
 
 .combobox {cursor:pointer;display:inline-block;position:absolute;z-index:20;color:#616576;}
-.combobox .selector{z-index:11;border:1px solid #cccccc;width:24px;height:29px;text-align:center;margin-top:5px;line-height:29px;padding-left:6px;border-radius:5px;}
-.combobox ul {z-index:300;padding:0;margin:0;display:inline-block;background-color:#f4f4f4;position:absolute;border:1px solid #bbb;border-radius:8px;padding:8px;}
-.combobox li {color:#616576;border-bottom:1px solid #999;height:26px; line-height:26px;z-index:300;display:block;width:150px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }
+.combobox .selector{z-index:11;border:1px solid #eee;width:24px;height:29px;text-align:center;margin-top:5px;line-height:29px;padding-left:6px;border-radius:5px;}
+.combobox ul {z-index:300;padding:0;margin:0;display:inline-block;background-color:#f4f4f4;position:absolute;border:1px solid #ddd;border-radius:4px;padding:8px;}
+.combobox li {color:#616576;height:26px; line-height:26px;z-index:300;display:block;width:150px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }
 .combobox li .colCal {margin-top:4px;margin-right:5px;}
+.combobox li .colCal {font-size:12px;}
 .combobox li:hover {background-color:#ccc;}
-.combobox li.isSelected{}
+.combobox .isSelectedCheckbox:after{
+	top:-4px;
+	left:2px;
+	font-size:18px;
+}
 
 #sRepeatSelect.combobox ul,#sReminderSelect.combobox ul ,#sCalSelect.combobox ul {
 	border-top-left-radius: 0;
@@ -1519,28 +1557,34 @@ button.ui-multiselect{
 	display:inline-block;
 	background-color:#fff;
 	position:absolute;
-	border:1px solid #DDD;
-	border-radius:5px;
-	box-shadow:1px 1px 2px #bbb;
+	border:1px solid #ddd;
+	border-radius:4px;
+	box-shadow:1px 1px 2px #ddd;
+	border-top:none;
+	border-top-left-radius:0;
+	border-top-right-radius:0;
+	margin-top:-3px;
 	height:auto;
 	padding:8px;
-	width: 90%;
+	width: 95%;
+	
 }
 #sCalSelect.combobox ul li {
 	width: auto;
-	border-bottom:1px solid #ddd;
+	line-height:32px;
+	height:32px;
 	font-size:14px;
 	cursor:pointer;
 }
 #sCalSelect.combobox ul li:hover {
 	background-color:#f4f4f4;
 }
-#sCalSelect .selector{
-	width: 97%;
-	height: 25px;
+#sCalSelect.combobox .comboSelHolder{
+	width: 99%;
+	height: 34px;
 	margin: 3px 3px 3px 0;
-	padding: 3px;
-	border: 1px solid #DDD;
+	
+	border: 1px solid #ddd;
 	outline: medium none;
 	border-radius: 3px;
 	text-align: left;
@@ -1548,6 +1592,23 @@ button.ui-multiselect{
 	font-size: 14px;
 	cursor:pointer;
 }
+#sCalSelect.combobox .comboSelHolder:hover{
+	background-color:#f4f4f4;
+}
+
+#sCalSelect .selector{
+	width: 90%;
+	height: 25px;
+	float:left;
+	text-align:left;
+	border:none;
+	border-radius:none;
+	cursor:pointer;
+}
+#sCalSelect .arrow-down i{
+	font-size: 28px;
+}
+
 #accordion span.labelLeft{
 	float:left;
 	position:relative;
@@ -1562,7 +1623,15 @@ button.ui-multiselect{
 	margin:0;
 	padding:0;
 	border:none;
-	width:160px;
+	width:auto;
+	
+}
+#sRepeatSelect.combobox ul,#sReminderSelect.combobox ul{
+	height:70px;
+	overflow:auto;
+	width:164px;
+	
+	margin-left:0px;
 }
 #sRepeatSelect.combobox{
 	z-index:200;
@@ -1581,21 +1650,21 @@ button.ui-multiselect{
 	margin-left:0px;
 	border-radius:5px;
 	padding:2px;
-	border:1px solid #cccccc;
+	border:1px solid #ddd;
 	background-color:#fff;
 }
 
 #sRepeatSelect.combobox .arrow-down,#sReminderSelect.combobox .arrow-down{
 	
 	position: absolute;
-	right:7px;
+	right:3px;
 	background:none;
 	margin:0;
 	float:left;
 	margin-top:-2px;
 }
 #sRepeatSelect.combobox .arrow-down i,#sReminderSelect.combobox .arrow-down i{
-	font-size:14px;
+	font-size:18px;
 	font-weight:normal;
 }
 
@@ -1609,7 +1678,7 @@ button.ui-multiselect{
 	text-align:left;
 	padding:0;
 	padding-left:5px;
-	border-right:1px solid #ccc;
+	border-right:1px solid #ddd;
 	height:20px;
 	line-height:20px;
 	width:133px;
@@ -1638,7 +1707,7 @@ button.ui-multiselect{
 	width:24px;
 	height:24px;
 	margin:1px;
-	border:1px solid #000;
+	border:1px solid #ddd;
 	display:block;
 	line-height:24px;
 	text-align:center;
@@ -1648,26 +1717,31 @@ button.ui-multiselect{
 	width:30px;
 }
 #rBymonthday.ui-isDisabled li,#rByweekday.ui-isDisabled li,#rBymonth.ui-isDisabled li,#rByweekdayYear.ui-isDisabled li,#rByweekdayWeek.ui-isDisabled li{
-  border:1px solid #ccc;
+  border:1px solid #ddd;
 }
 
 #rBymonthday .ui-selected,#rByweekday .ui-selected,#rBymonth .ui-selected,#rByweekdayYear .ui-selected,#rByweekdayWeek .ui-selected {
-background: #999;
+background: #bbb;
 }
 
 #showOwnDev,#showOwnReminderDev{
 	background:#fff;
 	position:absolute;
-	top:50px;
-	right:20px;
+	top:8px;
+	right:8px;
 	min-height:50px;
 	display:block;
-	width:210px;
-	padding:8px 8px;
+	width:250px;
+	color: #333333;
+	border-radius: 3px; 
+	box-shadow: 0 0 7px #888888;
+	padding: 15px;
+	z-index: 500;
+	font-size: 100%;
+	-webkit-box-sizing: border-box;
+	-moz-box-sizing: border-box;
+	box-sizing: border-box;
 	
-	border-radius:8px;
-	box-shadow:0px 0px 6px #333;
-	z-index:500;
 	
 }
 
@@ -2028,12 +2102,8 @@ ul#categoryCalendarList li .ioc-delete:hover{
 
 
 #event{
-	padding-left:10px;
-	padding-right:10px;
 	color:#616576;
 	overflow:auto;
-	
-	
 }
 
 #accordion .ioc-checkmark{
@@ -2071,11 +2141,15 @@ ul#categoryCalendarList li .ioc-delete:hover{
   font-size:14px;
   line-height:22px;
   padding:5px 8px;
-  border:1px solid #CFCFCF;
+  border:1px solid #ccc;
   border-radius:0;
   box-shadow:none;
  margin-top:4px;
 }
+.button-group > .button.primary-button{
+	 border:1px solid #1d2d44;
+}
+
 .button-group .button + .button{
   margin-left: -5px;
 }
@@ -2120,6 +2194,10 @@ ul#categoryCalendarList li .ioc-delete:hover{
 	margin-left:auto;
 	margin-right:auto;
 }
+#calendar_import_submit{
+	margin-left:5%;
+}
+
 #calendar_import_newcalform input[type="text"],
 .importdiv input[type="text"] {
 	padding:0;

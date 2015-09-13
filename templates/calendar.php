@@ -1,7 +1,7 @@
 <input type="hidden" name="mailNotificationEnabled" id="mailNotificationEnabled" value="<?php p($_['mailNotificationEnabled']) ?>" />
 <input type="hidden" name="allowShareWithLink" id="allowShareWithLink" value="<?php p($_['allowShareWithLink']) ?>" />
 <input type="hidden" name="mailPublicNotificationEnabled"  value="<?php p($_['mailPublicNotificationEnabled']) ?>" />
-<div id="searchresults" class="hidden" data-appfilter="calendarplus"></div>
+<div id="searchresults" class="hidden" data-appfilter="calendarplus"><a id="close-search"><i class="ioc ioc-cancel"></i></a> </div>
 <div id="notification" style="display:none;"></div>
 
 <div id="app-navigation"  <?php print_unescaped($_['isHiddenCal']); ?>>
@@ -26,6 +26,6 @@
 </div>	
 <div id="overlay" class="overlay"></div>
 <div id="dialog_message" style="width:0;height:0;top:0;left:0;display:none;"></div>	
-<div id="dialogSmall" style="width:0;height:0;top:0;left:0;display:none;"></div>
+
 <div id="dialog_holder" style="width:0;height:5px;top:0;left:0;display:none;position:absolute;"></div>
 <div id="appsettings" class="popup topright hidden"></div>

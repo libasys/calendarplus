@@ -11,7 +11,10 @@
 				<input type="text" style="width:100%;width:calc( 100% - 15px );font-size:16px; color:#555;padding:5px;"  placeholder="<?php p($l->t("Title of the Event"));?>" value="<?php p(isset($_['title']) ? $_['title'] : '') ?>" maxlength="100" name="title" id="event-title" autofocus="autofocus"/>
 				
 				<div id="sCalSelect" class="combobox">
-					<div class="selector"><?php p($l->t('Please choose a calendar')); ?></div>
+					<div class="comboSelHolder">	
+						<div class="selector"><?php p($l->t('Please choose a calendar')); ?></div>
+						<div class="arrow-down"><i class="ioc ioc-angle-down"></i></div>
+					</div>
 					<ul>
 						<?php
 						foreach($_['calendar_options'] as $calInfo){
@@ -34,9 +37,9 @@
 		<tr>
 			<td>
 			<?php 
-			$calcWidthLoc = '88%';
+			$calcWidthLoc = '86%';
 			 if(isset($_['eventid']) && $_['eventid'] ==='new'){
-				$calcWidthLoc = '95%';
+				$calcWidthLoc = '96%';
 			}	?>
 			<input type="text" style="width:<?php p($calcWidthLoc) ?>;font-size:14px;font-family:Arial, fontello;float:left;"  placeholder="&#xe852; <?php p($l->t("Location of the Event"));?>" value="<?php p(isset($_['location']) ? $_['location'] : '') ?>" maxlength="100" id="location" name="location" />
              <?php  if(isset($_['eventid']) && $_['eventid'] !='new'){
@@ -108,7 +111,7 @@
 								<div style="float:left;"><i title="<?php p($l->t("Repeat"));?>" style="font-size:18px;margin:0;margin-top:-1px;" class="ioc ioc-repeat"></i></div>	
 					
 							    <div class="selector">Please select</div>
-							    <div class="arrow-down"><i class="ioc ioc-chevron-down"></i></div>
+							    <div class="arrow-down"><i class="ioc ioc-angle-down"></i></div>
 							    </div>
 							    <ul>
 							    	<?php
@@ -164,7 +167,7 @@
 										<div class="comboSelHolder">	
 										<div style="float:left;"><i title="<?php p($l->t("Reminder"));?>" style="font-size:18px;margin:0;margin-top:-1px;" class="ioc ioc-clock"></i></div>	
 									    <div class="selector">Please select</div>
-									    <div class="arrow-down"><i class="ioc ioc-chevron-down"></i></div>
+									    <div class="arrow-down"><i class="ioc ioc-angle-down"></i></div>
 									    </div>
 									    <ul>
 									    	<?php
@@ -331,7 +334,7 @@
 			<span style="width:100%;border-top:1px solid #bbb;display:block;padding-top:4px;">
 				<div class="button-group" style="float:right;">
 				<button id="rCancel" class="button"><?php p($l->t("Cancel"));?></button> 
-				<button id="rOk" style="font-weight:bold;color:#0098E4; min-width:60px;"  class="button"><?php p($l->t("OK"));?></button>
+				<button id="rOk" style="min-width:60px;"  class="button primary-button"><?php p($l->t("OK"));?></button>
 				</div>
 			</span>	
 		</div>		
@@ -361,7 +364,7 @@
 					<span style="width:100%;border-top:1px solid #bbb;display:block;padding-top:4px;">
 				<div class="button-group" style="float:right;">
 				<button id="remCancel" class="button"><?php p($l->t("Cancel"));?></button> 
-				<button id="remOk" style="font-weight:bold;color:#0098E4; min-width:60px;"  class="button"><?php p($l->t("OK"));?></button>
+				<button id="remOk"  class="button primary-button" style="min-width:60px;"><?php p($l->t("OK"));?></button>
 				</div>
 			</span>		
 		</div>

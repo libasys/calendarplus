@@ -10,7 +10,7 @@
 		
 	<div  class="button-group" style="float:right;">
 		<button id="closeDialog" class="button"><?php p($l->t("Cancel"));?></button> 
-		<button  class="button" id="submitNewEvent" data-link="<?php print_unescaped(\OC::$server->getURLGenerator()->linkToRoute($_['appname'].'.event.newEvent')); ?>" style="min-width:60px;"><?php p($l->t("OK"));?></button> 	
+		<button  class="button primary-button" id="submitNewEvent" data-link="<?php print_unescaped(\OC::$server->getURLGenerator()->linkToRoute($_['appname'].'.event.newEvent')); ?>" style="min-width:60px;"><?php p($l->t("OK"));?></button> 	
 	</div>
 	</div>
 	

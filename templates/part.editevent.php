@@ -34,7 +34,7 @@
 		</div>
 		<div  class="button-group second" style="float:right;">
 		<button id="closeDialog" class="button"><?php p($l->t("Cancel"));?></button> 
-		<button id="editEvent-submit" class="button" data-link="<?php print_unescaped(\OC::$server->getURLGenerator()->linkToRoute($_['appname'].'.event.editEvent')) ?>" style="min-width:60px;"><?php p($l->t("OK"));?></button> 
+		<button id="editEvent-submit" class="button primary-button" data-link="<?php print_unescaped(\OC::$server->getURLGenerator()->linkToRoute($_['appname'].'.event.editEvent')) ?>" style="min-width:60px;"><?php p($l->t("OK"));?></button> 
 	   </div>
 	
 	</div>

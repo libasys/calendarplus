@@ -163,7 +163,7 @@
 </div>
 -->
 <div id="actions" style="float:left;width:100%;padding-top:5px;">
-<div  class="button-group" style="width:46.5%; float:left;">
+<div  class="button-group group-left" style="width:48.5%; float:left;">
     <?php 
 		       $DeleteButtonTitle=$l->t("Delete");
 		        if($_['addSingleDeleteButton'] ) {
@@ -183,11 +183,11 @@
 	
 	<?php } ?> 
 </div>	
-<div class="button-group" style="float:right;">
+<div class="button-group group-right" style="float:right;">
 	  		<button id="closeDialog" class="button"><?php p($l->t("Cancel"));?></button> 
 	  		
 	  		<?php if($_['permissions'] & OCP\PERMISSION_UPDATE) { ?>
-  	<button id="editEventButton" style="min-width:60px;" class="button"><?php p($l->t("Edit"));?></button> 		
+  	<button id="editEventButton" style="min-width:60px;" class="button primary-button"><?php p($l->t("Edit"));?></button> 		
            <?php } ?>
 		
 	   </div>

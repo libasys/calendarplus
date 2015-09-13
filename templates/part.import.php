@@ -77,7 +77,7 @@ $calendar_options = OCA\CalendarPlus\Calendar::allCalendars(OCP\USER::getUser())
 		<label for="calendar_import_overwrite"><?php p($l->t('Remove all events from the selected calendar')); ?></label>
 		<br>
 		</div>
-		<input id="calendar_import_submit" type="button" class="button" value="&raquo; <?php p($l->t('Import')); ?> &raquo;" id="startimport">
+		<button id="calendar_import_submit" class="button primary-button"><?php p($l->t('Import')); ?></button>
 	<form>
 </div>
 <div id="calendar_import_process">

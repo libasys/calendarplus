@@ -40,6 +40,18 @@
 	height:30px;
 	float: left;
 }
+.button.primary-button{
+	background-color: #35537a;
+	color: #ddd;
+}
+.button.primary-button:hover{
+	color:#fff;
+	background-color: #35537a;
+}
+
+#calendar_import_submit{
+	margin-left:5%;
+}
 
 .importdiv button,
 .importdiv input[type="submit"] {
