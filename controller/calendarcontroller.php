@@ -34,8 +34,10 @@ use \OCA\CalendarPlus\ActivityData;
 use \OCP\AppFramework\Controller;
 use \OCP\AppFramework\Http\JSONResponse;
 use \OCP\AppFramework\Http\TemplateResponse;
+use \OCP\AppFramework\Http\DataDownloadResponse;
 use \OCP\IRequest;
 use \OCP\IConfig;
+use \OC\Files\View;
 
 class CalendarController extends Controller {
 
@@ -486,10 +488,10 @@ class CalendarController extends Controller {
 
 	/**
 	 * @NoAdminRequired
+	 *@param integer $calendarid
 	 */
-	public function refreshSubscribedCalendar() {
-		$calendarid = (int)$this -> params('calendarid');
-
+	public function refreshSubscribedCalendar($calendarid) {
+	
 		$calendar = CalendarApp::getCalendar($calendarid, false, false);
 		if (!$calendar) {
 			$params = ['status' => 'error', 'message' => 'permission denied'];
@@ -504,6 +506,7 @@ class CalendarController extends Controller {
 			$opts = array($protocol => array('method' => 'POST', 'header' => "Content-Type: text/calendar\r\n", 'timeout' => 60));
 	
 			$aMeta = $this -> stream_last_modified(trim($calendar['externuri']));
+			
 			if ($aMeta['fileaccess'] === true) {
 				$context = stream_context_create($opts);
 				$file = file_get_contents($calendar['externuri'], false, $context);
@@ -512,27 +515,43 @@ class CalendarController extends Controller {
 				$import = new Import($file);
 				$import -> setUserID($this -> userId);
 				$import -> setTimeZone(CalendarApp::$tz);
-				$import -> setOverwrite(true);
+				//$import -> setOverwrite(false);
+				$import->setCheckModifiedDate(true);
+				$import->setImportFromUri(true);
 				$import -> setCalendarID($calendarid);
 				try {
 					$import -> import();
+					
+					$importCount = $import->getCountImport();
+					
+					$params = ['status' => 'success', 'refresh' => $calendarid,'count' => $importCount ];
+					$response = new JSONResponse($params);
+					return $response;
+					
 				} catch (Exception $e) {
-					$params = ['status' => 'error', 'message' => $this -> l10n -> t('Import failed')];
+					$params = ['status' => 'error', 'message' => (string)$this -> l10n -> t('Import failed')];
 					$response = new JSONResponse($params);
 					return $response;
 	
 				}
+			}else{
+				$params = ['status' => 'error', 'message' =>(string)$this->l10n-> t('Import failed') ];
+				$response = new JSONResponse($params);
+				return $response;
 			}
 		}else{
 			$this->addBirthdays($this->userId,(int)$calendarid);
+			$params = ['status' => 'success', 'refresh' => $calendarid, ];
+			$response = new JSONResponse($params);
+			return $response;
 		}
 		
-		$params = ['status' => 'success', 'refresh' => $calendarid, ];
-		$response = new JSONResponse($params);
-		return $response;
+		
 
 	}
 
+
+	
 	/**
 	 * @NoAdminRequired
 	 * @param string $importurl
@@ -573,14 +592,18 @@ class CalendarController extends Controller {
 			}
 
 		}
-		$opts = array($protocol => array('method' => 'POST', 'header' => "Content-Type: text/calendar\r\n", 'timeout' => 60));
+		$opts = array($protocol => array('method' => 'GET', 'header' => "Content-Type: text/calendar\r\n", 'timeout' => 60));
 		$bError = false;
+		
+		
 		if ($bExistUri === true) {
 			$context = stream_context_create($opts);
 			
 				
 			try {
 				$file = file_get_contents($newUrl, false, $context);
+				//\OCP\Util::writeLog('calendarplus','FILE: '.$newUrl, \OCP\Util::DEBUG);
+				
 				$import = new \OCA\CalendarPlus\Import($file);
 				$import->setUserID($this->userId);
 				$guessedcalendarname = \OCP\Util::sanitizeHTML($import->guessCalendarName());
@@ -820,9 +843,10 @@ class CalendarController extends Controller {
 					
 				}	
 			}
-			//\OCP\Util::writeLog('calendarplus','CONTENTTYPE: '.$meta['wrapper_data'][$j], \OCP\Util::DEBUG);	
+
 			if (strstr(strtolower($meta['wrapper_data'][$j]), 'last-modified')) {
 				$modtime = substr($meta['wrapper_data'][$j], 15);
+				
 			}
 		}
 		fclose($fp);

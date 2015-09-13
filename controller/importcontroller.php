@@ -172,6 +172,10 @@ class ImportController extends Controller {
 		$import->setTimeZone(CalendarApp::$tz);
 		$import->enableProgressCache();
 		$import->setProgresskey($pProgresskey);
+		
+		$bUriImport = ($pIsSub ==='true' ? true : false);
+		$import->setImportFromUri($bUriImport);
+		
 		if(!$import->isValid()) {
 			$params = [
 					'status' => 'error',

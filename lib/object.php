@@ -223,6 +223,18 @@ class Object{
 	}
 
 	/**
+	 * @brief Returns an object
+	 * @param string $uid
+	 * @return associative array
+	 */
+	public static function findByUID($uid) {
+		$stmt = \OCP\DB::prepare( 'SELECT `id`,`lastmodified` FROM `'.App::CldObjectTable.'` WHERE `eventuid` = ?' );
+		$result = $stmt->execute(array($uid));
+
+		return $result->fetchRow();
+	}
+	
+	/**
 	 * @brief finds an object by its DAV Data
 	 * @param integer $cid Calendar id
 	 * @param string $uri the uri ('filename')
@@ -258,16 +270,24 @@ class Object{
 		
 		
 		$object = VObject::parse($data);
+		
+		
 		list($type,$startdate,$enddate,$summary,$repeating,$uid,$isAlarm,$relatedTo) = self::extractData($object);
 		
 		if(is_null($uid)) {
 			$object->setUID();
 			$data = $object->serialize();
 		}
-
+		
+		$vevent = $object -> VEVENT;
+		$lastModified = time();
+		if(isset($vevent->{'LAST-MODIFIED'})){
+			$lastModified = strtotime($vevent->{'LAST-MODIFIED'});
+		}
+		
 		$uri = 'owncloud-'.md5($data.rand().time()).'.ics';
 		
-		$values=[$id,$type,$startdate,$enddate,$repeating,$summary,$data,$uri,time(),$isAlarm,$uid,$relatedTo];
+		$values=[$id,$type,$startdate,$enddate,$repeating,$summary,$data,$uri,$lastModified,$isAlarm,$uid,$relatedTo];
 		if($shared === true){
 			$values[]=$eventid;
 			$values[]=\OCP\User::getUser();
@@ -285,11 +305,12 @@ class Object{
 		
     	
 		App::loadCategoriesFromVCalendar($object_id, $object);
-		
-		$app = new Application();
-		$c = $app->getContainer();
-		$repeatController = $c->query('RepeatController');
-		$repeatController->generateEventCache($object_id);
+		if($repeating){
+			$app = new Application();
+			$c = $app->getContainer();
+			$repeatController = $c->query('RepeatController');
+			$repeatController->generateEventCache($object_id);
+		}
 		
 		Calendar::touchCalendar($id);
 		//\OCP\Util::emitHook('\OCA\CalendarPlus', 'addEvent', $object_id);
@@ -440,12 +461,12 @@ class Object{
 	 * @param string $data  object
 	 * @return boolean
 	 */
-	public static function edit($id, $data) {
+	public static function edit($id, $data , $forceEdit = false) {
 		$oldobject = self::find($id);
 		$calid = self::getCalendarid($id);
 		$calendar = Calendar::find($calid);
 		
-		if ($calendar['userid'] == \OCP\User::getUser() && $calendar['issubscribe']) {
+		if ($forceEdit === false && ($calendar['userid'] == \OCP\User::getUser() && $calendar['issubscribe'])) {
 			exit();
 		}
 		
@@ -479,6 +500,15 @@ class Object{
 		$object = VObject::parse($data);
 		App::loadCategoriesFromVCalendar($id, $object);
 		list($type,$startdate,$enddate,$summary,$repeating,$uid,$isAlarm) = self::extractData($object);
+		
+		$lastModified = time();
+		if($forceEdit === true){
+			$vevent = $object -> VEVENT;
+			
+			if(isset($vevent->{'LAST-MODIFIED'})){
+				$lastModified = strtotime($vevent->{'LAST-MODIFIED'});
+			}
+		}
 
         //check Share
         $stmtShare = \OCP\DB::prepare("SELECT COUNT(*) AS COUNTSHARE FROM `*PREFIX*share` WHERE `item_source` = ? AND `item_type`= ? ");
@@ -492,15 +522,20 @@ class Object{
 				$stmt = \OCP\DB::prepare( 'UPDATE `'.App::CldObjectTable.'` SET `objecttype`=?,`startdate`=?,`enddate`=?,`repeating`=?,`summary`=?,`calendardata`=?,`lastmodified`= ?,`isalarm`= ? WHERE `org_objid` = ?' );
 		        $stmt->execute(array($type,$startdate,$enddate,$repeating,$summary,$data,time(),$isAlarm,$id));
         }
+		
+		
+		
 		$stmt = \OCP\DB::prepare( 'UPDATE `'.App::CldObjectTable.'` SET `objecttype`=?,`startdate`=?,`enddate`=?,`repeating`=?,`summary`=?,`calendardata`=?,`lastmodified`= ?,`isalarm`= ? WHERE `id` = ?' );
-		$stmt->execute(array($type,$startdate,$enddate,$repeating,$summary,$data,time(),$isAlarm,$id));
+		$stmt->execute(array($type,$startdate,$enddate,$repeating,$summary,$data,$lastModified,$isAlarm,$id));
 
 		Calendar::touchCalendar($oldobject['calendarid']);
 		
-		$app = new Application();
-		$c = $app->getContainer();
-		$repeatController = $c->query('RepeatController');
-		$repeatController->updateEvent($id);
+		if($repeating){
+			$app = new Application();
+			$c = $app->getContainer();
+			$repeatController = $c->query('RepeatController');
+			$repeatController->updateEvent($id);
+		}
 		
 		//\OCP\Util::emitHook('\OCA\CalendarPlus', 'editEvent', $id);
 		

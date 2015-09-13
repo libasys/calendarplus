@@ -56,25 +56,29 @@ CalendarPlus.Import =  {
 		},
 		close: function(){
 			CalendarPlus.Import.reset();
-			$('#calendar_import_dialog').dialog('destroy').remove();
+			$('#calendar_import_dialog').ocdialog('close');
+			$('#calendar_import_dialog').ocdialog('destroy').remove();
 			$('#calendar_import_dialog').remove();
 		},
 		init: function(){
 			//init dialog
-			
-			$('#calendar_import_dialog').dialog({
-				width : 500,
-				resizable: false,
-				close : function() {
+			$('#calendar_import_dialog').ocdialog({
+					modal: true,
+					closeOnEscape: true,
+					height: 'auto', width:500,
+					close : function() {
 					CalendarPlus.Import.Dialog.close();
-				}
+					}
 			});
+			
+			
 			//init buttons
 			$('#calendar_import_done').click(function(){
 				CalendarPlus.Import.Dialog.close();
 			});
 			$('#calendar_import_submit').click(function(){
 				CalendarPlus.Import.Core.process();
+				return false;
 			});
 			
 			if(CalendarPlus.Import.Store.isSub === true){
@@ -96,6 +100,7 @@ CalendarPlus.Import =  {
 			$('#calendar_import_mergewarning').click(function(){
 				$('#calendar_import_newcalendar').attr('value', $('#calendar_import_availablename').val());
 				CalendarPlus.Import.Dialog.mergewarning($('#calendar_import_newcalendar').val());
+				return false;
 			});
 			$('#calendar_import_calendar').change(function(){
 				if($('#calendar_import_calendar option:selected').val() == 'newcal'){

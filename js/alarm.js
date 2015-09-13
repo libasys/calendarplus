@@ -35,9 +35,7 @@ OC.search.resultTypes['contacts']=t('kontakte','Contacts');
 })(jQuery);
 
 $(document).ready(function(){
-	if($('#reminderBox').length === 0){
-		$('<div id="reminderBox" style="width:0;height:0;top:0;left:0;z-index:300;display:none;">').appendTo($('body')[0]);
-	}
+	
 	liveReminderCheck();
 	
 });
@@ -61,6 +59,25 @@ function liveReminderCheck(){
 			if($('#fullcalendar').length === 1 && CalendarPlus.calendarConfig != null){
 			//calId = ctag
 				myRefChecker=CalendarPlus.calendarConfig['myRefreshChecker'];
+				//CalendarPlus.UI.loading(true);
+				//shows all 5 minutes
+				if(CalendarPlus.UI.timerRun === 5 ){
+					$.each(CalendarPlus.calendarConfig['mycalendars'], function(i, elem) {
+						if(elem.issubscribe === 1 && elem.uri !== 'bdaycpltocal_'+oc_current_user){
+							
+								CalendarPlus.UI.Calendar.autoRefreshCalendar(elem.id);
+								
+						}
+					});
+					CalendarPlus.UI.timerRun = 0;
+					if(CalendarPlus.UI.isRefresh === true) {
+						$('#fullcalendar').fullCalendar('refetchEvents');
+						CalendarPlus.UI.isRefresh = false;
+					}
+					
+				}
+				
+				
 			}
 			
 			$.post(url,{EvSource:myRefChecker},function(jasondata){
@@ -68,13 +85,9 @@ function liveReminderCheck(){
 					if($('#fullcalendar').length === 1){
 					  if(jasondata.refresh !== 'onlyTimeLine'){
 						
-							CalendarPlus.calendarConfig['myRefreshChecker'][jasondata.refresh.id]=jasondata.refresh.ctag;
-							if(CalendarPlus.UI.timerLock == false) {
-								$('#fullcalendar').fullCalendar('refetchEvents');
-							}
-							if(CalendarPlus.UI.timerLock == true) {
-								CalendarPlus.UI.timerLock=false;
-							}
+							//CalendarPlus.calendarConfig['myRefreshChecker'][jasondata.refresh.id]=jasondata.refresh.ctag;
+							
+							
 						}
 						
 						
@@ -90,8 +103,9 @@ function liveReminderCheck(){
 			
 			if($('#fullcalendar').length === 1){
 				CalendarPlus.Util.setTimeline();
-				
+				CalendarPlus.UI.timerRun ++;
 			}
+			
 			
 		}, 60000);
 		
@@ -101,7 +115,7 @@ function liveReminderCheck(){
 
 var openReminderDialog=function(data){
 			//var output='<audio autoplay="autoplay"><source src="'+OC.filePath('calendar','audio', 'ring.ogg')+'"></source><source src="'+OC.filePath('calendar','audio','ring.mp3')+'"></source></audio>';
-			
+			$('body').append('<div id="reminderBox"></div>');
 			
 			 var output='';
 			 $.each(data, function(i, elem) {
@@ -109,23 +123,26 @@ var openReminderDialog=function(data){
 				  output+='<i class="ioc ioc-'+elem.icon+'"></i> <a href="'+elem.link+'">'+elem.summary+'</a><br />';
 				
 				});
-			$( "#reminderBox" ).html(output);	
-			 $.playSound(oc_webroot+'/apps/calendarplus/audio/ring');
-			$( "#reminderBox" ).dialog({
-			resizable: false,
-			title : t('calendarplus', 'Reminder Alert'),
-			width:350,
-			height:200,
-			modal: true,
-			buttons: 
-			[  { text:t('calendarplus', 'Ready'), click: function() {
-			    	$( "#reminderBox" ).html('');	
-			    	$( this ).dialog( "close" );
-			    }
-			    } 
-			],
-	
-		});
+				 $.playSound(oc_webroot+'/apps/calendarplus/audio/ring');
+				$('#reminderBox').html(output).ocdialog({
+					modal: true,
+					closeOnEscape: true,
+					title : t('calendarplus', 'Reminder Alert'),
+					height: 'auto', width: 'auto',
+					buttons: 
+					[{ 
+						text:t('calendarplus', 'Ok'), click: function() {
+					    	$(this).ocdialog("close");
+					   },
+					   defaultButton: true
+					}],
+					close: function(/*event, ui*/) {
+					$(this).ocdialog('destroy').remove();
+					$('#reminderBox').remove();
+					
+					},
+				});
+			
   	 
 		return false;
 

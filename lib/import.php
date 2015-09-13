@@ -65,7 +65,11 @@ class Import{
 	/*
 	 * @brief overwrite flag
 	 */
-	private $overwrite;
+	private $overwrite = false;
+	
+	private $bModified = false;
+	
+	private $bImportUri = false;
 
 	/*
 	 * @brief var saves the percentage of the import's progress
@@ -136,16 +140,51 @@ class Import{
 			return false;
 		}
 		$this->numofcomponents = count($this->calobject->getComponents());
-		if($this->overwrite) {
+		if($this->overwrite === true) {
 			foreach(Object::all($this->id) as $obj) {
 				Object::delete($obj['id']);
+				
 			}
+			//\OCP\Util::writeLog('calendarplus','DELETE MOD WUPPS FOUND: ', \OCP\Util::DEBUG);
 		}
 		
+		//Check if a subscribed event is deleted
+		
+		
+		$existObjects = [];
 		foreach($this->calobject->getComponents() as $object) {
 			if(!($object instanceof \Sabre\VObject\Component\VEvent)  && !($object instanceof \Sabre\VObject\Component\VJournal) && !($object instanceof \Sabre\VObject\Component\VTodo)) {
 				continue;
 			}
+			
+			if($this->bImportUri === true && $object instanceof \Sabre\VObject\Component\VTodo){
+				continue;
+			}
+			
+			//refresh subscribed calendar check
+				
+			if($this->bModified === true && !is_null($object->{'UID'})){
+				$testObject = Object::findByUID($object->{'UID'});
+				$existObjects[$testObject['id']] = 1;
+				if(isset($testObject['lastmodified']) && !is_null($object->{'LAST-MODIFIED'})){
+					$importLastModified = strtotime($object->{'LAST-MODIFIED'});
+			
+					if($importLastModified > $testObject['lastmodified']){
+						//Object::delete($testObject['id']);
+						$vcalendar = $this->createVCalendar($object->serialize(),$bAddtz);
+						Object::edit($testObject['id'], $vcalendar, true);
+						$this->abscount++;
+						continue;
+					}
+	
+					if($importLastModified == $testObject['lastmodified']){
+						
+						continue;
+					}
+				}
+			}
+			
+			
 			if(!is_null($object->DTSTART)){
 				$dtend = Object::getDTEndFromVEvent($object);
 				if($object->DTEND) {          
@@ -155,6 +194,7 @@ class Import{
 					$object->DTEND->setDateTime($dtend);
 				}
 			}
+			
 			$bAddtz = false;
 			if(!is_null($object->RRULE)){
 				$bAddtz =true;
@@ -167,17 +207,39 @@ class Import{
 				$this->currentSummary = 'Event '. $object->SUMMARY;
 			}
 			
+			
 			$vcalendar = $this->createVCalendar($object->serialize(),$bAddtz);
 			$insertid = Object::add($this->id, $vcalendar);
+			$existObjects[$insertid]= 1;
+			
 			$this->abscount++;
-			if($this->isDuplicate($insertid)) {
+			
+				
+			if($this->bModified === false && $this->isDuplicate($insertid)) {
 				Object::delete($insertid);
 			}else{
 				$this->count++;
 			}
+			
+			
+			
 			$this->updateProgress(intval(($this->abscount / $this->numofcomponents)*100));
 		}
 		$this->cache->remove($this->progresskey);
+		
+		if($this->bModified === true){
+				
+			foreach(Object::all($this->id) as $obj) {
+				if(isset($existObjects[$obj['id']])){
+					
+				}else{
+					Object::delete($obj['id']);
+					$this->abscount = 1;
+				}
+			}	
+			
+		}
+		
 		return true;
 	}
 
@@ -196,9 +258,21 @@ class Import{
 	 */
 	public function setOverwrite($overwrite) {
 		$this->overwrite = (bool) $overwrite;
-		return true;
 	}
-
+	
+	/*
+	 * @brief sets the overwrite flag
+	 * @return boolean
+	 */
+	public function setCheckModifiedDate($bModified) {
+		$this->bModified = (bool) $bModified;
+	}
+	
+	public function setImportFromUri($bImportUri) {
+		$this->bImportUri = (bool) $bImportUri;
+	}
+	
+	
 	/*
 	 * @brief sets the progresskey
 	 * @return boolean
@@ -217,6 +291,14 @@ class Import{
 			return true;
 		}
 		return false;
+	}
+	
+	 /*
+	 * @brief returns the count of imported events
+	 * @return integer
+	 */
+	public function getCountImport(){
+		return $this->abscount;
 	}
 
 	/*
