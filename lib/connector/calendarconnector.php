@@ -91,7 +91,23 @@ class CalendarConnector {
 
 		$object = $objectParser -> parse($calendarData);
 		list($type, $startdate, $enddate, $summary, $repeating, $uid, $isAlarm, $relatedTo) = $objectParser -> extractData($object);
-
+		
+		//Thunderbird fix multiple categories
+		$vevent = $object->VEVENT;
+		if(isset($vevent->CATEGORIES) && count($vevent->CATEGORIES) > 1){
+			$sCat ='';	
+			foreach($vevent->CATEGORIES as $key => $val){
+				if($sCat === ''){
+					$sCat .= $val;
+				}else{
+					$sCat .= ','.$val;
+				}	
+			}
+			unset($vevent->CATEGORIES);
+			$vevent->CATEGORIES = $sCat;
+			$calendarData = $object->serialize();			
+		}
+		
 		$eventDB = new EventDAO($this -> db, $this -> userId, null);
 		$object_id = $eventDB -> add($calendarId, $type, $startdate, $enddate, $repeating, $summary, $calendarData, $objectUri, time(), $isAlarm, $uid, $relatedTo, 0, $this -> userId);
 
@@ -151,6 +167,23 @@ class CalendarConnector {
 		}
 		$object = $objectParser -> parse($data);
 		list($type, $startdate, $enddate, $summary, $repeating, $uid, $isAlarm, $relatedTo) = $objectParser -> extractData($object);
+		
+		//Thunderbird fix
+		$vevent = $object->VEVENT;
+		if(isset($vevent->CATEGORIES) && count($vevent->CATEGORIES) > 1){
+			$sCat ='';	
+			foreach($vevent->CATEGORIES as $key => $val){
+				if($sCat === ''){
+					$sCat .= $val;
+				}else{
+					$sCat .= ','.$val;
+				}	
+			}
+			unset($vevent->CATEGORIES);
+			$vevent->CATEGORIES = $sCat;
+			$data = $object->serialize();			
+		}
+		
 
 		$eventDB = new EventDAO($this -> db, $this -> userId, null);
 		$eventDB -> update($type, $startdate, $enddate, $repeating, $summary, $data, time(), $isAlarm, $uid, $relatedTo, $oldobject['id']);

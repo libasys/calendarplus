@@ -188,6 +188,7 @@ class CalendarSettingsController extends Controller {
 				$myCalendars[$calendar['id']]=[
 					'id'=> $calendar['id'],
 					'name'=>$calendar['displayname'],
+					'uri' => $calendar['uri'],
 					'issubscribe' => (int) $calendar['issubscribe'],
 					'permissions' => (int) $calendar['permissions'],
 				];

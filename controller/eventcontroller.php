@@ -290,9 +290,9 @@ class EventController extends Controller {
 				if(!array_key_exists($category, $aCatNew)){
 					$sCatNew.= ','.$category;
 				}
-				$vevent->setString('CATEGORIES', $sCatNew);
+				$vevent->CATEGORIES = $sCatNew;
 			}else{
-				$vevent->setString('CATEGORIES', $category);
+				$vevent->CATEGORIES = $category;
 			}
 			
 			$vevent->setDateTime('LAST-MODIFIED', 'now');
@@ -1693,6 +1693,7 @@ class EventController extends Controller {
 			if(isset($event['shared']) && $event['shared'] === 1){
 				$isEventShared = $event['shared'];
 			}
+			
 			
 			$lastmodified = ($last_modified) ? $last_modified -> getDateTime() -> format('U') : 0;
 			$staticoutput = array(

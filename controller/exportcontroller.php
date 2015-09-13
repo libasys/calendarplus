@@ -49,6 +49,8 @@ class ExportController extends Controller {
 		$this->configInfo = $settings;
 	}
 	
+
+	
 	/**
 	*@PublicPage
 	 * @NoCSRFRequired
@@ -62,7 +64,7 @@ class ExportController extends Controller {
 		if (isset($token)) {
 				
 			$linkItem = \OCP\Share::getShareByToken($token, false);
-			if (is_array($linkItem) && isset($linkItem['uid_owner'])) {
+			if (is_array($linkItem) && isset($linkItem['uid_owner']) && !isset($linkItem['share_with'])) {
 				$rootLinkItem = \OCP\Share::resolveReShare($linkItem);
 				
 				if (isset($rootLinkItem['uid_owner'])) {
@@ -113,7 +115,7 @@ class ExportController extends Controller {
 			$calendarEvents = Export::export($calid, Export::CALENDAR);
 			
 			$response = new DataDownloadResponse($calendarEvents, $name, 'text/calendar');
-			
+			$response->addHeader('last-modified',$calendar['lastmodifieddate']);
 			return $response;	
 				
 		}
