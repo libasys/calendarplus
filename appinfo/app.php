@@ -33,7 +33,7 @@ $navigationEntry = function () use ($c) {
 		'order' => 1,
 		'name' => $c->query('L10N')->t('Calendar+'),
 		'href' => $c->query('URLGenerator')->linkToRoute($c->getAppName().'.page.index'),
-		'icon' => $c->query('URLGenerator')->imagePath($c->getAppName(), 'calendar.svg'),
+		'icon' => $c->query('URLGenerator')->imagePath($c->getAppName(), 'calendarplus.svg'),
 	];
 };
 $c->getServer()->getNavigationManager()->add($navigationEntry);
@@ -49,6 +49,8 @@ if(\OC::$server->getAppManager()->isEnabledForUser('activity')){
 }
 
 \OCA\CalendarPlus\Hooks::register();
+
+\Sabre\VObject\Component\VCalendar::$propertyMap['CATEGORIES'] = '\OCA\CalendarPlus\VObject\StringPropertyCategories';
 
 \OCP\Util::addScript($appName,'alarm');
 

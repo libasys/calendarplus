@@ -660,7 +660,7 @@ class ObjectParser  {
 		$vevent->setString('CLASS', $accessclass);
 		$vevent->setString('LOCATION', $location);
 		$vevent->setString('DESCRIPTION', $description);
-		$vevent->setString('CATEGORIES', $categories);
+		$vevent->CATEGORIES = $categories;
 		$vevent->setString('URL', $link);
 
 
